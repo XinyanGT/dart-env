@@ -1496,11 +1496,10 @@ class DartClothIiwaEnv(gym.Env):
         for i in range(n_frames):
             self.human_skel.set_forces(human_tau)
 
-            if self.passive_robots: #0 torques for all robots
-                for iiwa in self.iiwas:
+            for iiwa in self.iiwas:
+                if self.passive_robots:  # 0 torques for all robots
                     iiwa.skel.set_forces(np.zeros(13))
-            else: #compute torques from SPD controller
-                for iiwa in self.iiwas:
+                else:
                     iiwa.skel.set_forces(iiwa.computeTorque())
 
             self.dart_world.step()
