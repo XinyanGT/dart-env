@@ -706,10 +706,11 @@ class ContinuousCapacitiveSensor:
 class Iiwa:
     #contains all necessary structures to define, control, simulate and reset a single Iiwa robot instance
 
-    def __init__(self, skel, env, index, root_dofs=np.zeros(6)):
+    def __init__(self, skel, env, index, root_dofs=np.zeros(6), active_compliance=True):
         self.env = env
         self.skel = skel
         self.index = index
+        self.active_compliance = active_compliance
 
         self.frameInterpolator = {"active": True, "target_pos": np.zeros(3), "target_frame": np.identity(3), "speed": 0.5, "aSpeed": 4, "localOffset": np.array([0, 0, 0]), "eulers": np.zeros(3), "distanceLimit": 0.15}
         self.manualFrameTarget = pyutils.ShapeFrame()
@@ -786,7 +787,9 @@ class Iiwa:
         #predicted_pose = self.skel.q + (np.concatenate([self.root_dofs, result]) - self.skel.q)*5.0
         predicted_pose = np.concatenate([self.root_dofs, result])
         #if self.env.checkIiwaPose(self.skel, predicted_pose):
-        if self.env.checkProxyPose(self.index, predicted_pose):
+        if not self.active_compliance:
+            self.previousIKResult = np.array(result)
+        elif self.env.checkProxyPose(self.index, predicted_pose):
             self.previousIKResult = np.array(result)
         else:
             #print("collision pose")
@@ -997,7 +1000,7 @@ class DartClothIiwaEnv(gym.Env):
     """Superclass for all Dart, PhysX Cloth, Human/Iiwa interaction environments.
         """
 
-    def __init__(self, human_world_file=None, proxy_human_world_file=None, robot_file=None, pybullet_robot_file=None, experiment_directory=None, dt=0.0025, frame_skip=4, task_horizon=600, simulate_cloth=True, cloth_mesh_file=None, cloth_mesh_state_file=None, cloth_scale= 1.0, cloth_friction=0.25, robot_root_dofs=[]):
+    def __init__(self, human_world_file=None, proxy_human_world_file=None, robot_file=None, pybullet_robot_file=None, experiment_directory=None, dt=0.0025, frame_skip=4, task_horizon=600, simulate_cloth=True, cloth_mesh_file=None, cloth_mesh_state_file=None, cloth_scale= 1.0, cloth_friction=0.25, robot_root_dofs=[], active_compliance=True):
         '''
 
         :param human_world_file: filename of human skel and world file for dart in assets folder, default if None
@@ -1026,6 +1029,7 @@ class DartClothIiwaEnv(gym.Env):
         self.detail_render = True
         self.simulating = True #used to allow simulation freezing while rendering continues
         self.passive_robots = False #if true, no motor torques from the robot
+        self.active_compliance = active_compliance
         self.manual_robot_control = False
         self.manual_human_control = False
         self.print_skel_details = False
@@ -1288,7 +1292,7 @@ class DartClothIiwaEnv(gym.Env):
             self.proxy_dart_world.add_skeleton(filename=robot_file)
             self.proxy_iiwa_skels.append(self.proxy_dart_world.skeletons[-1])
 
-            self.iiwas.append(Iiwa(skel=self.dart_world.skeletons[-1], env=self, index=ix, root_dofs=root_dofs))
+            self.iiwas.append(Iiwa(skel=self.dart_world.skeletons[-1], env=self, index=ix, root_dofs=root_dofs, active_compliance=self.active_compliance))
             if self.print_skel_details:
                 self.iiwas[-1].printSkelDetails()
             #modify the action scale #TODO: edit this?

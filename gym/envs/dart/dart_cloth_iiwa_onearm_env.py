@@ -2,6 +2,7 @@ from gym.envs.dart.dart_cloth_iiwa_env import *
 
 class DartClothIiwaOnearmEnv(DartClothIiwaEnv):
     def __init__(self):
+
         self.limbNodesR = [3, 4, 5, 6, 7]
         self.limbNodesL = [8, 9, 10, 11, 12]
 
@@ -19,7 +20,7 @@ class DartClothIiwaOnearmEnv(DartClothIiwaEnv):
         #initialize the base env
         cloth_mesh_file = "fullgown1.obj"
         cloth_mesh_state_file = "hanginggown.obj"
-        DartClothIiwaEnv.__init__(self, robot_root_dofs=self.iiwa_root_dofs, cloth_mesh_file=cloth_mesh_file, cloth_mesh_state_file=cloth_mesh_state_file, cloth_scale=1.3)
+        DartClothIiwaEnv.__init__(self, robot_root_dofs=self.iiwa_root_dofs, active_compliance=False, cloth_mesh_file=cloth_mesh_file, cloth_mesh_state_file=cloth_mesh_state_file, cloth_scale=1.3)
 
         #manual control target
 
@@ -45,14 +46,13 @@ class DartClothIiwaOnearmEnv(DartClothIiwaEnv):
         #self.iiwas[0].addClothHandle(verts=[1552], offset=np.array([0, 0, 0.05]))
         #self.iiwas[0].addClothHandle(verts=[1552, 2090, 1525, 954, 1800, 663, 1381, 1527, 1858, 1077, 759, 533, 1429, 1131], offset=np.array([0, 0, 0]))
 
-
         #setup human obs
         self.human_obs_manager.addObsFeature(feature=ProprioceptionObsFeature(skel=self.human_skel, name="human proprioception"))
         self.human_obs_manager.addObsFeature(feature=HumanHapticObsFeature(self,render=True))
         self.human_obs_manager.addObsFeature(feature=JointPositionObsFeature(self.human_skel, name="human joint positions"))
         self.human_obs_manager.addObsFeature(feature=SPDTargetObsFeature(self))
-        self.human_obs_manager.addObsFeature(feature=CollisionMPCObsFeature(env=self,is_human=True))
-        self.human_obs_manager.addObsFeature(feature=WeaknessScaleObsFeature(self,self.limbDofs[1]))
+        #self.human_obs_manager.addObsFeature(feature=CollisionMPCObsFeature(env=self,is_human=True))
+        #self.human_obs_manager.addObsFeature(feature=WeaknessScaleObsFeature(self,self.limbDofs[1]))
         self.human_obs_manager.addObsFeature(feature=OracleObsFeature(env=self,sensor_ix=21,dressing_target=self.dressing_targets[-1],sep_mesh=self.separated_meshes[-1]))
         for iiwa in self.iiwas:
             self.human_obs_manager.addObsFeature(feature=JointPositionObsFeature(iiwa.skel, ignored_joints=[1], name="iiwa " + str(iiwa.index) + " joint positions"))
@@ -64,7 +64,7 @@ class DartClothIiwaOnearmEnv(DartClothIiwaEnv):
             self.robot_obs_manager.addObsFeature(feature=RobotFramesObsFeature(iiwa, name="iiwa " + str(iiwa.index) + " frame"))
             self.robot_obs_manager.addObsFeature(feature=CapacitiveSensorObsFeature(iiwa, name="iiwa " + str(iiwa.index) + " cap sensor"))
             self.robot_obs_manager.addObsFeature(feature=FTSensorObsFeature(self, iiwa, name="iiwa " + str(iiwa.index) + " FT sensor"))
-        self.robot_obs_manager.addObsFeature(feature=CollisionMPCObsFeature(env=self, is_human=False))
+        #self.robot_obs_manager.addObsFeature(feature=CollisionMPCObsFeature(env=self, is_human=False))
         self.robot_obs_manager.addObsFeature(feature=JointPositionObsFeature(self.human_skel, name="human joint positions"))
 
         #setup rewards
