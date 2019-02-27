@@ -112,9 +112,9 @@ class SPDController(Controller):
         a=0
 
     def update(self):
-        #if self.env.handleNode is not None:
-        #    self.env.handleNode.clearHandles();
-        #    self.env.handleNode = None
+        #if self.env.handle_node is not None:
+        #    self.env.handle_node.clearHandles();
+        #    self.env.handle_node = None
         a=0
 
     def transition(self):

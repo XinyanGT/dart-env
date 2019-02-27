@@ -182,7 +182,7 @@ class DartClothUpperBodyDataDrivenClothPhaseInterpolate4Env(DartClothUpperBodyDa
         # update handle nodes
         if self.handleNode is not None:
             self.handleNode.clearHandles()
-            #self.handleNode = None
+            #self.handle_node = None
 
         a=0
 
@@ -530,7 +530,7 @@ class DartClothUpperBodyDataDrivenClothPhaseInterpolate4Env(DartClothUpperBodyDa
 
         if self.handleNode is not None:
             self.handleNode.clearHandles()
-            #self.handleNode = None
+            #self.handle_node = None
             self.handleNode.addVertices(verts=self.targetGripVerticesR)
             self.handleNode.setOrgToCentroid()
             if self.updateHandleNodeFrom >= 0:

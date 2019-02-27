@@ -109,9 +109,9 @@ class SPDController(Controller):
         a=0
 
     def update(self):
-        #if self.env.handleNode is not None:
-        #    self.env.handleNode.clearHandles();
-        #    self.env.handleNode = None
+        #if self.env.handle_node is not None:
+        #    self.env.handle_node.clearHandles();
+        #    self.env.handle_node = None
         a=0
 
     def transition(self):
@@ -559,7 +559,7 @@ class DartClothUpperBodyDataDrivenRigidClothSawyerAssistEnv(DartClothUpperBodyDa
         #update handle nodes
         if self.handleNode is not None:
             #if self.updateHandleNodeFrom >= 0:
-            #    self.handleNode.setTransform(self.robot_skeleton.bodynodes[self.updateHandleNodeFrom].T)
+            #    self.handle_node.setTransform(self.robot_skeleton.bodynodes[self.updateHandleNodeFrom].T)
             #TODO: linear track
             if self.linearTrackActive:
                 self.handleNode.org = LERP(self.linearTrackOrigin, self.linearTrackTarget, self.numSteps/self.trackTraversalSteps)
@@ -1603,11 +1603,11 @@ class DartClothUpperBodyDataDrivenRigidClothSawyerAssistEnv(DartClothUpperBodyDa
 
         if self.handleNode is not None:
             self.handleNode.clearHandles()
-            #self.handleNode.addVertices(verts=[727, 138, 728, 1361, 730, 961, 1213, 137, 724, 1212, 726, 960, 964, 729, 155, 772])
+            #self.handle_node.addVertices(verts=[727, 138, 728, 1361, 730, 961, 1213, 137, 724, 1212, 726, 960, 964, 729, 155, 772])
             self.handleNode.addVertices(verts=[1552, 2090, 1525, 954, 1800, 663, 1381, 1527, 1858, 1077, 759, 533, 1429, 1131])
             self.handleNode.setOrgToCentroid()
             #if self.updateHandleNodeFrom >= 0:
-            #    self.handleNode.setTransform(self.robot_skeleton.bodynodes[self.updateHandleNodeFrom].T)
+            #    self.handle_node.setTransform(self.robot_skeleton.bodynodes[self.updateHandleNodeFrom].T)
             self.handleNode.recomputeOffsets()
 
         if self.simulateCloth:

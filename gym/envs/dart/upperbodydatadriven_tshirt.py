@@ -190,7 +190,7 @@ class DartClothUpperBodyDataDrivenTshirtEnv(DartClothEnv, utils.EzPickle):
         self.CP0Feature = ClothFeature(verts=self.sleeveRVerts, clothScene=clothScene)
         self.collarFeature = ClothFeature(verts=self.collarVertices, clothScene=clothScene)
 
-        #self.handleNode = None#HandleNode(clothScene, org=np.array([0.05, 0.034, -0.975]))
+        #self.handle_node = None#HandleNode(clothScene, org=np.array([0.05, 0.034, -0.975]))
         if simulateCloth:
             self.handleNode = HandleNode(clothScene, org=np.array([0.05, 0.034, -0.975]))
 

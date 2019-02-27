@@ -759,9 +759,9 @@ class SPDController(Controller):
         self.env.SPDPerFrame = True'''
 
     def update(self):
-        #if self.env.handleNode is not None:
-        #    self.env.handleNode.clearHandles();
-        #    self.env.handleNode = None
+        #if self.env.handle_node is not None:
+        #    self.env.handle_node.clearHandles();
+        #    self.env.handle_node = None
         #self.env._reset()
         '''self.steps += 1
         fraq = float(self.steps)/self.interpTime

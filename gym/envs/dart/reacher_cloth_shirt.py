@@ -142,15 +142,15 @@ class DartClothShirtReacherEnv(DartClothEnv, utils.EzPickle):
         utils.EzPickle.__init__(self)
 
         self.handleNode = HandleNode(self.clothScene)
-        #self.handleNode.addTarget(t=1., pos=np.array([0., 0., 0.5]), orientation=np.normalized(np.quaternion(1,1,0,0)))
-        #self.handleNode.addTarget(t=2., pos=np.array([0.25, 0.5, 0.5]), orientation=np.normalized(np.quaternion(1, 0, 1, 0)))
-        #self.handleNode.targetSpline.insert(t=1., p=np.array([0.,0.,0.5]))
-        #self.handleNode.targetSpline.insert(t=2., p=np.array([0.25, 0.5, 0.5]))
-        #self.handleNode.setTransform(self.robot_skeleton.bodynodes[8].T)
+        #self.handle_node.addTarget(t=1., pos=np.array([0., 0., 0.5]), orientation=np.normalized(np.quaternion(1,1,0,0)))
+        #self.handle_node.addTarget(t=2., pos=np.array([0.25, 0.5, 0.5]), orientation=np.normalized(np.quaternion(1, 0, 1, 0)))
+        #self.handle_node.targetSpline.insert(t=1., p=np.array([0.,0.,0.5]))
+        #self.handle_node.targetSpline.insert(t=2., p=np.array([0.25, 0.5, 0.5]))
+        #self.handle_node.setTransform(self.robot_skeleton.bodynodes[8].T)
         self.handleNode.setTranslation(np.array([0.0, 0.2, -0.75]))
-        #self.handleNode.addVertices([112,113,114,115,116,117,186,187,188,189,190,191,192,193]) #collar
-        #self.handleNode.addVertex(0)
-        #self.handleNode.addVertex(30)
+        #self.handle_node.addVertices([112,113,114,115,116,117,186,187,188,189,190,191,192,193]) #collar
+        #self.handle_node.addVertex(0)
+        #self.handle_node.addVertex(30)
 
         #self.gripper = pyutils.BoxFrame(c0=np.array([0.06, -0.075, 0.06]), c1=np.array([-0.06, -0.125, -0.06]))
         self.gripper = pyutils.EllipsoidFrame(c0=np.array([0,-0.1,0]), dim=np.array([0.05,0.025,0.05]))
@@ -240,7 +240,7 @@ class DartClothShirtReacherEnv(DartClothEnv, utils.EzPickle):
                 print(t)
 
         if self.handleNode is not None:
-            #self.handleNode.setTransform(self.robot_skeleton.bodynodes[8].T)
+            #self.handle_node.setTransform(self.robot_skeleton.bodynodes[8].T)
             self.handleNode.step()
 
         if self.gripper is not None:
@@ -549,9 +549,9 @@ class DartClothShirtReacherEnv(DartClothEnv, utils.EzPickle):
 
         self.reset_number += 1
 
-        #self.handleNode.reset()
+        #self.handle_node.reset()
         if self.handleNode is not None:
-            #self.handleNode.setTransform(self.robot_skeleton.bodynodes[8].T)
+            #self.handle_node.setTransform(self.robot_skeleton.bodynodes[8].T)
             self.handleNode.recomputeOffsets()
 
         if self.gripper is not None:
@@ -680,7 +680,7 @@ class DartClothShirtReacherEnv(DartClothEnv, utils.EzPickle):
         GL.glVertex3d(-0.54120499, 0.038279, -0.0522403)
         GL.glEnd()'''
 
-        #render the vertrex handleNode(s)/Handle(s)
+        #render the vertrex handle_node(s)/Handle(s)
         if self.handleNode is not None:
             self.handleNode.draw()
 

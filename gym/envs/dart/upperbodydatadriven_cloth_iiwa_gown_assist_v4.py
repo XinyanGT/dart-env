@@ -113,9 +113,9 @@ class SPDController(Controller):
         a=0
 
     def update(self):
-        #if self.env.handleNode is not None:
-        #    self.env.handleNode.clearHandles();
-        #    self.env.handleNode = None
+        #if self.env.handle_node is not None:
+        #    self.env.handle_node.clearHandles();
+        #    self.env.handle_node = None
         a=0
 
     def transition(self):
@@ -491,7 +491,7 @@ class ContinuousCapacitiveSensor:
 class DartClothUpperBodyDataDrivenClothIiwaGownAssistEnvV4(DartClothUpperBodyDataDrivenClothAssistBaseEnv, utils.EzPickle):
     def __init__(self):
         #feature flags
-        rendering = False
+        rendering = True
         self.demoRendering = True #when true, reduce the debugging display significantly
         clothSimulation = True
         self.renderCloth = True
@@ -611,8 +611,9 @@ class DartClothUpperBodyDataDrivenClothIiwaGownAssistEnvV4(DartClothUpperBodyDat
 
         #iiwa frame interpolator controls
         self.targetCentric = True #if true, robot policy operates on the target, not the current pose
-        self.manualTargetControl = False #if true, actions are not considered
+        self.manualTargetControl = True #if true, actions are not considered
         self.frameInterpolator = {"active":True, "target_pos":np.zeros(3), "target_frame":np.identity(3), "speed":0.75, "aSpeed":5, "localOffset":np.array([0,0,0]), "eulers":np.zeros(3), "distanceLimit":0.15}
+        self.frameInterpolator = {"active":True, "target_pos":np.zeros(3), "target_frame":np.identity(3), "speed":0.2, "aSpeed":5, "localOffset":np.array([0,0,0]), "eulers":np.zeros(3), "distanceLimit":0.15}
 
         self.consecutiveInstabilities = 0
         self.elbow_constraint_range = 0.3  # joint limit symmetrical distance from rest
@@ -830,6 +831,7 @@ class DartClothUpperBodyDataDrivenClothIiwaGownAssistEnvV4(DartClothUpperBodyDat
         self.robot_action_scale[:3] = np.ones(3)*0.01 #position
         self.robot_action_scale[3:6] = np.ones(3)*0.02 #orientation
         self.iiwa_torque_limits = np.array([176, 176, 110, 110, 110, 40, 40])
+        self.iiwa_torque_limits = np.array([176, 176, 110/10.0, 110/10.0, 110/10.0, 40/4.0, 40/4.0])
 
         #self.robot_action_scale = np.zeros(6)
         iiwaFilename = ""
@@ -876,7 +878,7 @@ class DartClothUpperBodyDataDrivenClothIiwaGownAssistEnvV4(DartClothUpperBodyDat
                 print("     "+str(ix)+" : " + dof.name)
                 print("         llim: " + str(dof.position_lower_limit()) + ", ulim: " + str(dof.position_upper_limit()))
             # print("         damping: " + str(dof.damping_coefficient()))
-            dof.set_damping_coefficient(2.0)
+            #dof.set_damping_coefficient(2.0)
             #if (ix > 12):
             #    dof.set_damping_coefficient(0.05)
         #self.iiwa_skel.dofs[14].set_spring_stiffness(0.8)
@@ -895,9 +897,21 @@ class DartClothUpperBodyDataDrivenClothIiwaGownAssistEnvV4(DartClothUpperBodyDat
         self.iiwa_skel.set_self_collision_check(True)
         self.iiwa_skel.set_adjacent_body_check(False)
 
+        #TODO: testing contact force
+        groundFilename = os.path.join(os.path.dirname(__file__), "assets", 'groundskel.skel')
+        sphereFilename = os.path.join(os.path.dirname(__file__), "assets", 'singlesphere.skel')
+        self.dart_world.add_skeleton(filename=groundFilename)
+        self.dart_world.add_skeleton(filename=sphereFilename)
+        self.groundSkel = self.dart_world.skeletons[3]
+        self.sphereSkel = self.dart_world.skeletons[4]
+        self.sphereForceGraph = None
+        self.previousSphereContactForces = []
+        #TODO: end testing contact force imports
+
 
         # initialize the controller
-        self.SPDController = SPDController(self, self.iiwa_skel, timestep=frameskip * dt)
+        self.SPDController = SPDController(self, self.iiwa_skel, timestep=frameskip * dt, ckp=100.0)
+        #self.SPDController = SPDController(self, self.iiwa_skel, timestep=frameskip * dt)
         self.humanSPDController = SPDController(self, self.robot_skeleton, timestep=frameskip * dt, startDof=0, ckp=30.0, ckd=0.1)
 
         # tune the SPD gains
@@ -1074,7 +1088,7 @@ class DartClothUpperBodyDataDrivenClothIiwaGownAssistEnvV4(DartClothUpperBodyDat
         #update handle nodes
         if self.handleNode is not None and False:
             #if self.updateHandleNodeFrom >= 0:
-            #    self.handleNode.setTransform(self.robot_skeleton.bodynodes[self.updateHandleNodeFrom].T)
+            #    self.handle_node.setTransform(self.robot_skeleton.bodynodes[self.updateHandleNodeFrom].T)
             #TODO: linear track
             if self.linearTrackActive:
                 self.handleNode.org = LERP(self.linearTrackOrigin, self.linearTrackTarget, self.numSteps/self.trackTraversalSteps)
@@ -1220,6 +1234,9 @@ class DartClothUpperBodyDataDrivenClothIiwaGownAssistEnvV4(DartClothUpperBodyDat
         #self.sawyer_skel.dofs[15].set_velocity(10.0)
 
     def _step(self, a):
+        self.stepMaxContactForce = 0
+        if self.iiwa_skel is not None:
+            preIiwaEf = self.iiwa_skel.bodynodes[9].to_world(np.zeros(3))
         if False:
             try:
                 print("------------------------------------")
@@ -1310,6 +1327,9 @@ class DartClothUpperBodyDataDrivenClothIiwaGownAssistEnvV4(DartClothUpperBodyDat
             #self.ikTarget = efpos+robo_action_scaled[:3]
             self.frameInterpolator["target_pos"] += robo_action_scaled[:3]
             self.frameInterpolator["eulers"] += robo_action_scaled[3:6]
+        else:
+            #TODO: manual wrist seeking
+            self.frameInterpolator["target_pos"] = self.robot_skeleton.bodynodes[9].to_world(np.zeros(3))
 
         toRoboEF = self.iiwa_skel.bodynodes[9].to_world(np.zeros(3)) - self.frameInterpolator["target_pos"]
         distToRoboEF = np.linalg.norm(toRoboEF)
@@ -1338,7 +1358,7 @@ class DartClothUpperBodyDataDrivenClothIiwaGownAssistEnvV4(DartClothUpperBodyDat
             targetDisp = targetFrame.org - self.ikTarget
             dispMag = np.linalg.norm(targetDisp)
             travelMag = min(self.dt*self.frameInterpolator["speed"], dispMag)
-            if(travelMag > 0.001):
+            if(travelMag > 0.0001):
                 self.ikTarget += (targetDisp/dispMag)*travelMag
 
             #set the orientation of the target frame directly (later may want to interpolate)
@@ -1502,6 +1522,11 @@ class DartClothUpperBodyDataDrivenClothIiwaGownAssistEnvV4(DartClothUpperBodyDat
             self.avgtimings["_step"] += time.time() - startTime2
         except:
             self.avgtimings["_step"] = time.time() - startTime2
+
+        if self.iiwa_skel is not None:
+            postIiwaEf = self.iiwa_skel.bodynodes[9].to_world(np.zeros(3))
+            print("Iiwa EF vel mag: " + str(np.linalg.norm(postIiwaEf-preIiwaEf)))
+
         return ob, self.reward, done, {}
         #except:
         #    print("step " + str(self.numSteps) + " failed")
@@ -1640,6 +1665,7 @@ class DartClothUpperBodyDataDrivenClothIiwaGownAssistEnvV4(DartClothUpperBodyDat
             #clothStepsTaken += 1
             #print("cloth step " + str(clothStepsTaken))
             #done pyPhysX step
+            self.updateContactForceGraphs(self.numSteps*4+i)
         #if(self.clothScene.getMaxDeformationRatio(0) > 5):
         #    self._reset()
         self.consecutiveInstabilities = 0
@@ -2184,6 +2210,14 @@ class DartClothUpperBodyDataDrivenClothIiwaGownAssistEnvV4(DartClothUpperBodyDat
     def additionalResets(self):
         #set friction low to allow easier dressing?
         #self.clothScene.setFriction(0, 0.1)  # reset this anytime as desired
+        if self.sphereForceGraph is not None:
+            self.sphereForceGraph.close()
+        self.sphereForceGraph = pyutils.LineGrapher(title="Contact Force Magnitude")
+        rolloutHorizon = 1200
+        self.sphereForceGraph.xdata = np.arange(rolloutHorizon*4)/4.0
+        self.sphereForceGraph.plotData(ydata=np.zeros(rolloutHorizon*4))
+        self.sphereForceGraph.plotData(ydata=np.ones(rolloutHorizon*4)*10)
+        self.sphereForceGraph.plotData(ydata=np.zeros(rolloutHorizon * 4))
 
         self.currentControlNoise = random.uniform(self.humanControlNoiseRange[0], self.humanControlNoiseRange[1])
         self.currentTargetNoise = random.uniform(self.humanTargetNoiseRange[0], self.humanTargetNoiseRange[1])
@@ -2219,6 +2253,7 @@ class DartClothUpperBodyDataDrivenClothIiwaGownAssistEnvV4(DartClothUpperBodyDat
             #self.weaknessScale = random.uniform(0.0,1.0)
             #self.weaknessScale = random.uniform(0.0,0.5)
             self.weaknessScale = random.uniform(0.0,0.2)
+            #self.weaknessScale = 0.2
             #numlessthan10th = 0
             #for r in range(100):
             #    randomNum = random.uniform(0.0,0.2)
@@ -2602,13 +2637,13 @@ class DartClothUpperBodyDataDrivenClothIiwaGownAssistEnvV4(DartClothUpperBodyDat
         if self.handleNode is not None:
             self.handleNode.clearHandles()
             self.clothScene.setParticleConstraintMode(1)
-            #self.handleNode.addVertices(verts=[727, 138, 728, 1361, 730, 961, 1213, 137, 724, 1212, 726, 960, 964, 729, 155, 772])
+            #self.handle_node.addVertices(verts=[727, 138, 728, 1361, 730, 961, 1213, 137, 724, 1212, 726, 960, 964, 729, 155, 772])
             self.handleNode.addVertices(verts=[1552, 2090, 1525, 954, 1800, 663, 1381, 1527, 1858, 1077, 759, 533, 1429, 1131])
             self.handleNode.setOrgToCentroid()
             self.handleNode.setOrientation(R=hn.T[:3, :3])
 
             hn = self.iiwa_skel.bodynodes[8]  # hand node
-            # self.handleNode.setTransform(self.iiwa_skel.bodynodes[8].T)
+            # self.handle_node.setTransform(self.iiwa_skel.bodynodes[8].T)
             self.clothScene.translateCloth(0, -self.handleNode.org)
 
             self.clothScene.rotateCloth(cid=0, R=pyutils.rotateX(-math.pi / 2.0))
@@ -2618,7 +2653,7 @@ class DartClothUpperBodyDataDrivenClothIiwaGownAssistEnvV4(DartClothUpperBodyDat
             self.handleNode.setOrgToCentroid()
 
             #if self.updateHandleNodeFrom >= 0:
-            #    self.handleNode.setTransform(self.robot_skeleton.bodynodes[self.updateHandleNodeFrom].T)
+            #    self.handle_node.setTransform(self.robot_skeleton.bodynodes[self.updateHandleNodeFrom].T)
             self.handleNode.recomputeOffsets()
             self.handleNode.updatePrevConstraintPositions()
 
@@ -2894,7 +2929,7 @@ class DartClothUpperBodyDataDrivenClothIiwaGownAssistEnvV4(DartClothUpperBodyDat
         # TODO: done testing unlocked frame from vector
 
         if self.simulateCloth and self.handleNode is not None:
-            #self.handleNode.draw()
+            #self.handle_node.draw()
             if self.humanRobotCollision:
                 self.handleNode.drawForce(color=(1.0,0.2,0.2))
             else:
@@ -3332,14 +3367,20 @@ class DartClothUpperBodyDataDrivenClothIiwaGownAssistEnvV4(DartClothUpperBodyDat
 
     def getCumulativeHapticForcesFromRigidContacts(self, mag_scale=40.0):
         #force magnitudes are clamped to mag_scale and then normalized by it to [0,1]
+        #print("getCumulativeHapticForcesFromRigidContacts")
         self.collisionResult.update()
         sensor_pos = self.clothScene.getHapticSensorLocations()
         sensor_rad = self.clothScene.getHapticSensorRadii()
         relevant_contacts = []
+        #self.previousSphereContactForces = []
         for ix, c in enumerate(self.collisionResult.contacts):
             # add a contact if the human skeleton is involved
             if (c.skel_id1 == self.robot_skeleton.id or c.skel_id2 == self.robot_skeleton.id):
                 relevant_contacts.append(c)
+            #TODO: sphere contact handling stuff
+            #if c.skel_id1 == self.sphereSkel.id or c.skel_id2 == self.sphereSkel.id:
+            #    #print("Sphere contact force magnitude: " + str(np.linalg.norm(c.force)))
+            #    self.previousSphereContactForces.append(c.force)
 
         forces = []
         for i in range(self.clothScene.getNumHapticSensors()):
@@ -3401,17 +3442,17 @@ class DartClothUpperBodyDataDrivenClothIiwaGownAssistEnvV4(DartClothUpperBodyDat
         return relevant_forces, relevant_points
 
     def updateHandleContactForceTorques(self, maxClamp=10.0):
-        self.stepMaxContactForce = 0
+        #print("updateHandleContactForceTorques")
         if self.handleNode is not None:
             self.handleNode.contactForce = np.zeros(3)
             self.handleNode.contactTorque = np.zeros(3)
-            self.collisionResult.update()
+            #self.collisionResult.update()
             for ix, c in enumerate(self.collisionResult.contacts):
                 # add a contact if the human skeleton is involved with the robot EF (FT sensor)
                 if (c.skel_id1 == self.iiwa_skel.id and c.skel_id2 == self.robot_skeleton.id):
                     self.humanRobotCollision = True
-                    self.maxContactForce = max(self.maxContactForce, np.linalg.norm(c.force))
-                    self.stepMaxContactForce = max(self.stepMaxContactForce, np.linalg.norm(c.force))
+                    #self.maxContactForce = max(self.maxContactForce, np.linalg.norm(c.force))
+                    #self.stepMaxContactForce = max(self.stepMaxContactForce, np.linalg.norm(c.force))
                     if(c.bodynode_id1 == self.iiwa_skel.bodynodes[9].id):
                         force = np.array(c.force)
                         mag = np.linalg.norm(force)
@@ -3422,8 +3463,8 @@ class DartClothUpperBodyDataDrivenClothIiwaGownAssistEnvV4(DartClothUpperBodyDat
                         self.handleNode.contactTorque += np.cross(c.point-self.handleNode.org, force)
                 if (c.skel_id2 == self.iiwa_skel.id and c.skel_id1 == self.robot_skeleton.id):
                     self.humanRobotCollision = True
-                    self.maxContactForce = max(self.maxContactForce, np.linalg.norm(c.force))
-                    self.stepMaxContactForce = max(self.stepMaxContactForce, np.linalg.norm(c.force))
+                    #self.maxContactForce = max(self.maxContactForce, np.linalg.norm(c.force))
+                    #self.stepMaxContactForce = max(self.stepMaxContactForce, np.linalg.norm(c.force))
                     if (c.bodynode_id2 == self.iiwa_skel.bodynodes[9].id):
                         force = np.array(c.force)
                         mag = np.linalg.norm(force)
@@ -3472,6 +3513,39 @@ class DartClothUpperBodyDataDrivenClothIiwaGownAssistEnvV4(DartClothUpperBodyDat
         for b in self.iiwa_skel.bodynodes:
             print(b.name)
             print(b.world_transform())
+
+    def updateContactForceGraphs(self, frame):
+        #print("update contact force graphs")
+        self.collisionResult.update()
+        self.previousSphereContactForces = []
+        self.stepMaxContactForce = 0
+        cumulativeContactForce = np.zeros(3)
+        for ix, c in enumerate(self.collisionResult.contacts):
+            if (c.skel_id1 == self.robot_skeleton.id or c.skel_id2 == self.robot_skeleton.id):
+                if not c.skel_id1 == c.skel_id2:
+                    self.maxContactForce = max(self.maxContactForce, np.linalg.norm(c.force))
+                    self.stepMaxContactForce = max(self.stepMaxContactForce, np.linalg.norm(c.force))
+                    cumulativeContactForce += c.force
+            if c.skel_id1 == self.sphereSkel.id or c.skel_id2 == self.sphereSkel.id:
+                # print("Sphere contact force magnitude: " + str(np.linalg.norm(c.force)))
+                self.previousSphereContactForces.append(c.force)
+
+        #now graph
+        cumulativeSphereForce = np.zeros(3)
+        if len(self.previousSphereContactForces) > 0:
+            for f in self.previousSphereContactForces:
+                cumulativeSphereForce += f
+            #cumulativeSphereForce /= len(self.previousSphereContactForces)
+        #self.sphereForceGraph.yData[-1][self.numSteps] = self.stepMaxContactForce
+        #self.sphereForceGraph.yData[-1][self.numSteps] = self.stepMaxContactForce
+        self.sphereForceGraph.yData[-3][frame] = np.linalg.norm(cumulativeContactForce)
+        self.sphereForceGraph.yData[-1][frame] = self.stepMaxContactForce
+        #self.sphereForceGraph.yData[-2][self.numSteps] = self.stepMaxContactForce
+        #self.sphereForceGraph.yData[-1][frame] = cumulativeSphereForce[0]
+        #self.sphereForceGraph.yData[-2][frame] = cumulativeSphereForce[1]
+        #self.sphereForceGraph.yData[-3][frame] = cumulativeSphereForce[2]
+        if self.numSteps%25 == 0:
+            self.sphereForceGraph.update()
 
 def LERP(p0, p1, t):
     return p0 + (p1 - p0) * t

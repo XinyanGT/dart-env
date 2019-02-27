@@ -769,6 +769,21 @@ register(
     #max_episode_steps=250,
 )
 
+register(
+    id='DartIiwaOnearmGown-v1',
+    entry_point='gym.envs.dart:DartClothIiwaOnearmEnv',
+    #max_episode_steps=250,
+)
+
+register(
+    id='DartTrialTest-v1',
+    entry_point='gym.envs.dart:DartClothExperimentTestingEnv',
+    #max_episode_steps=250,
+)
+
+#Updated Iiwa envs:
+
+
 # Mujoco
 # ----------------------------------------
 

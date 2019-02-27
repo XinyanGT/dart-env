@@ -217,6 +217,8 @@ class DartClothUpperBodyDataDrivenClothAssistBaseEnv(DartClothEnv, utils.EzPickl
         self.obs_size = obs_size
         self.human_obs_size = human_obs_size
         skelFile = 'UpperBodyCapsules_datadriven.skel'
+        #TODO: remove this testing line...
+        #skelFile = 'UpperBodyCapsules_datadriven_spheretest.skel'
 
         #intialize the parent env
         if self.useOpenGL is True:
@@ -777,7 +779,9 @@ class DartClothUpperBodyDataDrivenClothAssistBaseEnv(DartClothEnv, utils.EzPickl
                  40, 42, 43, 44, 45, 46, 47, 48, 49, 50,
                  40, 42, 43, 44, 45, 46, 47, 48, 49, 50]
         #print(seeds)
-        if False:
+        seeds = [0,0,0,0,0,0]
+        seeds = range(16)
+        if True:
             try:
                 seed = seeds[self.reset_number]
             except:

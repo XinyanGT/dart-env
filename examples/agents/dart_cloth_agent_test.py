@@ -9,6 +9,8 @@ import joblib
 
 import pyPhysX.pyutils as pyutils
 import os
+import sys
+import shutil, errno
 
 from rllab import spaces
 from rllab.policies.gaussian_mlp_policy import GaussianMLPPolicy
@@ -42,18 +44,20 @@ def renderGraph(filename, targetField="AverageDiscountedReturn"):
 
     return data
 
-if __name__ == '__main__':
+def main():
 
     filename = None
     filename2 = None
 
-    prefix = os.path.dirname(os.path.abspath(__file__))
-    prefix = os.path.join(prefix, '../../../rllab/data/local/experiment/')
+    this_prefix = os.path.dirname(os.path.abspath(__file__))
+    prefix = os.path.join(this_prefix, '../../../rllab/data/local/experiment/')
+    env_prefix = os.path.join(this_prefix, '../../gym/envs/dart/')
 
     trial = None
 
     # --- Split Network: one arm
-    trial = "experiment_2019_02_19_split_architecture_coopt_noconpen_humreward"
+    #trial = "experiment_2019_02_20_split_coopt_onearm_noconpen_cap_nodef"
+    #trial = "experiment_2019_02_19_split_architecture_coopt_noconpen_humreward"
     # ---
 
     # --- Multibot trials
@@ -70,6 +74,7 @@ if __name__ == '__main__':
     # ---
 
     # --- Robot trained on tuned SPD human
+    #trial = "experiment_2019_02_20_robo_weakerrange_noconpen_cap_weakobs_tar_nodef" #does NOT have weakness obs (robot)
     #trial = "experiment_2019_02_19_robo_weakerrange_noconpen_cap_weakobs_tar"
     #trial = "experiment_2019_02_15_robo_SPD_human_norest_weakerrange_cap_weakobs"
     #trial = "experiment_2019_02_15_robo_SPD_human_norest_weakerrange_obs"
@@ -558,9 +563,40 @@ if __name__ == '__main__':
     #envName = 'DartIiwaGown-v5'
     #envName = 'DartIiwaGownAssist-v3'
     #envName = 'DartIiwaGownAssist-v4'
-    envName = 'DartIiwaGownAssistCoopt-v2'
+    #envName = 'DartIiwaGownAssistCoopt-v2'
     #envName = 'DartIiwaGownAssistCoopt_h-v2'
     #envName = 'DartIiwaGownMultibot-v1'
+    envName = 'DartIiwaOnearmGown-v1'
+
+    if len(sys.argv) > 1:
+        #print(sys.argv[1])
+        if sys.argv[1] == 'clone' and trial is not None:
+            print("Attempting to clone the trial: " + str(trial))
+            shutil.copy2(prefix+trial+"/trial_file.py", os.path.join(env_prefix, "experiment_testing_copy_env.py"))
+            #now search for the primary class name and change it
+            new_env_file = open(os.path.join(env_prefix, "experiment_testing_copy_env_almost.py"), mode='w')
+            cur_env_file = open(os.path.join(env_prefix, "experiment_testing_copy_env.py"), mode='r')
+            for ix, line in enumerate(cur_env_file):
+                if line[:15] == "class DartCloth":
+                    #we found the class line
+                    #get index of paren:
+                    paren_ix = 0
+                    for ix,char in enumerate(line):
+                        if char == "(":
+                            paren_ix = ix
+                            break
+                    #rename the class
+                    new_env_file.write(line[:6] + "DartClothExperimentTestingEnv" + line[paren_ix:])
+                else:
+                    new_env_file.write(line)
+            cur_env_file.close()
+            new_env_file.close()
+            shutil.copy2(os.path.join(env_prefix, "experiment_testing_copy_env_almost.py"), os.path.join(env_prefix, "experiment_testing_copy_env.py"))
+            os.remove(os.path.join(env_prefix, "experiment_testing_copy_env_almost.py"))
+            return
+        elif sys.argv[1] == 'test':
+            envName = "DartTrialTest-v1"
+
     env = gym.make(envName)
 
     reloaderTest = False
@@ -632,13 +668,15 @@ if __name__ == '__main__':
     if True and policy is None:
         env2 = normalize(GymEnv(envName, record_log=False, record_video=False))
         #env2 = normalize(GymEnv('DartSawyerRigidAssist-v1', record_log=False, record_video=False))
-        if False:
+        if True:
+            human_obs_size = 251 #single arm coopt
+            human_obs_size = env2.wrapped_env.env.human_obs_manager.obs_size
             policy = SplitGaussianMLPPolicy(
                 env_spec=env2.spec,
                 # The neural network policy should have two hidden layers, each with 32 hidden units.
                 hidden_sizes=(64, 64),
                 #split_index=281, #multibot
-                split_index=251, #single arm coopt
+                split_index=human_obs_size,
                 merge_index=22,
                 #hidden_sizes=(128, 64),
                 #init_std=0.2 #exploration scaling
@@ -697,6 +735,7 @@ if __name__ == '__main__':
         #time.sleep(0.5)
         rolloutHorizon = 10000
         rolloutHorizon = 600
+        #rolloutHorizon = 1200
         #rolloutHorizon = 200
         #rolloutHorizon = 900
         #rolloutHorizon = 10000
@@ -756,7 +795,7 @@ if __name__ == '__main__':
                 cumulativeFPS += (j+1)/(time.time()-startTime)
                 print("framerate = " + str((j+1) / (time.time() - startTime)))
                 print("average FPS: " + str(cumulativeFPS / (i + 1)))
-                print("episode reward = " + str(env.rewardsData.cumulativeReward))
+                #print("episode reward = " + str(env.rewardsData.cumulativeReward))
                 #if
                 time.sleep(0.5)
                 break
@@ -773,3 +812,5 @@ if __name__ == '__main__':
     env.render(close=True)
     
 
+if __name__ == '__main__':
+    main()

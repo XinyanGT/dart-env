@@ -97,6 +97,11 @@ from gym.envs.dart.upperbodydatadriven_cloth_iiwa_gown_assist_coopt_v2_helper im
 from gym.envs.dart.upperbodydatadriven_cloth_iiwa_gown_multibot import DartClothUpperBodyDataDrivenClothIiwaGownMultibotEnv
 from gym.envs.dart.upperbodydatadriven_cloth_iiwa_gown_multibot_helper import DartClothUpperBodyDataDrivenClothIiwaGownMultibotHelperEnv
 
+#updated iiwa envs
+from gym.envs.dart.dart_cloth_iiwa_onearm_env import DartClothIiwaOnearmEnv
+from gym.envs.dart.experiment_testing_copy_env import DartClothExperimentTestingEnv
+
+
 from gym.envs.dart.walker2d import DartWalker2dEnv
 from gym.envs.dart.walker3d import DartWalker3dEnv
 from gym.envs.dart.walker3d_spd import DartWalker3dSPDEnv

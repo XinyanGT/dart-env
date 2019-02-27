@@ -139,8 +139,8 @@ class DartClothGrippedTshirtEnv(DartClothEnv, utils.EzPickle):
             self.viewer.interactors[2].frame.orienation = self.handleNode.orientation
             self.viewer.interactors[2].frame.updateQuaternion()
 
-        #self.handleNode.addVertex(0)
-        #self.handleNode.addVertices(verts=[1552, 2090, 1525, 954, 1800, 663, 1381, 1527, 1858, 1077, 759, 533, 1429, 1131])
+        #self.handle_node.addVertex(0)
+        #self.handle_node.addVertices(verts=[1552, 2090, 1525, 954, 1800, 663, 1381, 1527, 1858, 1077, 759, 533, 1429, 1131])
 
         #self.gripper = pyutils.BoxFrame(c0=np.array([0.06, -0.075, 0.06]), c1=np.array([-0.06, -0.125, -0.06]))
         #self.gripper = pyutils.EllipsoidFrame(c0=np.array([0,-0.1,0]), dim=np.array([0.05,0.025,0.05]))
@@ -198,11 +198,11 @@ class DartClothGrippedTshirtEnv(DartClothEnv, utils.EzPickle):
 
 
         if self.handleNode is not None:
-            #self.handleNode.setTranslation(T=self.viewer.interactors[2].frame.org)
+            #self.handle_node.setTranslation(T=self.viewer.interactors[2].frame.org)
             if self.interactiveHandleNode:
                 self.handleNode.org = self.viewer.interactors[2].frame.org
                 self.handleNode.setOrientation(R=self.viewer.interactors[2].frame.orientation)
-            #self.handleNode.setTransform(self.robot_skeleton.bodynodes[8].T)
+            #self.handle_node.setTransform(self.robot_skeleton.bodynodes[8].T)
             if self.updateHandleNodeFrom >= 0:
                 self.handleNode.setTransform(self.robot_skeleton.bodynodes[self.updateHandleNodeFrom].T)
             self.handleNode.step()
@@ -384,7 +384,7 @@ class DartClothGrippedTshirtEnv(DartClothEnv, utils.EzPickle):
         self.updateClothCollisionStructures(hapticSensors=True)
 
         self.handleNode.clearHandles()
-        #self.handleNode.addVertex(vid=0)
+        #self.handle_node.addVertex(vid=0)
         #self.clothScene.setPinned(cid=0, vid=0)
 
         #self.clothScene.refreshMotionConstraints()
@@ -397,11 +397,11 @@ class DartClothGrippedTshirtEnv(DartClothEnv, utils.EzPickle):
 
         self.handleNode.clearHandles()
         self.handleNode.addVertices(verts=[570, 1041, 285, 1056, 435, 992, 50, 489, 787, 327, 362, 676, 887, 54, 55])
-        #self.handleNode.addVertices(verts=[468, 1129, 975, 354, 594, 843, 654, 682, 415, 378, 933, 547, 937, 946, 763, 923, 2395, 2280, 2601, 2454])
-        #self.handleNode.addVertices(verts=[1552, 2090, 1525, 954, 1800, 663, 1381, 1527, 1858, 1077, 759, 533, 1429, 1131])
-        #self.handleNode.addVertices(verts=[1552, 2090, 1525, 954, 1800, 663, 1381, 1527, 1858, 1077, 759, 533, 1429, 1131])
+        #self.handle_node.addVertices(verts=[468, 1129, 975, 354, 594, 843, 654, 682, 415, 378, 933, 547, 937, 946, 763, 923, 2395, 2280, 2601, 2454])
+        #self.handle_node.addVertices(verts=[1552, 2090, 1525, 954, 1800, 663, 1381, 1527, 1858, 1077, 759, 533, 1429, 1131])
+        #self.handle_node.addVertices(verts=[1552, 2090, 1525, 954, 1800, 663, 1381, 1527, 1858, 1077, 759, 533, 1429, 1131])
         self.handleNode.setOrgToCentroid()
-        #print("org = " + str(self.handleNode.org))
+        #print("org = " + str(self.handle_node.org))
         if self.interactiveHandleNode:
             self.handleNode.usingTargets = False
             self.viewer.interactors[2].frame.org = self.handleNode.org
@@ -413,7 +413,7 @@ class DartClothGrippedTshirtEnv(DartClothEnv, utils.EzPickle):
             self.debuggingBoxes.clear()
             self.debuggingBoxes.append(pyutils.BoxFrame(c0=self.handleTargetSplineGlobalBounds[0], c1=self.handleTargetSplineGlobalBounds[1], org=self.handleNode.org))
             #end debugging
-            #print("org = " + str(self.handleNode.org))
+            #print("org = " + str(self.handle_node.org))
             for i in range(self.numHandleTargetSplinePoints):
                 t = dt + dt*i
                 pos = self.handleNode.targetSpline.pos(t=t)
@@ -440,14 +440,14 @@ class DartClothGrippedTshirtEnv(DartClothEnv, utils.EzPickle):
             self.handleNode.addTarget(t=self.handleTargetLinearWindow, pos=self.handleTargetLinearEndRange.sample(1)[0])
         elif self.updateHandleNodeFrom >= 0:
             self.handleNode.setTransform(self.robot_skeleton.bodynodes[self.updateHandleNodeFrom].T)
-            #self.handleNode.org = self.robot_skeleton.bodynodes[self.updateHandleNodeFrom].com()
+            #self.handle_node.org = self.robot_skeleton.bodynodes[self.updateHandleNodeFrom].com()
 
 
         self.reset_number += 1
 
-        #self.handleNode.reset()
+        #self.handle_node.reset()
         if self.handleNode is not None:
-            #self.handleNode.setTransform(self.robot_skeleton.bodynodes[8].T)
+            #self.handle_node.setTransform(self.robot_skeleton.bodynodes[8].T)
             self.handleNode.recomputeOffsets()
 
         if self.gripper is not None:
@@ -624,7 +624,7 @@ class DartClothGrippedTshirtEnv(DartClothEnv, utils.EzPickle):
                 #for s in b.sample(50):
                 #    self.viewer.drawSphere(p=s, r=0.01)
 
-        #render the vertex handleNode(s)/Handle(s)
+        #render the vertex handle_node(s)/Handle(s)
         if self.handleNode is not None:
             self.handleNode.draw()
 

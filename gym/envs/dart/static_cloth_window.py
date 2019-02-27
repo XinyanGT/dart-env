@@ -42,7 +42,7 @@ class StaticClothGLUTWindow(StaticGLUTWindow):
         #self.interactors.append(VertexSelectInteractor(self))
         self.lastContextSwitch = 0 #holds the frame of the last context switch (for label rendering)
         self.captureIndex = 0 #increments when captureToFile is called
-        self.captureDirectory = "/home/alexander/Documents/frame_capture_output/demos/19_split_onearm_nocon_humreward"
+        self.captureDirectory = "/home/alexander/Documents/frame_capture_output/demos/humanSPDTest"
         #self.captureDirectory = "/home/alexander/Documents/frame_capture_output/variations/1"
         #self.captureDirectory = "/home/alexander/Documents/frame_capture_output/variations/elbow_data/0"
         #self.captureDirectory = "/home/alexander/Documents/dev/saved_render_states/siggraph_asia_finals/tshirt_failures/frames"
@@ -476,7 +476,7 @@ class VertexSelectInteractor(BaseInteractor):
         self.x_down = False
         self.y_down = False
         self.z_down = False
-        self.h_toggle = False #handle continuity toggle. When True, the handleNode will not auto destroy on mouse release
+        self.h_toggle = False #handle continuity toggle. When True, the handle_node will not auto destroy on mouse release
         self.selectedVertex = None
         self.selectedVertices = []
         self.handleNode = None
@@ -647,12 +647,12 @@ class VertexSelectInteractor(BaseInteractor):
                 # compute a rotation about camUp and camRight axiis
                 self.handleNode.applyAxisAngle(dx * (6.28 / 360.), self.viewer.camForward)
                 self.handleNode.applyAxisAngle(dy * (6.28 / 360.), self.viewer.camRight)
-                #self.handleNode.updateHandles()
+                #self.handle_node.updateHandles()
             elif self.viewer.mouseLButton is True:
                 # translate the frame org with camUp and camRight
                 self.handleNode.org = self.handleNode.org + dx * self.viewer.camRight * 0.001
                 self.handleNode.org = self.handleNode.org + dy * self.viewer.camUp * -0.001
-                #self.handleNode.updateHandles()
+                #self.handle_node.updateHandles()
         elif self.x_down is True:
             if self.viewer.mouseLButton is True and self.viewer.mouseRButton is True:
                 a=0
@@ -661,11 +661,11 @@ class VertexSelectInteractor(BaseInteractor):
                 if self.viewer.camRight.dot(rightX) < 0:
                     rightX *= -1
                 self.handleNode.org = self.handleNode.org + dx * rightX * 0.001
-                #self.handleNode.updateHandles()
+                #self.handle_node.updateHandles()
             elif self.viewer.mouseRButton is True:
                 #rotation about x
                 self.handleNode.applyLocalAxisAngle(dy*(6.28/360.), np.array([1.,0,0]))
-                #self.handleNode.updateHandles()
+                #self.handle_node.updateHandles()
         elif self.y_down is True:
             if self.viewer.mouseLButton is True and self.viewer.mouseRButton is True:
                 a=0
@@ -674,11 +674,11 @@ class VertexSelectInteractor(BaseInteractor):
                 if self.viewer.camUp.dot(upY) > 0:
                     upY *= -1
                 self.handleNode.org = self.handleNode.org + dy * upY * 0.001
-                #self.handleNode.updateHandles()
+                #self.handle_node.updateHandles()
             elif self.viewer.mouseRButton is True:
                 #rotation about y
                 self.handleNode.applyLocalAxisAngle(dx * (6.28 / 360.), np.array([0., 1., 0]))
-                #self.handleNode.updateHandles()
+                #self.handle_node.updateHandles()
         elif self.z_down is True:
             if self.viewer.mouseLButton is True and self.viewer.mouseRButton is True:
                 a=0
@@ -687,11 +687,11 @@ class VertexSelectInteractor(BaseInteractor):
                 if self.viewer.camForward.dot(forwardZ) > 0:
                     forwardZ *= -1
                 self.handleNode.org = self.handleNode.org + dy * forwardZ * 0.001
-                #self.handleNode.updateHandles()
+                #self.handle_node.updateHandles()
             elif self.viewer.mouseRButton is True:
                 # rotation about z
                 self.handleNode.applyLocalAxisAngle(dx * (6.28 / 360.), np.array([0., 0., 1.]))
-                #self.handleNode.updateHandles()
+                #self.handle_node.updateHandles()
         else:
             tb = self.viewer.scene.tb
             if self.viewer.mouseLButton is True and self.viewer.mouseRButton is True:
@@ -1520,19 +1520,28 @@ class Frame6DInteractor(BaseInteractor):
             print("target_angle = " + str(self.viewer.env.armTargetPathInfo["target_angle"]))
         elif (self.x_down):
             if not self.rotationToggle:
-                self.viewer.env.frameInterpolator["target_pos"][0] += dx*0.001
+                try:
+                    self.viewer.env.frameInterpolator["target_pos"][0] += dx*0.001
+                except:
+                    self.viewer.env.iiwas[0].frameInterpolator["target_pos"][0] += dx*0.001
             else:
                 self.viewer.env.frameInterpolator["eulers"][0] += dx*0.001
                 #self.viewer.env.frameEulerState[0] += dx*0.001
         elif (self.y_down):
             if not self.rotationToggle:
-                self.viewer.env.frameInterpolator["target_pos"][1] += dx * 0.001
+                try:
+                    self.viewer.env.frameInterpolator["target_pos"][1] += dx * 0.001
+                except:
+                    self.viewer.env.iiwas[0].frameInterpolator["target_pos"][1] += dx*0.001
             else:
                 self.viewer.env.frameInterpolator["eulers"][1] += dx*0.001
                 #self.viewer.env.frameEulerState[1] += dx*0.001
         elif (self.z_down):
             if not self.rotationToggle:
-                self.viewer.env.frameInterpolator["target_pos"][2] += dx * 0.001
+                try:
+                    self.viewer.env.frameInterpolator["target_pos"][2] += dx * 0.001
+                except:
+                    self.viewer.env.iiwas[0].frameInterpolator["target_pos"][2] += dx*0.001
             else:
                 self.viewer.env.frameInterpolator["eulers"][2] += dx * 0.001
                 #self.viewer.env.frameEulerState[2] += dx * 0.001

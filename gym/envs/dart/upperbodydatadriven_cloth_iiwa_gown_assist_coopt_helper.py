@@ -114,9 +114,9 @@ class SPDController(Controller):
         a=0
 
     def update(self):
-        #if self.env.handleNode is not None:
-        #    self.env.handleNode.clearHandles();
-        #    self.env.handleNode = None
+        #if self.env.handle_node is not None:
+        #    self.env.handle_node.clearHandles();
+        #    self.env.handle_node = None
         a=0
 
     def transition(self):
@@ -796,7 +796,7 @@ class DartClothUpperBodyDataDrivenClothIiwaGownAssistCooptHelperEnv(DartClothEnv
         #update handle nodes
         if self.handleNode is not None and False:
             #if self.updateHandleNodeFrom >= 0:
-            #    self.handleNode.setTransform(self.robot_skeleton.bodynodes[self.updateHandleNodeFrom].T)
+            #    self.handle_node.setTransform(self.robot_skeleton.bodynodes[self.updateHandleNodeFrom].T)
             #TODO: linear track
             if self.linearTrackActive:
                 self.handleNode.org = LERP(self.linearTrackOrigin, self.linearTrackTarget, self.numSteps/self.trackTraversalSteps)
@@ -1505,7 +1505,7 @@ class DartClothUpperBodyDataDrivenClothIiwaGownAssistCooptHelperEnv(DartClothEnv
                     self.handleNode.setOrientation(R=hn.T[:3, :3])
 
                     # gripper_q = self.dart_world.skeletons[0].q
-                    # gripper_q[3:] = self.handleNode.org
+                    # gripper_q[3:] = self.handle_node.org
                     # self.dart_world.skeletons[0].set_positions(gripper_q)
 
                     self.updateClothCollisionStructures(hapticSensors=True)
@@ -2271,13 +2271,13 @@ class DartClothUpperBodyDataDrivenClothIiwaGownAssistCooptHelperEnv(DartClothEnv
         if self.handleNode is not None:
             self.handleNode.clearHandles()
             self.clothScene.setParticleConstraintMode(1)
-            #self.handleNode.addVertices(verts=[727, 138, 728, 1361, 730, 961, 1213, 137, 724, 1212, 726, 960, 964, 729, 155, 772])
+            #self.handle_node.addVertices(verts=[727, 138, 728, 1361, 730, 961, 1213, 137, 724, 1212, 726, 960, 964, 729, 155, 772])
             self.handleNode.addVertices(verts=[1552, 2090, 1525, 954, 1800, 663, 1381, 1527, 1858, 1077, 759, 533, 1429, 1131])
             self.handleNode.setOrgToCentroid()
             self.handleNode.setOrientation(R=hn.T[:3, :3])
 
             hn = self.iiwa_skel.bodynodes[8]  # hand node
-            # self.handleNode.setTransform(self.iiwa_skel.bodynodes[8].T)
+            # self.handle_node.setTransform(self.iiwa_skel.bodynodes[8].T)
             self.clothScene.translateCloth(0, -self.handleNode.org)
 
             self.clothScene.rotateCloth(cid=0, R=pyutils.rotateX(-math.pi / 2.0))
@@ -2287,7 +2287,7 @@ class DartClothUpperBodyDataDrivenClothIiwaGownAssistCooptHelperEnv(DartClothEnv
             self.handleNode.setOrgToCentroid()
 
             #if self.updateHandleNodeFrom >= 0:
-            #    self.handleNode.setTransform(self.robot_skeleton.bodynodes[self.updateHandleNodeFrom].T)
+            #    self.handle_node.setTransform(self.robot_skeleton.bodynodes[self.updateHandleNodeFrom].T)
             self.handleNode.recomputeOffsets()
             self.handleNode.updatePrevConstraintPositions()
 
@@ -2407,7 +2407,7 @@ class DartClothUpperBodyDataDrivenClothIiwaGownAssistCooptHelperEnv(DartClothEnv
         # TODO: done testing unlocked frame from vector
 
         if self.simulateCloth and self.handleNode is not None:
-            #self.handleNode.draw()
+            #self.handle_node.draw()
             if self.humanRobotCollision:
                 self.handleNode.drawForce(color=(1.0,0.2,0.2))
             else:

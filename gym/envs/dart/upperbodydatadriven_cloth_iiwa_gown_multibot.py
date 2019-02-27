@@ -115,9 +115,9 @@ class SPDController(Controller):
         a=0
 
     def update(self):
-        #if self.env.handleNode is not None:
-        #    self.env.handleNode.clearHandles();
-        #    self.env.handleNode = None
+        #if self.env.handle_node is not None:
+        #    self.env.handle_node.clearHandles();
+        #    self.env.handle_node = None
         a=0
 
     def transition(self):
@@ -447,7 +447,7 @@ class ContinuousCapacitiveSensor:
         lines = [[self.frame.org, self.frame.org+norm]]
         for ix,p in enumerate(self.sensorGlobals):
             renderUtils.drawSphere(pos=p)
-            #renderUtils.drawSphere(pos=p, rad=self.sensorRanges[ix], solid=False)
+            #renderUtils.drawSphere(pos=p, rad=self.sensor_ranges[ix], solid=False)
             if self.sensorReadings[ix][0] < self.sensorRanges[ix]:
                 lines.append([p,self.sensorReadings[ix][1]])
         renderUtils.drawLines(lines)
@@ -479,7 +479,7 @@ class DartClothUpperBodyDataDrivenClothIiwaGownMultibotEnv(DartClothEnv, utils.E
 
         self.dualPolicy = True #if true, both human and robot share a (possibly split) policy
         self.isHuman = True #otherwise robot (also turns on some reward terms)
-        rendering = False
+        rendering = True
         self.demoRendering = True #when true, reduce the debugging display significantly
         clothSimulation = True
         self.renderCloth = True
@@ -2596,7 +2596,7 @@ class DartClothUpperBodyDataDrivenClothIiwaGownMultibotEnv(DartClothEnv, utils.E
                 hn = iiwa.bodynodes[8]
                 handleNode.clearHandles()
                 self.clothScene.setParticleConstraintMode(1)
-                #self.handleNode.addVertices(verts=[727, 138, 728, 1361, 730, 961, 1213, 137, 724, 1212, 726, 960, 964, 729, 155, 772])
+                #self.handle_node.addVertices(verts=[727, 138, 728, 1361, 730, 961, 1213, 137, 724, 1212, 726, 960, 964, 729, 155, 772])
                 if iiwa_ix == 0:
                     handleNode.addVertices(verts=[1552, 2090, 1525, 954, 1800, 663, 1381, 1527, 1858, 1077, 759, 533, 1429, 1131])
                 else:
@@ -2605,11 +2605,11 @@ class DartClothUpperBodyDataDrivenClothIiwaGownMultibotEnv(DartClothEnv, utils.E
                 handleNode.setOrgToCentroid()
                 handleNode.setOrientation(R=hn.T[:3, :3])
 
-                # self.handleNode.setTransform(self.iiwa_skel.bodynodes[8].T)
-                #self.handleNode.setOrgToCentroid()
+                # self.handle_node.setTransform(self.iiwa_skel.bodynodes[8].T)
+                #self.handle_node.setOrgToCentroid()
 
                 #if self.updateHandleNodeFrom >= 0:
-                #    self.handleNode.setTransform(self.robot_skeleton.bodynodes[self.updateHandleNodeFrom].T)
+                #    self.handle_node.setTransform(self.robot_skeleton.bodynodes[self.updateHandleNodeFrom].T)
                 handleNode.recomputeOffsets()
                 handleNode.updatePrevConstraintPositions()
 
