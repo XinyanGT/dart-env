@@ -1,0 +1,865 @@
+<?xml version="1.0" ?>
+<skel version="1.0">
+    <world name="world 1">
+        <physics>
+            <time_step>0.001</time_step>
+            <gravity>0 -9.8 0</gravity>
+            <collision_detector>bullet</collision_detector>
+        </physics>
+        
+        <skeleton name="target">
+           <mobile>false</mobile>
+           <body name="gripper">
+                <transformation>0.0 0.0 0.0 0 0 0</transformation>
+                <inertia>
+                    <mass>1</mass>
+                    <offset>0 0 0</offset>
+                </inertia>
+                
+                <visualization_shape>
+                    <geometry>
+                        <box>
+                            <size>0.1 0.025 0.1</size>
+                        </box>
+                    </geometry>
+                </visualization_shape>
+            </body>
+             <joint type="free" name="joint 1">
+                <parent>world</parent>
+                <child>gripper</child>
+                <transformation>0 0 0 0 0 0</transformation>
+            </joint>
+        </skeleton>	
+        
+        <skeleton name="skeleton1">
+            <body name="h_pelvis1">
+                <transformation>0 0 0 0 0 0</transformation>
+                <inertia>
+                    <mass>0.1</mass>
+                    <offset>0.0 0 0.0</offset>
+                </inertia>
+                                                
+            </body>
+            
+            <body name="torso">
+                <gravity>1</gravity>
+                <transformation>0 -0.45 0 0 0 0</transformation>
+                <inertia>
+                    <mass>30</mass>
+                    <offset>0 0 0</offset>
+                </inertia>
+                <visualization_shape>
+                    <transformation>0 0 0 0 0 0</transformation>
+                    <geometry>
+                        <multi_sphere>
+							<sphere>
+								<radius>0.1575</radius>
+								<position>0 0 0</position>
+							</sphere>
+							<sphere>
+								<radius>0.0735</radius>
+								<position>0.0 0.45 0.0</position>
+							</sphere>
+						</multi_sphere>
+                    </geometry>
+                    <color>0.7 0.4 0.2</color>
+                </visualization_shape>
+                <collision_shape>
+                    <transformation>0 0 0 0 0 0</transformation>
+                    <geometry>
+                        <multi_sphere>
+							<sphere>
+								<radius>0.1575</radius>
+								<position>0 0 0</position>
+							</sphere>
+							<sphere>
+								<radius>0.0735</radius>
+								<position>0.0 0.45 0.0</position>
+							</sphere>
+						</multi_sphere>
+                    </geometry>
+                </collision_shape>                                
+            </body>
+            
+            <body name="spine">
+                <transformation>0 0 0 0 0 0</transformation>
+                <inertia>
+                    <mass>0.01</mass>
+                    <offset>0.0 0 0.0</offset>
+                </inertia>                
+            </body>
+            
+            <body name="neck">
+                <gravity>1</gravity>
+                <transformation>0 0 0 0 0 0</transformation>
+                <inertia>
+                    <mass>1.6</mass>
+                    <offset>0 0 0</offset>
+                </inertia>
+                <visualization_shape>
+                    <transformation>0 0 0 0 0 0</transformation>
+                    <geometry>
+                        <multi_sphere>
+							<sphere>
+								<radius>0.0735</radius>
+								<position>0 0 0</position>
+							</sphere>
+							<sphere>
+								<radius>0.105</radius>
+								<position>0.0 0.15 0.0</position>
+							</sphere>
+						</multi_sphere>
+                    </geometry>
+                    <color>0.7 0.4 0.2</color>
+                </visualization_shape>
+                <collision_shape>
+                    <transformation>0 0 0 0 0 0</transformation>
+                    <geometry>
+                        <multi_sphere>
+							<sphere>
+								<radius>0.0735</radius>
+								<position>0 0 0</position>
+							</sphere>
+							<sphere>
+								<radius>0.105</radius>
+								<position>0.0 0.15 0.0</position>
+							</sphere>
+						</multi_sphere>
+                    </geometry>
+                </collision_shape>                            
+            </body>
+            
+            <body name="head">
+                <gravity>1</gravity>
+                <transformation>0 0.15 0 0 0 0</transformation>
+                <inertia>
+                    <mass>4</mass>
+                    <offset>0 0 0</offset>
+                </inertia>
+                <visualization_shape>
+                    <transformation>0 0 0 0 0 0</transformation>
+                    <geometry>
+                        <multi_sphere>
+							<sphere>
+								<radius>0.105</radius>
+								<position>0 0 0</position>
+							</sphere>
+							<sphere>
+								<radius>0.105</radius>
+								<position>0.0 0.175 0.0</position>
+							</sphere>
+						</multi_sphere>
+                    </geometry>
+                    <color>0.7 0.4 0.2</color>
+                </visualization_shape>
+                <collision_shape>
+                    <transformation>0 0 0 0 0 0</transformation>
+                    <geometry>
+                        <multi_sphere>
+							<sphere>
+								<radius>0.105</radius>
+								<position>0 0 0</position>
+							</sphere>
+							<sphere>
+								<radius>0.105</radius>
+								<position>0.0 0.175 0.0</position>
+							</sphere>
+						</multi_sphere>
+                    </geometry>
+                </collision_shape>                
+            </body>      
+            
+            <body name="shoulderR">
+                <gravity>1</gravity>
+                <transformation>0 0.0 0 0 0 0</transformation>
+                <inertia>
+                    <mass>3</mass>
+                    <offset>0 0 0</offset>
+                </inertia>
+                <visualization_shape>
+                    <transformation>0 0 0 0 0 0</transformation>
+                    <geometry>
+                        <multi_sphere>
+							<sphere>
+								<radius>0.06825</radius>
+								<position>0 0 0</position>
+							</sphere>
+							<sphere>
+								<radius>0.06825</radius>
+								<position>-0.21 0.0 0.0</position>
+							</sphere>
+						</multi_sphere>
+                    </geometry>
+                    <color>0.7 0.4 0.2</color>
+                </visualization_shape>    
+                <collision_shape>
+                    <transformation>0 0 0 0 0 0</transformation>
+                    <geometry>
+                        <multi_sphere>
+							<sphere>
+								<radius>0.06825</radius>
+								<position>0 0 0</position>
+							</sphere>
+							<sphere>
+								<radius>0.06825</radius>
+								<position>-0.21 0.0 0.0</position>
+							</sphere>
+						</multi_sphere>
+                    </geometry>
+                </collision_shape>                       
+            </body>
+
+            <body name="upperarmR">
+                <gravity>1</gravity>
+                <transformation>-0.21 0.0 0 0 0 0</transformation>
+                <inertia>
+                    <mass>1.9</mass>
+                    <offset>0 0 0</offset>
+                </inertia>
+                <visualization_shape>
+                    <transformation>0 0 0 0 0 0</transformation>
+                    <geometry>
+                        <multi_sphere>
+							<sphere>
+								<radius>0.06825</radius>
+								<position>0 0 0</position>
+							</sphere>
+							<sphere>
+								<radius>0.0525</radius>
+								<position>0.0 -0.3 0.0</position>
+							</sphere>
+						</multi_sphere>
+                    </geometry>
+                    <color>0.7 0.4 0.2</color>
+                </visualization_shape>
+                <collision_shape>
+                    <transformation>0 0 0 0 0 0</transformation>
+                    <geometry>
+                        <multi_sphere>
+							<sphere>
+								<radius>0.06825</radius>
+								<position>0 0 0</position>
+							</sphere>
+							<sphere>
+								<radius>0.0525</radius>
+								<position>0.0 -0.3 0.0</position>
+							</sphere>
+						</multi_sphere>
+                    </geometry>
+                </collision_shape>                                
+            </body>   
+
+            <body name="forearmR">
+                <gravity>1</gravity>
+                <transformation>-0.21 -0.3 0 0 0 0</transformation>
+                <inertia>
+                    <mass>1</mass>
+                    <offset>0 0 0</offset>
+                </inertia>
+                <visualization_shape>
+                    <transformation>0 0 0 0 0 0</transformation>
+                    <geometry>
+                        <multi_sphere>
+							<sphere>
+								<radius>0.0525</radius>
+								<position>0 0 0</position>
+							</sphere>
+							<sphere>
+								<radius>0.038325</radius>
+								<position>0.0 -0.35 0.0</position>
+							</sphere>
+						</multi_sphere>
+                    </geometry>
+                    <color>0.7 0.4 0.2</color>
+                </visualization_shape>
+                <collision_shape>
+                    <transformation>0 0 0 0 0 0</transformation>
+                    <geometry>
+                        <multi_sphere>
+							<sphere>
+								<radius>0.0525</radius>
+								<position>0 0 0</position>
+							</sphere>
+							<sphere>
+								<radius>0.038325</radius>
+								<position>0.0 -0.35 0.0</position>
+							</sphere>
+						</multi_sphere>
+                    </geometry>
+                </collision_shape>                           
+            </body>
+
+            <body name="handR">
+                <gravity>1</gravity>
+                <transformation>-0.21 -0.65 0.0 0 0 0</transformation>
+                <inertia>
+                    <mass>0.3</mass>
+                    <offset>0 0 0</offset>
+                </inertia>
+                <visualization_shape>
+                    <transformation>0 0 0 0 0 0</transformation>
+                    <geometry>
+                        <multi_sphere>
+							<sphere>
+								<radius>0.038325</radius>
+								<position>0.0 0.0 0.0</position>
+							</sphere>
+							<sphere>
+								<radius>0.042</radius>
+								<position>0 -0.04 0</position>
+							</sphere>
+						</multi_sphere>
+                    </geometry>
+                    <color>0.7 0.4 0.2</color>
+                </visualization_shape>                           
+            </body>
+
+
+            <body name="fingersR">
+                <gravity>1</gravity>
+                <transformation>-0.21 -0.69 0.0 0 0 0</transformation>
+                <inertia>
+                    <mass>0.2</mass>
+                    <offset>0 0 0</offset>
+                </inertia>
+                <visualization_shape>
+                    <transformation>0 0 0 0 0 0</transformation>
+                    <geometry>
+                        <multi_sphere>
+							<sphere>
+								<radius>0.042</radius>
+								<position>0.0 0.0 0.0</position>
+							</sphere>
+							<sphere>
+								<radius>0.0483</radius>
+								<position>0 -0.06 0</position>
+							</sphere>
+						</multi_sphere>
+                    </geometry>
+                    <color>0.7 0.4 0.2</color>
+                </visualization_shape>
+                <collision_shape>
+                    <transformation>0 0 0 0 0 0</transformation>
+                    <geometry>
+                        <multi_sphere>
+							<sphere>
+								<radius>0.042</radius>
+								<position>0 0 0</position>
+							</sphere>
+							<sphere>
+								<radius>0.0483</radius>
+								<position>0.0 -0.06 0.0</position>
+							</sphere>
+						</multi_sphere>
+                    </geometry>
+                </collision_shape>                               
+            </body>
+            
+            <body name="shoulderL">
+                <gravity>1</gravity>
+                <transformation>0 0.0 0 0 0 0</transformation>
+                <inertia>
+                    <mass>3</mass>
+                    <offset>0 0 0</offset>
+                </inertia>
+                <visualization_shape>
+                    <transformation>0 0 0 0 0 0</transformation>
+                    <geometry>
+                        <multi_sphere>
+							<sphere>
+								<radius>0.06825</radius>
+								<position>0 0 0</position>
+							</sphere>
+							<sphere>
+								<radius>0.06825</radius>
+								<position>0.21 0.0 0.0</position>
+							</sphere>
+						</multi_sphere>
+                    </geometry>
+                    <color>0.7 0.4 0.2</color>
+                </visualization_shape>
+                <collision_shape>
+                    <transformation>0 0 0 0 0 0</transformation>
+                    <geometry>
+                        <multi_sphere>
+							<sphere>
+								<radius>0.06825</radius>
+								<position>0 0 0</position>
+							</sphere>
+							<sphere>
+								<radius>0.06825</radius>
+								<position>0.21 0.0 0.0</position>
+							</sphere>
+						</multi_sphere>
+                    </geometry>
+                </collision_shape>                         
+            </body>
+     
+            <body name="upperarmL">
+                <gravity>1</gravity>
+                <transformation>0.21 0.0 0 0 0 0</transformation>
+                <inertia>
+                    <mass>1.9</mass>
+                    <offset>0 0 0</offset>
+                </inertia>
+                <visualization_shape>
+                    <transformation>0 0 0 0 0 0</transformation>
+                    <geometry>
+                        <multi_sphere>
+							<sphere>
+								<radius>0.06825</radius>
+								<position>0 0 0</position>
+							</sphere>
+							<sphere>
+								<radius>0.0525</radius>
+								<position>0.0 -0.3 0.0</position>
+							</sphere>
+						</multi_sphere>
+                    </geometry>
+                    <color>0.7 0.4 0.2</color>
+                </visualization_shape>
+                <collision_shape>
+                    <transformation>0 0 0 0 0 0</transformation>
+                    <geometry>
+                        <multi_sphere>
+							<sphere>
+								<radius>0.06825</radius>
+								<position>0 0 0</position>
+							</sphere>
+							<sphere>
+								<radius>0.0525</radius>
+								<position>0.0 -0.3 0.0</position>
+							</sphere>
+						</multi_sphere>
+                    </geometry>
+                </collision_shape>                            
+            </body>
+
+            <body name="forearmL">
+                <gravity>1</gravity>
+                <transformation>0.21 -0.3 0 0 0 0</transformation>
+                <inertia>
+                    <mass>1</mass>
+                    <offset>0 0 0</offset>
+                </inertia>
+                <self_collide>1</self_collide>
+                <visualization_shape>
+                    <transformation>0 0 0 0 0 0</transformation>
+                    <geometry>
+                        <multi_sphere>
+							<sphere>
+								<radius>0.0525</radius>
+								<position>0 0 0</position>
+							</sphere>
+							<sphere>
+								<radius>0.038325</radius>
+								<position>0.0 -0.35 0.0</position>
+							</sphere>
+						</multi_sphere>
+                    </geometry>
+                    <color>0.7 0.4 0.2</color>
+                </visualization_shape>
+                <collision_shape>
+                    <transformation>0 0 0 0 0 0</transformation>
+                    <geometry>
+                        <multi_sphere>
+							<sphere>
+								<radius>0.0525</radius>
+								<position>0 0 0</position>
+							</sphere>
+							<sphere>
+								<radius>0.038325</radius>
+								<position>0.0 -0.35 0.0</position>
+							</sphere>
+						</multi_sphere>
+                    </geometry>
+                </collision_shape>                             
+            </body>
+
+            <body name="handL">
+                <gravity>1</gravity>
+                <transformation>0.21 -0.65 0.0 0 0 0</transformation>
+                <inertia>
+                    <mass>0.3</mass>
+                    <offset>0 0 0</offset>
+                </inertia>
+                <self_collide>1</self_collide>
+                <visualization_shape>
+                    <transformation>0 0 0 0 0 0</transformation>
+                    <geometry>
+                        <multi_sphere>
+							<sphere>
+								<radius>0.038325</radius>
+								<position>0.0 0.0 0.0</position>
+							</sphere>
+							<sphere>
+								<radius>0.042</radius>
+								<position>0 -0.04 0</position>
+							</sphere>
+						</multi_sphere>
+                    </geometry>
+                    <color>0.7 0.4 0.2</color>
+                </visualization_shape>                           
+            </body>
+
+
+            <body name="fingersL">
+                <gravity>1</gravity>
+                <transformation>0.21 -0.69 0.0 0 0 0</transformation>
+                <inertia>
+                    <mass>0.2</mass>
+                    <offset>0 0 0</offset>
+                </inertia>
+                <self_collide>1</self_collide>
+                <visualization_shape>
+                    <transformation>0 0 0 0 0 0</transformation>
+                    <geometry>
+                        <multi_sphere>
+							<sphere>
+								<radius>0.042</radius>
+								<position>0.0 0.0 0.0</position>
+							</sphere>
+							<sphere>
+								<radius>0.0483</radius>
+								<position>0 -0.06 0</position>
+							</sphere>
+						</multi_sphere>
+                    </geometry>
+                    <color>0.7 0.4 0.2</color>
+                </visualization_shape>    
+                <collision_shape>
+                    <transformation>0 0 0 0 0 0</transformation>
+                    <geometry>
+                        <multi_sphere>
+							<sphere>
+								<radius>0.042</radius>
+								<position>0.0 0.0 0.0</position>
+							</sphere>
+							<sphere>
+								<radius>0.0483</radius>
+								<position>0 -0.06 0</position>
+							</sphere>
+						</multi_sphere>
+                    </geometry>
+                </collision_shape>                         
+            </body>
+         
+         
+            <!-- 
+            ########################################
+            Joint Definitions
+            ########################################
+             -->
+            
+            <joint type="weld" name="wj1">
+                <parent>world</parent>
+                <child>h_pelvis1</child>
+            </joint>
+            
+            <joint type="universal" name="torsoJ">
+                <parent>h_pelvis1</parent>
+                <child>torso</child>
+                <axis>
+                    <xyz>0.0 0.0 1.0</xyz>
+                    <limit>
+						<lower>-0.5</lower>
+						<upper>0.5</upper>
+						<!-- <lower>0.</lower>
+						<upper>0.</upper> -->
+					</limit>
+                    <dynamics>
+                        <damping>1.0</damping>
+                        <friction>0.0</friction>
+                    </dynamics>
+                </axis>
+                <axis2>
+                    <xyz>-1.0 0.0 0.0</xyz>
+                    <limit>
+						<lower>-0.5</lower>
+						<upper>1</upper>
+						<!--<lower>0.</lower>
+						<upper>0.</upper>--->
+					</limit>
+                    <dynamics>
+                        <damping>1.0</damping>
+                        <friction>0.0</friction>
+                    </dynamics>
+                </axis2>
+            </joint>
+            
+            <joint type="revolute" name="spine">
+                <parent>torso</parent>
+                <child>spine</child>
+                <axis>
+                    <xyz>0.0 1.0 0.0</xyz>
+					<limit>
+						<lower>-1</lower>
+						<upper>1</upper>
+					</limit>
+					<dynamics>
+                        <damping>1.0</damping>
+                        <friction>0.0</friction>
+                    </dynamics>
+                </axis>
+            </joint>
+            
+            <joint type="universal" name="clavR">
+                <parent>spine</parent>
+                <child>shoulderR</child>
+                <axis>
+                    <xyz>0.0 0.0 1.0</xyz>
+                    <limit>
+						<lower>-0.25</lower>
+						<upper>0.25</upper>
+					</limit>
+                    <dynamics>
+                        <damping>1.0</damping>
+                        <friction>0.0</friction>
+                    </dynamics>
+                </axis>
+                <axis2>
+                    <xyz>0.0 1.0 0.0</xyz>
+                    <limit>
+						<lower>-0.25</lower>
+						<upper>0.25</upper>
+					</limit>
+                    <dynamics>
+                        <damping>1.0</damping>
+                        <friction>0.0</friction>
+                    </dynamics>
+                </axis2>
+            </joint>
+
+            <joint type="euler" name="j_bicep_right">
+                <transformation>0.0 0.0 0.0 0.0 0.0 1.570796</transformation>
+                <parent>shoulderR</parent>
+                <child>upperarmR</child>
+                <axis_order>zyx</axis_order>
+                <axis>
+                    <dynamics>
+                        <damping>0.1</damping>
+                    </dynamics>
+                </axis>
+                <axis2>
+                    <dynamics>
+                        <damping>0.1</damping>
+                    </dynamics>
+                </axis2>
+                <axis3>
+                    <limit>
+                        <!-- -120~60 deg -->
+                        <lower>-2.09</lower>
+                        <upper>1.0</upper>
+                    </limit>
+                    <dynamics>
+                        <damping>0.1</damping>
+                    </dynamics>
+                </axis3>
+                <init_pos>0.0 0.0 0.0</init_pos>
+                <init_vel>0 0.0 0.0</init_vel>
+            </joint>
+           
+            <joint type="revolute" name="elbowjR">
+                <parent>upperarmR</parent>
+                <child>forearmR</child>
+                <axis>
+                    <xyz>1.0 0.0 0.0</xyz>
+					<limit>
+						<lower>0.2</lower>
+						<upper>2.9</upper>
+					</limit>
+					<dynamics>
+                        <damping>1.0</damping>
+                        <friction>0.0</friction>
+                    </dynamics>
+                </axis>
+                <init_pos>0.201</init_pos>
+            </joint>
+            
+            <joint type="universal" name="wristR">
+                <parent>forearmR</parent>
+                <child>handR</child>
+                <axis_order>zyx</axis_order>
+                <axis>
+                    <xyz>0.0 0.0 1.0</xyz>
+					<limit>
+						<lower>-0.6</lower>
+						<upper>0.6</upper>
+					</limit>
+					<dynamics>
+                        <damping>1.0</damping>
+                        <friction>0.0</friction>
+                    </dynamics>
+				</axis>
+				<axis2>
+				    <xyz>1.0 0.0 0.0</xyz>
+					<limit>
+						<lower>-0.6</lower>
+						<upper>0.6</upper>
+					</limit>
+					<dynamics>
+                        <damping>1.0</damping>
+                        <friction>0.0</friction>
+                    </dynamics>
+				</axis2>
+            </joint>
+            
+            <joint type="weld" name="handjR">
+                <parent>handR</parent>
+                <child>fingersR</child>
+            </joint>
+            
+            <joint type="universal" name="clavL">
+                <parent>spine</parent>
+                <child>shoulderL</child>
+                <axis>
+                    <xyz>0.0 0.0 -1.0</xyz>
+                    <limit>
+						<lower>-0.25</lower>
+						<upper>0.25</upper>
+					</limit>
+                    <dynamics>
+                        <damping>1.0</damping>
+                        <friction>0.0</friction>
+                    </dynamics>
+                </axis>
+                <axis2>
+                    <xyz>0.0 -1.0 0.0</xyz>
+                    <limit>
+						<lower>-0.25</lower>
+						<upper>0.25</upper>
+					</limit>
+                    <dynamics>
+                        <damping>1.0</damping>
+                        <friction>0.0</friction>
+                    </dynamics>
+                </axis2>
+            </joint>
+            
+            <joint type="euler" name="j_bicep_left">
+                <transformation>0.0 0.0 0.0 0.0 0.0 1.570796</transformation>
+                <parent>shoulderL</parent>
+                <child>upperarmL</child>
+                <axis_order>zyx</axis_order>
+                <!-- de facto zxy -->
+                <axis>
+                    <dynamics>
+                        <damping>0.1</damping>
+                    </dynamics>
+                </axis>
+                <axis2>
+                    <dynamics>
+                        <damping>0.1</damping>
+                    </dynamics>
+                </axis2>
+                <axis3>
+                    <limit>
+                        <!-- -60~120 deg -->
+                        <lower>-1.0</lower>
+                        <upper>2.09</upper>
+                    </limit>
+                    <dynamics>
+                        <damping>0.1</damping>
+                    </dynamics>
+                </axis3>
+                <init_pos>0.0 0.0 0.0</init_pos>
+                <init_vel>0 0.0 0.0</init_vel>
+            </joint>
+           
+            <joint type="revolute" name="elbowjL">
+                <parent>upperarmL</parent>
+                <child>forearmL</child>
+                <axis>
+                    <xyz>1.0 0.0 0.0</xyz>
+					<limit>
+						<lower>0.2</lower>
+						<upper>2.9</upper>
+					</limit>
+					<dynamics>
+                        <damping>1.0</damping>
+                        <friction>0.0</friction>
+                    </dynamics>
+                </axis>
+                <init_pos>0.201</init_pos>
+            </joint>
+            <joint type="universal" name="wristL">
+                <parent>forearmL</parent>
+                <child>handL</child>
+                <axis_order>zyx</axis_order>
+                <axis>
+                    <xyz>0.0 0.0 -1.0</xyz>
+					<limit>
+						<lower>-0.6</lower>
+						<upper>0.6</upper>
+					</limit>
+					<dynamics>
+                        <damping>1.0</damping>
+                        <friction>0.0</friction>
+                    </dynamics>
+				</axis>
+				<axis2>
+				    <xyz>1.0 0.0 0.0</xyz>
+					<limit>
+						<lower>-0.6</lower>
+						<upper>0.6</upper>
+					</limit>
+					<dynamics>
+                        <damping>1.0</damping>
+                        <friction>0.0</friction>
+                    </dynamics>
+				</axis2>
+            </joint>
+            
+            <joint type="weld" name="handjL">
+                <parent>handL</parent>
+                <child>fingersL</child>
+            </joint>
+            
+            <joint type="universal" name="neckJL">
+                <parent>spine</parent>
+                <child>neck</child>
+                <axis_order>zyx</axis_order>
+                <axis>
+                    <xyz>0.0 0.0 1.0</xyz>
+					<limit>
+						<lower>-0.6</lower>
+						<upper>0.6</upper>
+					</limit>
+					<dynamics>
+                        <damping>1.0</damping>
+                        <friction>0.0</friction>
+                    </dynamics>
+				</axis>
+				<axis2>
+				    <xyz>1.0 0.0 0.0</xyz>
+					<limit>
+						<lower>-0.6</lower>
+						<upper>0.6</upper>
+					</limit>
+					<dynamics>
+                        <damping>1.0</damping>
+                        <friction>0.0</friction>
+                    </dynamics>
+				</axis2>
+            </joint>
+            
+            <joint type="revolute" name="headJ">
+                <parent>neck</parent>
+                <child>head</child>
+                <axis>
+                    <xyz>0.0 1.0 0.0</xyz>
+					<limit>
+						<lower>-1</lower>
+						<upper>1</upper>
+					</limit>
+					<dynamics>
+                        <damping>1.0</damping>
+                        <friction>0.0</friction>
+                    </dynamics>
+                </axis>
+            </joint>
+            
+        </skeleton>	
+        
+    </world>
+</skel>
