@@ -55,6 +55,10 @@ def main():
 
     trial = None
 
+    # -- new env onearm
+    trial = "experiment_2019_02_27_onearm_standard_noactivecompliance"
+    # --
+
     # --- Split Network: one arm
     #trial = "experiment_2019_02_20_split_coopt_onearm_noconpen_cap_nodef"
     #trial = "experiment_2019_02_19_split_architecture_coopt_noconpen_humreward"

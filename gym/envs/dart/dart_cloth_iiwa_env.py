@@ -379,7 +379,8 @@ class RobotFramesObsFeature(ObservationFeature):
     def getObs(self):
         hn = self.iiwa.skel.bodynodes[8]
         roboFrame = pyutils.ShapeFrame()
-        roboFrame.setTransform(hn.T)
+        if np.isfinite(self.iiwa.skel.q): #handle nan here...
+            roboFrame.setTransform(hn.T)
         robotEulerStates = pyutils.getEulerAngles3(roboFrame.orientation)
         obs = np.concatenate([hn.to_world(np.zeros(3)), robotEulerStates, self.iiwa.frameInterpolator["target_pos"], self.iiwa.frameInterpolator["eulers"]]).ravel()
         return obs
@@ -1457,7 +1458,7 @@ class DartClothIiwaEnv(gym.Env):
 
         #self.updateClothCollisionStructures(hapticSensors=True) #don't need this? It is done in simulation before each cloth sim step
 
-        done, terminationReward = self.checkTermination(human_tau, ob)
+        done, terminationReward = self.checkTermination(human_tau, None)
 
         if done:
             if math.isfinite(reward):
