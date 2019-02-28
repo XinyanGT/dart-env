@@ -4,40 +4,40 @@
 
     <link name="board">
         <inertial>
-            <mass value="0.5" />
+            <mass value="0.453" />
             <origin xyz="0 0 0" rpy="0 0 0"/>
-            <inertia ixx="0.005108333333333333" ixy="0" ixz="0" iyy="0.0010708333333333334" iyz="0" izz="0.006170833333333332" />
+            <inertia ixx="0.003398" ixy="0" ixz="0" iyy="0.000849" iyz="0" izz="0.004247" />
         </inertial>
         <visual>
             <origin xyz="0 0 0" rpy="0 0 0" />
             <geometry>
-                <box size="0.16 0.35 0.01" />
+                <box size="0.15 0.4 0.01" />
             </geometry>
         </visual>
         <collision>
             <origin xyz="0 0 0" rpy="0 0 0" />
             <geometry>
-                <box size="0.16 0.35 0.01" />
+                <box size="0.15 0.4 0.01" />
             </geometry>
         </collision>
     </link>
 
     <link name="support">
         <inertial>
-            <mass value="0.25" />
-            <origin xyz="0 0 -0.03" rpy="0 1.57 0" />
-            <inertia ixx="0.01851666666666666" ixy="0" ixz="0" iyy="0.01851666666666666" iyz="0" izz="0.037024999999999995" />
+            <mass value="0.151" />
+            <origin xyz="0 0 -0.04" rpy="0 1.57 0" />
+            <inertia ixx="0.00067" ixy="0" ixz="0" iyy="0.000618" iyz="0" izz="0.000618" />
         </inertial>
         <visual>
-            <origin xyz="0 0 -0.03" rpy="0 1.57 0" />
+            <origin xyz="0 0 -0.04" rpy="0 1.57 0" />
             <geometry>
-                <cylinder length="0.15" radius="0.025"/>
+                <cylinder length="0.15" radius="0.035"/>
             </geometry>
         </visual>
         <collision>
-            <origin xyz="0 0 -0.03" rpy="0 1.57 0" />
+            <origin xyz="0 0 -0.04" rpy="0 1.57 0" />
             <geometry>
-                <cylinder length="0.15" radius="0.025"/>
+                <cylinder length="0.15" radius="0.035"/>
             </geometry>
         </collision>
     </link>
@@ -46,7 +46,7 @@
     <joint name="jt1" type="floating">
         <parent link="world"/>
         <child link="support"/>
-        <origin rpy="0 0 0" xyz="0 0 -0.28"/>
+        <origin rpy="0 0 0" xyz="0 0 -0.27"/>
     </joint>
 
     <joint name="jt2" type="fixed">

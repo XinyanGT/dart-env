@@ -12,8 +12,8 @@
             <geometry>
                 <box size="125 25 2.05" />
             </geometry>
-            <material name="Grey">
-                <color rgba ="1.0 1.0 0.55 1.0"/>
+            <material name="Carpet">
+                <color rgba ="1.0 0.6 0.01 0.7"/>
             </material>
         </visual>
         <collision group="default">
@@ -57,7 +57,38 @@
         <child link="ground_link2" />
     </joint>
 
-    <link name="pillar1">
+    <link name="wall">
+        <inertial>
+            <mass value="1.0" />
+            <origin xyz="0 0 -1.368" rpy="0 0 0"/>
+            <inertia ixx="1.0" ixy="0" ixz="0" iyy="1.0" iyz="0" izz="1.0" />
+        </inertial>
+        <visual>
+            <origin xyz="0 0.5 0" rpy="1.57 0 0" />
+            <geometry>
+                <box size="125 25 0.1" />
+            </geometry>
+            <material name="Grey">
+                <color rgba ="1.0 1.0 0.55 0.3"/>
+            </material>
+        </visual>
+        <collision group="default">
+            <origin xyz="0 0.5 0" rpy="1.57 0 0" />
+            <geometry>
+                <box size="125 25 0.1" />
+            </geometry>
+        </collision>
+    </link>
+    <joint name="ground_joint_wall" type="fixed">
+        <origin xyz="0 0 0" rpy="0 0 0" />
+        <parent link="ground_link" />
+        <child link="wall" />
+    </joint>
+
+
+
+
+    <!--<link name="pillar1">
         <inertial>
             <mass value="1.0" />
             <origin xyz="0 0 -0.368" rpy="0 0 0"/>
@@ -122,6 +153,6 @@
         <origin xyz="0 0 0" rpy="0 0 0" />
         <parent link="ground_link" />
         <child link="pillar3" />
-    </joint>
+    </joint>-->
 
 </robot>

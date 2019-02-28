@@ -12,7 +12,7 @@ class PendulumEnv(gym.Env):
 
     def __init__(self):
         self.max_speed=8
-        self.max_torque=2.
+        self.max_torque=10.
         self.dt=.05
         self.viewer = None
 
@@ -20,9 +20,12 @@ class PendulumEnv(gym.Env):
         self.action_space = spaces.Box(low=-self.max_torque, high=self.max_torque, shape=(1,))
         self.observation_space = spaces.Box(low=-high, high=high)
 
+        self.m = 10.0
+
         self.seed()
 
     def seed(self, seed=None):
+        np.random.seed(seed)
         self.np_random, seed = seeding.np_random(seed)
         return [seed]
 
@@ -30,7 +33,7 @@ class PendulumEnv(gym.Env):
         th, thdot = self.state # th := theta
 
         g = 10.
-        m = 1.
+        m = self.m
         l = 1.
         dt = self.dt
 
@@ -49,6 +52,9 @@ class PendulumEnv(gym.Env):
         high = np.array([np.pi, 1])
         self.state = self.np_random.uniform(low=-high, high=high)
         self.last_u = None
+
+        #self.m = np.random.choice([2, 4, 6, 8, 10])
+
         return self._get_obs()
 
     def _get_obs(self):
