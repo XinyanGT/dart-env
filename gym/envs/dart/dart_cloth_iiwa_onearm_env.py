@@ -72,9 +72,9 @@ class DartClothIiwaOnearmEnv(DartClothIiwaEnv):
         rest_pose_weights = np.ones(self.human_skel.ndofs)
         rest_pose_weights[:2] *= 10 #stable torso
         rest_pose_weights[3] *= 1 #spine
-        rest_pose_weights[3:11] *= 0 #ignore active arm
-        rest_pose_weights[11:19] *= 2 #passive arm
-        #rest_pose_weights[3:19] *= 0 #ignore rest pose
+        #rest_pose_weights[3:11] *= 0 #ignore active arm
+        #rest_pose_weights[11:19] *= 2 #passive arm
+        rest_pose_weights[3:19] *= 0 #ignore rest pose
         rest_pose_weights[19:] *= 2 #stable head
         self.reward_manager.addTerm(term=RestPoseRewardTerm(self.human_skel, pose=np.zeros(self.human_skel.ndofs), weights=rest_pose_weights))
         self.reward_manager.addTerm(term=LimbProgressRewardTerm(dressing_target=self.dressing_targets[0], weight=40))
