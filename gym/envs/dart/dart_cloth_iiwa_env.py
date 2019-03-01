@@ -379,7 +379,7 @@ class RobotFramesObsFeature(ObservationFeature):
     def getObs(self):
         hn = self.iiwa.skel.bodynodes[8]
         roboFrame = pyutils.ShapeFrame()
-        if np.isfinite(self.iiwa.skel.q): #handle nan here...
+        if np.isfinite(self.iiwa.skel.q).all(): #handle nan here...
             roboFrame.setTransform(hn.T)
         robotEulerStates = pyutils.getEulerAngles3(roboFrame.orientation)
         obs = np.concatenate([hn.to_world(np.zeros(3)), robotEulerStates, self.iiwa.frameInterpolator["target_pos"], self.iiwa.frameInterpolator["eulers"]]).ravel()
@@ -434,6 +434,22 @@ class CollisionMPCObsFeature(ObservationFeature):
             obs = np.array(readings)
         return obs
 
+class DataDrivenJointLimitsObsFeature(ObservationFeature):
+    #observation of the time since last collision warning for either robot or human
+    def __init__(self, env, name="Data Driven Joint Limits Obs", render=False):
+        self.env = env
+        ObservationFeature.__init__(self, name=name, dim=len(self.env.data_driven_constraints), render=render)
+
+    def getObs(self):
+        obs = np.zeros(0)
+        # show the current constraint query
+        self.env.data_driven_constraint_query = []
+        for constraint in self.env.data_driven_constraints:
+            self.env.data_driven_constraint_query.append(constraint.query(self.env.dart_world, False))
+            obs = np.concatenate([obs, np.array([self.env.data_driven_constraint_query[-1]])])
+        self.env.text_queue.append("Constraint Query: " + str(self.env.data_driven_constraint_query))
+        return obs
+
 class WeaknessScaleObsFeature(ObservationFeature):
     #observation of the weakness scale of a set of dofs
     def __init__(self, env, dofs, scale_range=(0.2,0.5), name="Weakness Scale Obs", render=True):
@@ -465,6 +481,41 @@ class WeaknessScaleObsFeature(ObservationFeature):
 
     def draw(self):
         self.env.text_queue.append("Weakness Scale: %0.3f -> %0.3f" % (self.currentScale, LERP(self.scale_range[0], self.scale_range[1], self.currentScale)))
+
+class IntentionTremorObsFeature(ObservationFeature):
+    #Intention Tremor: broad, coarse, low frequency (5Hz) tremor.
+    #   Amplitude increases as an extremity approaches the endpoint of deliberate and visually guided movement.
+    #TODO: model this, note: end effector is most effected. Maybe dofs correspond to scale also?
+    def __init__(self, env, dofs, scale_range=(0.0,0.15), frequency_range=(4,6), name="Intention Tremor Obs", render=True):
+        '''
+        :param env:
+        :param dofs: a list of dof indices
+        :param scale_range: a tuple (>0) defining the scaling range of the tremor (since obs should normalize to [0,1])
+        :param frequency_range: a tuple (>0) defining the scaling range of the tremor frequency in Hz (since obs should normalize to [0,1])
+        :param name:
+        :param render:
+        '''
+        self.env = env
+        self.dofs = dofs
+        self.scale_range = scale_range
+        ObservationFeature.__init__(self, name=name, dim=1, render=render)
+        self.currentScale = 1.0
+
+    def getObs(self):
+        obs = np.array([self.currentScale])
+        return obs
+
+    def reset(self):
+        #draw a new scale value
+        self.currentScale = np.random.uniform(0,1.0)
+        print("applied Intention Tremor scale: " + str(self.currentScale) + " to dofs: " + str(self.dofs))
+
+        #update the human's capability
+        for d in self.dofs:
+            self.env.human_action_scale[d] = LERP(self.env.initial_human_action_scale[d]*self.scale_range[0], self.env.initial_human_action_scale[d]*self.scale_range[1], self.currentScale)
+
+    def draw(self):
+        self.env.text_queue.append("Intention Tremor Scale: %0.3f -> %0.3f" % (self.currentScale, LERP(self.scale_range[0], self.scale_range[1], self.currentScale)))
 
 class OracleObsFeature(ObservationFeature):
     #observation of an oracle vector pointing from a skel sensor to a dressing target or contact geodesic gradient
@@ -1027,7 +1078,7 @@ class DartClothIiwaEnv(gym.Env):
         self.dart_render = True
         self.proxy_render = False
         self.cloth_render = True
-        self.detail_render = True
+        self.detail_render = False
         self.simulating = True #used to allow simulation freezing while rendering continues
         self.passive_robots = False #if true, no motor torques from the robot
         self.active_compliance = active_compliance
@@ -1167,6 +1218,7 @@ class DartClothIiwaEnv(gym.Env):
             self.limbDofs.append(range(3,11)) #R arm
             self.limbDofs.append(range(11,19)) #L arm
 
+            self.data_driven_constraint_query = []
             self.data_driven_constraints = []
             if self.data_driven_joint_limits:
                 leftarmConstraint = pydart.constraints.HumanArmJointLimitConstraint(self.human_skel.joint('j_bicep_left'), self.human_skel.joint('elbowjL'), True)
@@ -1722,12 +1774,6 @@ class DartClothIiwaEnv(gym.Env):
         m_viewport = self.viewer.viewport
 
         self.clothScene.drawText(x=15., y=15, text="Time = " + str(self.numSteps * self.dt * self.frame_skip), color=(0., 0, 0))
-
-        #show the current constraint query
-        constraintQuery = []
-        for constraint in self.data_driven_constraints:
-            constraintQuery.append(constraint.query(self.dart_world, False))
-        self.text_queue.append("Constraint Query: " + str(constraintQuery))
 
         #draw the text queue
         textHeight = 15

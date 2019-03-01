@@ -56,7 +56,12 @@ def main():
     trial = None
 
     # -- new env onearm
-    trial = "experiment_2019_02_27_onearm_standard_noactivecompliance"
+    #trial = "experiment_2019_02_27_onearm_weak_collpen_MPC"
+    #trial = "experiment_2019_02_27_onearm_weak_128"
+    #trial = "experiment_2019_02_27_onearm_weak"
+    #trial = "experiment_2019_02_27_onearm_standard"
+    #trial = "experiment_2019_02_27_onearm_collpen_MPC"
+    #trial = "experiment_2019_02_27_onearm_standard_noactivecompliance"
     # --
 
     # --- Split Network: one arm
