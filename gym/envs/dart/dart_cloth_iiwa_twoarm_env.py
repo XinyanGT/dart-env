@@ -212,6 +212,7 @@ class DartClothIiwaTwoarmEnv(DartClothIiwaEnv):
             iiwa.handle_node.updatePrevConstraintPositions()
 
         # now simulate the cloth while interpolating the handle node positions
+        self.clothScene.clearInterpolation()
         simFrames = 100
         hL_init = np.array(self.iiwas[0].handle_node.org)
         hR_init = np.array(self.iiwas[1].handle_node.org)

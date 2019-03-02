@@ -1809,6 +1809,21 @@ class DartClothIiwaEnv(gym.Env):
         for feature in self.cloth_features:
             feature.drawProjectionPoly(renderNormal=True, renderBasis=False)
 
+        # render geodesic
+        if False:
+            sm_ix = 0 #default left feature geodesic
+            for v in range(self.clothScene.getNumVertices()):
+                side1geo = self.separated_meshes[sm_ix].nodes[v + self.separated_meshes[sm_ix].numv].geodesic
+                side0geo = self.separated_meshes[sm_ix].nodes[v].geodesic
+
+                pos = self.clothScene.getVertexPos(vid=v)
+                norm = self.clothScene.getVertNormal(vid=v)
+                renderUtils.setColor(color=renderUtils.heatmapColor(minimum=0, maximum=self.separated_meshes[sm_ix].maxGeo, value=self.separated_meshes[sm_ix].maxGeo-side0geo))
+                renderUtils.drawSphere(pos=pos-norm*0.01, rad=0.01)
+                renderUtils.setColor(color=renderUtils.heatmapColor(minimum=0, maximum=self.separated_meshes[sm_ix].maxGeo, value=self.separated_meshes[sm_ix].maxGeo-side1geo))
+                renderUtils.drawSphere(pos=pos + norm * 0.01, rad=0.01)
+
+
         #TEXT
         m_viewport = self.viewer.viewport
 
