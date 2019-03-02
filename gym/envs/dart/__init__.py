@@ -99,6 +99,7 @@ from gym.envs.dart.upperbodydatadriven_cloth_iiwa_gown_multibot_helper import Da
 
 #updated iiwa envs
 from gym.envs.dart.dart_cloth_iiwa_onearm_env import DartClothIiwaOnearmEnv
+from gym.envs.dart.dart_cloth_iiwa_twoarm_env import DartClothIiwaTwoarmEnv
 from gym.envs.dart.experiment_testing_copy_env import DartClothExperimentTestingEnv
 
 

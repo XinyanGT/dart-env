@@ -15,6 +15,7 @@ import time
 import random
 from gym import utils
 import joblib
+import shutil, errno
 
 from gym.envs.dart.static_window import *
 from gym.envs.dart.norender_window import *
@@ -131,13 +132,35 @@ class RestPoseRewardTerm(RewardTerm):
 
 class LimbProgressRewardTerm(RewardTerm):
     #progress of a limb through a garment feature
-    def __init__(self, dressing_target, name="limb progress", weight=1.0, min=-2.0, max=1.0):
+    def __init__(self, dressing_target, continuous=True, terminal=False, success_threshold=0.825, name="limb progress", weight=1.0, min=-2.0, max=1.0):
         self.dressing_target = dressing_target
+        self.continuous = continuous
+        self.terminal = terminal
+        self.success_threshold=success_threshold
+        self.previous_progress = 0
         RewardTerm.__init__(self, name=name, weight=weight, min=min, max=max)
 
     def evaluateReward(self):
-        self.previous_evaluation = self.dressing_target.getLimbProgress()*self.weight
+        self.previous_evaluation = 0
+        self.previous_progress = self.dressing_target.getLimbProgress()
+        if self.continuous:
+            #if not terminal, give reward for progress up to the threshold value
+            if self.previous_progress > 0:
+                self.previous_evaluation += (min(self.previous_progress, self.success_threshold)/self.success_threshold)*self.weight
+            else:
+                self.previous_evaluation += self.previous_progress*self.weight
+        if self.terminal:
+            #if terminal, only give binary reward for reaching threshold
+            if self.previous_progress >= self.success_threshold:
+                self.previous_evaluation += self.weight
         return self.previous_evaluation
+
+    def draw(self):
+        #render the threshold
+        limb = pyutils.limbFromNodeSequence(self.dressing_target.skel, nodes=self.dressing_target.limb_sequence, offset=self.dressing_target.distal_offset)
+        p,v = pyutils.getLimbPointVec(limb, 1.0-self.success_threshold)
+        point_plane = Plane(org=p, normal=v/np.linalg.norm(v))
+        point_plane.draw(0.1)
 
 class GeodesicContactRewardTerm(RewardTerm):
     #reward for touching the cloth close to the target feature
@@ -839,15 +862,21 @@ class Iiwa:
         #predicted_pose = self.skel.q + (np.concatenate([self.root_dofs, result]) - self.skel.q)*5.0
         predicted_pose = np.concatenate([self.root_dofs, result])
         #if self.env.checkIiwaPose(self.skel, predicted_pose):
-        if not self.active_compliance:
-            self.previousIKResult = np.array(result)
-        elif self.env.checkProxyPose(self.index, predicted_pose):
+
+
+
+        if self.env.checkProxyPose(self.index, predicted_pose):
             self.previousIKResult = np.array(result)
         else:
             #print("collision pose")
             self.env.text_queue.append("MPC COLLISION_ROBOT_WARNING")
             self.near_collision = 0
+
+        if not self.active_compliance:
+            self.previousIKResult = np.array(result)
+        elif self.near_collision == 0:
             self.skel.dq *= 0.5
+
 
     def setIKPose(self, setFrame=True):
         #set the most recent IK solved pose
@@ -868,15 +897,16 @@ class Iiwa:
         self.skel.set_positions(np.concatenate([np.array(self.root_dofs), np.array(self.rest_dofs)]))
 
     def computeTorque(self):
-
-        tau_mod = LERP(0.001,1.0,min(self.near_collision,0.5)/0.5)
+        tau_mod = 1.0
+        if self.active_compliance:
+            tau_mod = LERP(0.001,1.0,min(self.near_collision,0.5)/0.5)
         #print(tau_mod)
         self.env.text_queue.append("tau_mod: " + str(tau_mod))
 
         #compute motor torque for previousIKResult
         self.SPDController.target = np.array(self.previousIKResult)
 
-        if self.near_collision < 1.0:
+        if self.near_collision < 1.0 and self.active_compliance:
             self.SPDController.target = LERP(np.array(self.skel.q[6:]), np.array(self.previousIKResult), min(self.near_collision,0.5)/0.5)
 
         tau = np.clip(self.SPDController.query(skel=self.skel), -self.torque_limits, self.torque_limits)
@@ -884,7 +914,7 @@ class Iiwa:
         tau = np.clip(tau, -self.torque_limits*tau_mod, self.torque_limits*tau_mod)
         tau = np.concatenate([np.zeros(6), tau])
 
-        if self.near_collision < 0.25:
+        if self.near_collision < 0.25 and self.active_compliance:
             for t in range(6,len(tau)):
                 if abs(self.skel.dq[t]) > 0.1:
                     if tau[t] > 0 == self.skel.dq[t] > 0:
@@ -917,7 +947,7 @@ class Iiwa:
 
         self.near_collision = min(self.near_collision+dt, 1.0)
 
-        if self.near_collision < 0.1:
+        if self.near_collision < 0.1 and self.active_compliance:
             hn = self.skel.bodynodes[9]
             self.ik_target.setTransform(hn.T)
 
@@ -1105,11 +1135,12 @@ class DartClothIiwaEnv(gym.Env):
 
         #load other policy file if necessary
         self.prefix = os.path.dirname(__file__)
-        experiment_prefix = self.prefix + "/../../../../rllab/data/local/experiment/"
-        if experiment_directory is None:
+        self.experiment_prefix = self.prefix + "/../../../../rllab/data/local/experiment/"
+        self.experiment_directory = experiment_directory
+        if self.experiment_directory is None:
             #default to this experiment
-            experiment_directory = "experiment_2019_02_13_human_multibot"
-        self.otherPolicyFile = experiment_prefix + experiment_directory + "/policy.pkl"
+            self.experiment_directory = "experiment_2019_02_13_human_multibot"
+        self.otherPolicyFile = self.experiment_prefix + self.experiment_directory + "/policy.pkl"
         self.otherPolicy = None
         if not self.dualPolicy:
             self.otherPolicy = joblib.load(self.otherPolicyFile)
@@ -1230,7 +1261,7 @@ class DartClothIiwaEnv(gym.Env):
 
             #damping
             for i in range(len(self.human_skel.dofs)):
-                self.human_skel.dofs[i].set_damping_coefficient(0.5) #TODO: revisit this?
+                self.human_skel.dofs[i].set_damping_coefficient(2.0) #TODO: revisit this?
             self.human_skel.dofs[0].set_damping_coefficient(4.0)
             self.human_skel.dofs[1].set_damping_coefficient(4.0)
 
@@ -1400,6 +1431,8 @@ class DartClothIiwaEnv(gym.Env):
             if not path.exists(cloth_mesh_file):
                 raise IOError("File %s does not exist" % cloth_mesh_file)
 
+            cloth_vector_scale = np.array([cloth_scale, cloth_scale, cloth_scale])
+
             if cloth_mesh_state_file is not None:
                 cloth_mesh_state_file = os.path.join(os.path.dirname(__file__), "assets", cloth_mesh_state_file)
                 if not path.exists(cloth_mesh_file):
@@ -1407,25 +1440,30 @@ class DartClothIiwaEnv(gym.Env):
                 self.clothScene = pyphysx.ClothScene(step=self.dt*2,
                                                 mesh_path=cloth_mesh_file,
                                                 state_path=cloth_mesh_state_file,
-                                                scale=cloth_scale)
+                                                scale=cloth_vector_scale)
             else:
                 self.clothScene = pyphysx.ClothScene(step=self.dt*2,
                                                 mesh_path=cloth_mesh_file,
-                                                scale=cloth_scale)
+                                                scale=cloth_vector_scale)
 
             self.clothScene.togglePinned(0, 0)  # turn off auto-pin
 
             self.clothScene.setFriction(0, cloth_friction)  # reset this anytime as desired
 
+
             self.collisionCapsuleInfo = None  # set in updateClothCollisionStructures(capsules=True)
             self.collisionSphereInfo = None  # set in updateClothCollisionStructures()
             #haptic_sensor_data allows average readings over time as well as overloaded haptic sensor locations
             self.haptic_sensor_data = {"num_sensors":22, "cloth_steps":0, "cloth_data":np.zeros(66), "rigid_steps":0, "rigid_data":np.zeros(66)}
+
             self.updateClothCollisionStructures(capsules=True, hapticSensors=True)
+
             self.clothScene.setSelfCollisionDistance(distance=0.03)
             self.clothScene.setParticleConstraintMode(mode=1)
+
             self.clothScene.step()
             self.clothScene.reset()
+
             if not self.cloth_render:
                 self.clothScene.renderClothFill = False
 
@@ -1649,6 +1687,7 @@ class DartClothIiwaEnv(gym.Env):
         self.additionalResets()
 
         self.updateClothCollisionStructures(hapticSensors=True)
+        self.clothScene.clearInterpolation()
 
         self.reset_number += 1
         self.numSteps = 0
@@ -2231,5 +2270,85 @@ class DartClothIiwaEnv(gym.Env):
         #self.proxy_human_skel.set_self_collision_check(True)
         #self.proxy_human_skel.set_adjacent_body_check(False)
 
+    def saveObjState(self, filename=None):
+        print("Trying to save the object state")
+        print("filename: " + str(filename))
+        if filename is None:
+            filename = "objState"
+        self.clothScene.saveObjState(filename, 0)
 
+    def saveSkelState(self, skel, filename=None):
+        print("saving skel state")
+        if filename is None:
+            filename = "skelState"
+        print("filename " + str(filename))
+        f = open(filename, 'w')
+        for ix,dof in enumerate(skel.q):
+            if ix > 0:
+                f.write(" ")
+            f.write(str(dof))
 
+        f.write("\n")
+
+        for ix,dof in enumerate(self.skel.dq):
+            if ix > 0:
+                f.write(" ")
+            f.write(str(dof))
+        f.close()
+
+    def loadSkelState(self, skel, filename=None):
+        openFile = "skelState"
+        if filename is not None:
+            openFile = filename
+        f = open(openFile, 'r')
+        qpos = np.zeros(skel.ndofs)
+        qvel = np.zeros(skel.ndofs)
+        for ix, line in enumerate(f):
+            if ix > 1: #only want the first 2 file lines
+                break
+            words = line.split()
+            if(len(words) != skel.ndofs):
+                break
+            if(ix == 0): #position
+                qpos = np.zeros(skel.ndofs)
+                for ixw, w in enumerate(words):
+                    qpos[ixw] = float(w)
+            else: #velocity (if available)
+                qvel = np.zeros(skel.ndofs)
+                for ixw, w in enumerate(words):
+                    qvel[ixw] = float(w)
+
+        skel.set_positions(qpos)
+        skel.set_velocities(qvel)
+        f.close()
+
+    def saveRandomState(self, directory=None, max_state_number=100):
+        state_number = random.randint(0,max_state_number)
+        if directory is None:
+            directory = self.experiment_prefix + self.experiment_directory + "/states/"
+        self.saveSkelState(self.human_skel, directory+"human_%05d" % state_number)
+        for iiwa in self.iiwas:
+            self.saveSkelState(iiwa.skel, directory + "iiwa"+str(iiwa.index)+"_%05d" % state_number)
+
+        self.saveObjState(directory+"cloth_%05d" % state_number)
+
+    def loadRandomState(self, directory=None, max_state_number=100):
+        state_number = random.randint(0, max_state_number)
+        if directory is None:
+            directory = self.experiment_prefix + self.experiment_directory + "/states/"
+        self.loadSkelState(self.human_skel, directory+"human_%05d" % state_number)
+        for iiwa in self.iiwas:
+            self.loadSkelState(iiwa.skel, directory + "iiwa"+str(iiwa.index)+"_%05d" % state_number)
+
+        #load the cloth
+        self.clothScene.loadObjState(filename=directory+"cloth_%05d" % state_number)
+
+    def fillSavedStates(self, directory=None, max_state_number=100):
+        if directory is None:
+            directory = self.experiment_prefix + self.experiment_directory + "/states/"
+        self.saveRandomState(directory, max_state_number=1)
+        for s in range(1,max_state_number):
+            shutil.copy2( directory+"human_%05d" % 0, directory+"human_%05d" % s)
+            for iiwa in self.iiwas:
+                shutil.copy2( directory + "iiwa"+str(iiwa.index)+"_%05d" % 0, directory + "iiwa"+str(iiwa.index)+"_%05d" % s)
+            shutil.copy2( directory+"cloth_%05d" % 0, directory+"cloth_%05d" % s)

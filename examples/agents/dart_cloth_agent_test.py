@@ -56,6 +56,12 @@ def main():
     trial = None
 
     # -- new env onearm
+    #trial = "experiment_2019_03_01_onearm_weaker_strconpen_128"
+    #trial = "experiment_2019_03_01_onearm_weaker_strconpen_noactiverest"
+    #trial = "experiment_2019_03_01_onearm_weaker_strconpen"
+    #trial = "experiment_2019_03_01_onearm_standard_strconpen_datadrivenobs"
+    #trial = "experiment_2019_03_01_onearm_standard_strconpen_nonactiverest"
+    #trial = "experiment_2019_03_01_onearm_standard_noactivecompliance_strconpen_MPCobs"
     #trial = "experiment_2019_02_27_onearm_weak_collpen_MPC"
     #trial = "experiment_2019_02_27_onearm_weak_128"
     #trial = "experiment_2019_02_27_onearm_weak"
@@ -489,6 +495,7 @@ def main():
     #trial = "experiment_2017_09_11_mode7_nohapticsbaseline"
 
     loadSave = False #now done automatically if policy file not found...
+    graphOnly = False #if true, exit() after graphing
 
     if loadSave is True:
         import tensorflow as tf
@@ -576,6 +583,7 @@ def main():
     #envName = 'DartIiwaGownAssistCoopt_h-v2'
     #envName = 'DartIiwaGownMultibot-v1'
     envName = 'DartIiwaOnearmGown-v1'
+    #envName = 'DartIiwaTwoarmGown-v1'
 
     if len(sys.argv) > 1:
         #print(sys.argv[1])
@@ -655,6 +663,8 @@ def main():
             print(policy)
             useMeanPolicy = True #always use mean if we loaded the policy
             renderGraph(filename=prefix+trial+"/progress.csv")
+            if graphOnly:
+                exit()
         except:
             print("No PICKLE policy file found. Trying joblib...")
             try:

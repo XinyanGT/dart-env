@@ -20,7 +20,7 @@ class DartClothIiwaOnearmEnv(DartClothIiwaEnv):
         #initialize the base env
         cloth_mesh_file = "fullgown1.obj"
         cloth_mesh_state_file = "hanginggown.obj"
-        DartClothIiwaEnv.__init__(self, robot_root_dofs=self.iiwa_root_dofs, active_compliance=True, cloth_mesh_file=cloth_mesh_file, cloth_mesh_state_file=cloth_mesh_state_file, cloth_scale=1.3)
+        DartClothIiwaEnv.__init__(self, robot_root_dofs=self.iiwa_root_dofs, active_compliance=False, cloth_mesh_file=cloth_mesh_file, cloth_mesh_state_file=cloth_mesh_state_file, cloth_scale=1.3)
 
         #manual control target
 
@@ -53,7 +53,7 @@ class DartClothIiwaOnearmEnv(DartClothIiwaEnv):
         self.human_obs_manager.addObsFeature(feature=SPDTargetObsFeature(self))
         #self.human_obs_manager.addObsFeature(feature=DataDrivenJointLimitsObsFeature(self))
         #self.human_obs_manager.addObsFeature(feature=CollisionMPCObsFeature(env=self,is_human=True))
-        self.human_obs_manager.addObsFeature(feature=WeaknessScaleObsFeature(self,self.limbDofs[1],scale_range=(0.1,0.4)))
+        #self.human_obs_manager.addObsFeature(feature=WeaknessScaleObsFeature(self,self.limbDofs[1],scale_range=(0.1,0.3)))
         self.human_obs_manager.addObsFeature(feature=OracleObsFeature(env=self,sensor_ix=21,dressing_target=self.dressing_targets[-1],sep_mesh=self.separated_meshes[-1]))
         for iiwa in self.iiwas:
             self.human_obs_manager.addObsFeature(feature=JointPositionObsFeature(iiwa.skel, ignored_joints=[1], name="iiwa " + str(iiwa.index) + " joint positions"))
@@ -77,7 +77,7 @@ class DartClothIiwaOnearmEnv(DartClothIiwaEnv):
         rest_pose_weights[3:19] *= 0 #ignore rest pose
         rest_pose_weights[19:] *= 2 #stable head
         self.reward_manager.addTerm(term=RestPoseRewardTerm(self.human_skel, pose=np.zeros(self.human_skel.ndofs), weights=rest_pose_weights))
-        self.reward_manager.addTerm(term=LimbProgressRewardTerm(dressing_target=self.dressing_targets[0], weight=40))
+        self.reward_manager.addTerm(term=LimbProgressRewardTerm(dressing_target=self.dressing_targets[0], terminal=True, weight=40))
         self.reward_manager.addTerm(term=ClothDeformationRewardTerm(self, weight=1))
         self.reward_manager.addTerm(term=HumanContactRewardTerm(self, weight=10))
 
