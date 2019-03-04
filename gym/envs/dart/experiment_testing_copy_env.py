@@ -86,9 +86,9 @@ class DartClothExperimentTestingEnv(DartClothIiwaEnv):
 
         #set the observation space
         self.obs_dim = self.human_obs_manager.obs_size
-        if self.dualPolicy:
+        if self.dual_policy:
             self.obs_dim += self.robot_obs_manager.obs_size
-        elif not self.isHuman:
+        elif not self.is_human:
             self.obs_dim = self.robot_obs_manager.obs_size
 
         self.observation_space = spaces.Box(np.inf * np.ones(self.obs_dim) * -1.0, np.inf * np.ones(self.obs_dim))

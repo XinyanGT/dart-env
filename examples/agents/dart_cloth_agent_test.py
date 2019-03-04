@@ -63,7 +63,7 @@ def main():
 
     # -- new env onearm
     #trial = "experiment_2019_03_02_onearm_weak_nocompliance_strconpen_terminal"
-    trial = "experiment_2019_03_02_onearm_nocompliance_strconpen_terminal"
+    #trial = "experiment_2019_03_02_onearm_nocompliance_strconpen_terminal"
     #trial = "experiment_2019_03_02_onearm_warm_nocompliance_4xstrconpen_terminal_MPC"
     #trial = "experiment_2019_03_01_onearm_weaker_strconpen_128"
     #trial = "experiment_2019_03_01_onearm_weaker_strconpen_noactiverest"
@@ -592,8 +592,8 @@ def main():
     #envName = 'DartIiwaGownAssistCoopt-v2'
     #envName = 'DartIiwaGownAssistCoopt_h-v2'
     #envName = 'DartIiwaGownMultibot-v1'
-    envName = 'DartIiwaOnearmGown-v1'
-    #envName = 'DartIiwaTwoarmGown-v1'
+    #envName = 'DartIiwaOnearmGown-v1'
+    envName = 'DartIiwaTwoarmGown-v1'
 
     if len(sys.argv) > 1:
         #print(sys.argv[1])
@@ -697,7 +697,7 @@ def main():
     if True and policy is None:
         env2 = normalize(GymEnv(envName, record_log=False, record_video=False))
         #env2 = normalize(GymEnv('DartSawyerRigidAssist-v1', record_log=False, record_video=False))
-        if True:
+        if False:
             human_obs_size = 251 #single arm coopt
             human_obs_size = env2.wrapped_env.env.human_obs_manager.obs_size
             policy = SplitGaussianMLPPolicy(
@@ -722,7 +722,7 @@ def main():
             policy = GaussianMLPPolicy(
                 env_spec=env2.spec,
                 # The neural network policy should have two hidden layers, each with 32 hidden units.
-                hidden_sizes=(64, 64),
+                hidden_sizes=(128, 64),
                 #hidden_sizes=(128, 64),
                 #init_std=0.2 #exploration scaling
                 #init_std=0.15 #exploration scaling #human

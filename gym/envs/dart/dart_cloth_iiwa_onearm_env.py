@@ -2,6 +2,8 @@ from gym.envs.dart.dart_cloth_iiwa_env import *
 
 class DartClothIiwaOnearmEnv(DartClothIiwaEnv):
     def __init__(self):
+        dual_policy = False
+        is_human = True
 
         self.limbNodesR = [3, 4, 5, 6, 7]
         self.limbNodesL = [8, 9, 10, 11, 12]
@@ -20,10 +22,7 @@ class DartClothIiwaOnearmEnv(DartClothIiwaEnv):
         #initialize the base env
         cloth_mesh_file = "fullgown1.obj"
         cloth_mesh_state_file = "hanginggown.obj"
-        DartClothIiwaEnv.__init__(self, robot_root_dofs=self.iiwa_root_dofs, active_compliance=False, cloth_mesh_file=cloth_mesh_file, cloth_mesh_state_file=cloth_mesh_state_file, cloth_scale=1.3)
-
-        #manual control target
-        #self.iiwas[0].iiwa_frame_controller = IiwaLimbTraversalController(env=self, skel=self.human_skel, iiwa=self.iiwas[0], limb=self.limbNodesL, ef_offset=self.fingertip, offset_dists=[0.1, 0.1, 0.1, 0.15, 0.18, 0.18])
+        DartClothIiwaEnv.__init__(self, robot_root_dofs=self.iiwa_root_dofs, active_compliance=False, cloth_mesh_file=cloth_mesh_file, cloth_mesh_state_file=cloth_mesh_state_file, cloth_scale=1.3, dual_policy=dual_policy, is_human=is_human)
 
         #setup features
         self.sleeveRVerts = [532, 451, 251, 252, 253, 1334, 1320, 1184, 945, 985, 1062, 1607, 1037, 484, 1389, 679, 1230, 736, 1401, 1155, 486, 1410]
@@ -40,6 +39,11 @@ class DartClothIiwaOnearmEnv(DartClothIiwaEnv):
         #self.separated_meshes.append(meshgraph.MeshGraph(clothscene=self.clothScene))  # right sleeve
         self.dressing_targets.append(DressingTarget(env=self, skel=self.human_skel, feature=self.sleeveLSeamFeature, limb_sequence=self.limbNodesL, distal_offset=self.fingertip))
         #self.dressing_targets.append(DressingTarget(env=self, skel=self.human_skel, feature=self.sleeveRSeamFeature, limb_sequence=self.limbNodesR, distal_offset=self.fingertip))
+
+        #manual control target
+        #self.iiwas[0].iiwa_frame_controller = IiwaLimbTraversalController(env=self, skel=self.human_skel, iiwa=self.iiwas[0], limb=self.limbNodesL, ef_offset=self.fingertip, offset_dists=[0.1, 0.1, 0.1, 0.15, 0.18, 0.18])
+        self.iiwas[0].iiwa_frame_controller = IiwaApproachHoverProceedAvoidController(self, self.iiwas[0], dressingTargets=self.dressing_targets, target_node=8, node_offset=np.array([0.21, 0.1, 0]), distance=0.4, noise=0.0, control_fraction=0.3, slack=(0.1, 0.075), hold_time=1.0, avoidDist=0.1)
+
 
         #setup handle nodes
         self.iiwas[0].addClothHandle(verts=[1552, 2090, 1525, 954, 1800, 663, 1381, 1527, 1858, 1077, 759, 533, 1429, 1131], offset=np.array([0, 0, 0.05]))
@@ -79,13 +83,13 @@ class DartClothIiwaOnearmEnv(DartClothIiwaEnv):
         self.reward_manager.addTerm(term=RestPoseRewardTerm(self.human_skel, pose=np.zeros(self.human_skel.ndofs), weights=rest_pose_weights))
         self.reward_manager.addTerm(term=LimbProgressRewardTerm(dressing_target=self.dressing_targets[0], terminal=True, weight=40))
         self.reward_manager.addTerm(term=ClothDeformationRewardTerm(self, weight=20))
-        self.reward_manager.addTerm(term=HumanContactRewardTerm(self, weight=80, tanh_params=(2, 0.15, 10))) #saturates at ~10 and ~38
+        self.reward_manager.addTerm(term=HumanContactRewardTerm(self, weight=50, tanh_params=(2, 0.15, 10))) #saturates at ~10 and ~38
 
         #set the observation space
         self.obs_dim = self.human_obs_manager.obs_size
-        if self.dualPolicy:
+        if self.dual_policy:
             self.obs_dim += self.robot_obs_manager.obs_size
-        elif not self.isHuman:
+        elif not self.is_human:
             self.obs_dim = self.robot_obs_manager.obs_size
 
         self.observation_space = spaces.Box(np.inf * np.ones(self.obs_dim) * -1.0, np.inf * np.ones(self.obs_dim))

@@ -1002,6 +1002,158 @@ class IiwaLimbTraversalController(IiwaFrameController):
         renderUtils.setColor(color=[1,0,0])
         renderUtils.drawLines(lines=avg_ups)
 
+class IiwaApproachHoverProceedAvoidController(IiwaFrameController):
+    # This controller approaches the character and hovers at a reasonable range to allow the human to dress the sleeve
+    def __init__(self, env, iiwa, dressingTargets, target_node, node_offset, distance, noise=0.0, control_fraction=0.3, slack=(0.1, 0.075), hold_time=1.0, avoidDist=0.1, other_iiwas=None):
+        IiwaFrameController.__init__(self, env)
+        self.iiwa = iiwa
+        self.other_iiwas = []
+        if other_iiwas is not None: #list of other robots this one should regulate distance with
+            self.other_iiwas = other_iiwas
+        self.dressingTargets = dressingTargets
+        self.target_node = target_node
+        self.target_position = np.zeros(3)
+        self.distance = distance
+        self.noise = noise
+        self.control_fraction = control_fraction
+        self.slack = slack
+        self.hold_time = hold_time  # time to wait after limb progress > 0 before continuing
+        self.time_held = 0.0
+        self.proceeding = False
+        self.nodeOffset = node_offset
+        self.avoid_dist = avoidDist
+        self.closest_point = None
+        self.dist_to_closest_point = -1
+
+    def query(self):
+        control = np.zeros(6)
+        #noiseAddition = np.random.uniform(-self.env.robot_action_scale, self.env.robot_action_scale) * self.noise
+        worldTarget = self.env.human_skel.bodynodes[self.target_node].to_world(self.nodeOffset)
+        if self.proceeding:
+            worldTarget = np.array(self.target_position)
+        iiwaEf = self.iiwa.skel.bodynodes[8].to_world(np.array([0, 0, 0.05]))
+        iiwa_frame_org = self.iiwa.frameInterpolator["target_pos"]
+        t_disp = worldTarget - iiwa_frame_org
+        t_dist = np.linalg.norm(t_disp)
+        t_dir = t_disp / t_dist
+
+        # move down to level with target by default (should counter the avoidance)
+        y_disp = worldTarget[1] - iiwa_frame_org[1]
+        if y_disp < 0:
+            control[1] = y_disp
+
+        relevant_limb_progress = 1.0
+        for tar in self.dressingTargets:
+            relevant_limb_progress = min(relevant_limb_progress, tar.previous_evaluation)
+
+        #print(relevant_limb_progress)
+
+        if relevant_limb_progress < 0 and not self.proceeding:
+            #move toward the target distance
+            if t_dist > (self.slack[0] + self.distance):
+                control[:3] = t_dir * (t_dist - self.distance + self.slack[0])
+            elif t_dist < (self.distance - self.slack[0]):
+                control[:3] = t_dir * (t_dist - self.distance - self.slack[0])
+        else:
+            self.time_held += self.env.dt*self.env.frame_skip
+            #print("self.time_held: " + str(self.time_held))
+            if self.time_held > self.hold_time:
+                if not self.proceeding:
+                    self.proceeding = True
+                    self.target_position = np.array(worldTarget)
+                # now begin moving toward the arm again (still using the slack distance)
+                # TODO: better way to measure distance at the end?
+                control[:3] = t_dir * (t_dist - self.slack[0])
+                #print("moving toward shoulder")
+
+        # angular control: orient toward the shoulder to within some error
+        frame = pyutils.ShapeFrame()
+        frame.setOrg(org=self.iiwa.frameInterpolator["target_pos"])
+        frame.orientation = np.array(self.iiwa.frameInterpolator["target_frame"])
+        frame.updateQuaternion()
+        v0 = frame.toGlobal(p=[1, 0, 0]) - frame.org
+        v1 = frame.toGlobal(p=[0, 1, 0]) - frame.org
+        v2 = frame.toGlobal(p=[0, 0, 1]) - frame.org
+        eulers_current = pyutils.getEulerAngles3(frame.orientation)
+
+        # toShoulder = self.env.robot_skeleton.bodynodes[9].to_world(np.zeros(3)) - renderFrame.org
+        R = pyutils.rotateTo(v1 / np.linalg.norm(v1), t_dir)
+        frame.applyRotationMatrix(R)
+        eulers_target = pyutils.getEulerAngles3(frame.orientation)
+        eulers_diff = eulers_target - eulers_current
+        control[3:] = eulers_diff
+        # print(eulers_diff)
+
+        Rdown = pyutils.rotateTo(v2 / np.linalg.norm(v2), np.array([0, -1, 0]))
+        frame.applyRotationMatrix(Rdown)
+        eulers_target = pyutils.getEulerAngles3(frame.orientation)
+        eulers_diff_down = eulers_target - eulers_current
+        control[3] += eulers_diff_down[0]
+        # control[5] += 1
+
+        for i in range(3):
+            if abs(control[3 + i]) < self.slack[1]:
+                control[3 + i] = 0
+
+        control = np.clip(control, -self.env.robot_action_scale[self.iiwa.index*6:self.iiwa.index*6+6]* self.control_fraction, self.env.robot_action_scale[self.iiwa.index*6:self.iiwa.index*6+6]*self.control_fraction)
+
+        #check control frame position against body distance and deflect if necessary
+
+        #1: find the closest point on the body
+        projected_frame_center = control[:3] + iiwa_frame_org
+        self.dist_to_closest_point = -1
+        for cap in self.env.skelCapsules:
+            p0 = self.env.human_skel.bodynodes[cap[0]].to_world(cap[2])
+            p1 = self.env.human_skel.bodynodes[cap[3]].to_world(cap[5])
+            #renderUtils.drawCapsule(p0=p0, p1=p1, r0=cap[1], r1=cap[4])
+            closestPoint = pyutils.projectToCapsule(p=projected_frame_center,c0=p0,c1=p1,r0=cap[1],r1=cap[4])[0]
+            #print(closestPoint)
+            disp_to_point = (projected_frame_center-closestPoint)
+            dist_to_point = np.linalg.norm(disp_to_point)
+            if(self.dist_to_closest_point > dist_to_point or self.dist_to_closest_point<0):
+                self.dist_to_closest_point = dist_to_point
+                self.closest_point = np.array(closestPoint)
+
+        #if that point is too close, push back against it as necessary
+        if self.dist_to_closest_point < self.avoid_dist:
+            disp_to_point = self.closest_point - projected_frame_center
+            dir_to_point = disp_to_point/self.dist_to_closest_point
+            control[:3] += -dir_to_point*(self.avoid_dist-self.dist_to_closest_point)
+            #control[:3] = np.clip(control[:3], -self.env.robot_action_scale[self.iiwa.index*6:self.iiwa.index*6+3] * self.control_fraction,self.env.robot_action_scale[self.iiwa.index*6:self.iiwa.index*6+3] * self.control_fraction)
+
+        for other_iiwa in self.other_iiwas:
+            #if the two robots are too far from one another, move toward the other
+            v_bt_frames = other_iiwa.frameInterpolator["target_pos"] - self.iiwa.frameInterpolator["target_pos"]
+            dist_bt_frames = abs(np.linalg.norm(v_bt_frames))
+            if dist_bt_frames > 0.48:
+                dir_to_other = v_bt_frames/dist_bt_frames
+                control[:3] += dir_to_other
+                #control[:3] = np.clip(control[:3], -self.env.robot_action_scale[self.iiwa.index*6:self.iiwa.index*6+3] * self.control_fraction,self.env.robot_action_scale[self.iiwa.index*6:self.iiwa.index*6+3] * self.control_fraction)
+            # if the two robots are too close, move away
+            elif dist_bt_frames < 0.2:
+                v_bt_frames *= -1.0
+                dir_from_other = v_bt_frames / dist_bt_frames
+                control[:3] += dir_from_other
+        control[:3] = np.clip(control[:3], -self.env.robot_action_scale[self.iiwa.index*6:self.iiwa.index*6+3] * self.control_fraction,self.env.robot_action_scale[self.iiwa.index*6:self.iiwa.index*6+3] * self.control_fraction)
+
+
+        return control #+ noiseAddition
+
+    def reset(self):
+        self.time_held = 0
+        self.proceeding = False
+
+    def draw(self):
+        worldTarget = self.env.human_skel.bodynodes[self.target_node].to_world(self.nodeOffset)
+        if self.proceeding:
+            worldTarget = np.array(self.target_position)
+        iiwa_frame_org = self.iiwa.frameInterpolator["target_pos"]
+        renderUtils.drawLines(lines=[[worldTarget, iiwa_frame_org]])
+        renderUtils.drawSphere(pos=worldTarget)
+        if self.dist_to_closest_point > 0:
+            renderUtils.drawLines(lines=[[self.closest_point, iiwa_frame_org]])
+            renderUtils.drawSphere(pos=self.closest_point)
+
 
 class Iiwa:
     #contains all necessary structures to define, control, simulate and reset a single Iiwa robot instance
@@ -1160,10 +1312,10 @@ class Iiwa:
                 scripted_control = self.iiwa_frame_controller.query()
                 self.frameInterpolator["target_pos"] += scripted_control[:3]
                 self.frameInterpolator["eulers"] += scripted_control[3:]
-
-            #neural net policy control
-            self.frameInterpolator["target_pos"] += control[:3]
-            self.frameInterpolator["eulers"] += control[3:6]
+            else:
+                #neural net policy control
+                self.frameInterpolator["target_pos"] += control[:3]
+                self.frameInterpolator["eulers"] += control[3:6]
 
         toRoboEF = self.skel.bodynodes[9].to_world(np.zeros(3)) - self.frameInterpolator["target_pos"]
         distToRoboEF = np.linalg.norm(toRoboEF)
@@ -1314,7 +1466,7 @@ class DartClothIiwaEnv(gym.Env):
     """Superclass for all Dart, PhysX Cloth, Human/Iiwa interaction environments.
         """
 
-    def __init__(self, human_world_file=None, proxy_human_world_file=None, robot_file=None, pybullet_robot_file=None, experiment_directory=None, dt=0.0025, frame_skip=4, task_horizon=600, simulate_cloth=True, cloth_mesh_file=None, cloth_mesh_state_file=None, cloth_scale= 1.0, cloth_friction=0.25, robot_root_dofs=[], active_compliance=True):
+    def __init__(self, human_world_file=None, proxy_human_world_file=None, robot_file=None, pybullet_robot_file=None, experiment_directory=None, dt=0.0025, frame_skip=4, task_horizon=600, simulate_cloth=True, cloth_mesh_file=None, cloth_mesh_state_file=None, cloth_scale= 1.0, cloth_friction=0.25, robot_root_dofs=[], active_compliance=True, dual_policy=True, is_human=True):
         '''
 
         :param human_world_file: filename of human skel and world file for dart in assets folder, default if None
@@ -1334,8 +1486,8 @@ class DartClothIiwaEnv(gym.Env):
         '''
 
         #setup some flags
-        self.dualPolicy = True #if true, expect an action space concatenation of human/robot(s)
-        self.isHuman = True #(ignore if dualPolicy is True) if true, human action space is active, otherwise robot action space is active.
+        self.dual_policy = dual_policy #if true, expect an action space concatenation of human/robot(s)
+        self.is_human = is_human #(ignore if dualPolicy is True) if true, human action space is active, otherwise robot action space is active.
         self.rendering = False
         self.dart_render = True
         self.proxy_render = False
@@ -1374,7 +1526,7 @@ class DartClothIiwaEnv(gym.Env):
             self.experiment_directory = "experiment_2019_02_13_human_multibot"
         self.otherPolicyFile = self.experiment_prefix + self.experiment_directory + "/policy.pkl"
         self.otherPolicy = None
-        if not self.dualPolicy:
+        if not self.dual_policy:
             self.otherPolicy = joblib.load(self.otherPolicyFile)
 
         #NOTE: should be overridden in subclasses unless default human and robot are expected
@@ -1533,10 +1685,10 @@ class DartClothIiwaEnv(gym.Env):
 
             #self.humanSPDController.Kp *= 5.0
 
-            if self.dualPolicy:
+            if self.dual_policy:
                 self.action_space = spaces.Box(np.ones(22+6*len(robot_root_dofs))* -1.0, np.ones(22+6*len(robot_root_dofs)))
                 self.act_dim = 6 * len(robot_root_dofs) + 22
-            elif self.isHuman:
+            elif self.is_human:
                 self.action_space = spaces.Box(np.ones(22)* -1.0, np.ones(22))
                 self.act_dim = 22
 
@@ -1637,7 +1789,7 @@ class DartClothIiwaEnv(gym.Env):
                 self.iiwa_dof_ulim[i] = self.dart_world.skeletons[-1].dofs[i + 6].position_upper_limit()
                 self.iiwa_dof_jr[i] = self.iiwa_dof_ulim[i] - self.iiwa_dof_llim[i]
 
-        if not self.dualPolicy and not self.isHuman:
+        if not self.dual_policy and not self.is_human:
             self.action_space = spaces.Box(np.ones(6*len(robot_root_dofs))* -1.0, np.ones(6*len(robot_root_dofs)))
             self.act_dim = 6*len(robot_root_dofs)
         # ----------------------------
@@ -1713,9 +1865,9 @@ class DartClothIiwaEnv(gym.Env):
             self.text_queue = []
 
         if not self.simulating:
-            if self.dualPolicy:
+            if self.dual_policy:
                 return np.zeros(self.human_obs_manager.obs_size+self.robot_obs_manager.obs_size), 0, False, {}
-            elif self.isHuman:
+            elif self.is_human:
                 return np.zeros(self.human_obs_manager.obs_size), 0, False, {}
             else:
                 return np.zeros(self.robot_obs_manager.obs_size), 0, False, {}
@@ -1724,10 +1876,10 @@ class DartClothIiwaEnv(gym.Env):
         robot_a = None
 
         # query the "other" policy and set actions
-        if self.dualPolicy:
+        if self.dual_policy:
             human_a = a[:len(self.human_action_scale)]
             robot_a = a[len(self.human_action_scale):]
-        elif self.isHuman:
+        elif self.is_human:
             human_a = a
 
             try:
@@ -1735,7 +1887,7 @@ class DartClothIiwaEnv(gym.Env):
                 robot_a, robot_a_info = self.otherPolicy.get_action(robot_obs)
                 robot_a = robot_a_info['mean']
             except:
-                print("robot policy not setup, defaulting zero action")
+                #print("robot policy not setup, defaulting zero action")
                 robot_a = np.zeros(len(self.robot_action_scale))
         else:
             robot_a = a
@@ -1746,7 +1898,7 @@ class DartClothIiwaEnv(gym.Env):
                 human_a, human_a_info = self.otherPolicy.get_action(human_obs)
                 human_a = human_a_info['mean']
             except:
-                print("human policy not setup, defaulting zero action")
+                #print("human policy not setup, defaulting zero action")
                 human_a = np.zeros(len(self.human_action_scale))
 
         robo_action_scaled = None
@@ -1795,9 +1947,9 @@ class DartClothIiwaEnv(gym.Env):
 
     def _get_obs(self):
         # this should return the active observation
-        if self.dualPolicy:
+        if self.dual_policy:
             return np.concatenate([self.human_obs_manager.getObs(), self.robot_obs_manager.getObs()])
-        elif self.isHuman:
+        elif self.is_human:
             return self.human_obs_manager.getObs()
         else:
             return self.robot_obs_manager.getObs()
