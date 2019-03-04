@@ -778,6 +778,231 @@ class ContinuousCapacitiveSensor:
             sensorReadings = np.concatenate([sensorReadings, np.array([reading[0]])])
         return sensorReadings
 
+class IiwaFrameController:
+    def __init__(self, env):
+        self.env = env
+
+    def query(self):
+        #note:  control[3] = about red (pitch)
+        #       control[4] = about blue (yaw)
+        #       control[5] = about green (roll)
+        return np.zeros(6)
+
+    def reset(self):
+        #if any state is held, reset it
+        pass
+
+    def draw(self):
+        #any necessary visualizations for the controller
+        pass
+
+class IiwaLimbTraversalController(IiwaFrameController):
+    def __init__(self, env, skel, iiwa, limb, ef_offset, offset_dists, traversal_threshold=0.85):
+        IiwaFrameController.__init__(self, env)
+        self.skel = skel
+        self.limb = limb
+        self.ef_offset = ef_offset
+        self.offset_dists = offset_dists
+        self.iiwa = iiwa
+        self.traversal_ratio = 0.0
+        self.traversal_threshold = traversal_threshold
+        self.p_spline = pyutils.Spline()
+        self.d_spline = pyutils.Spline()
+
+    def query(self):
+        control = np.zeros(6)
+
+        #rebuild the spline from current limb positions
+        j_pos = pyutils.limbFromNodeSequence(self.skel, self.limb, self.ef_offset)
+        j_pos.reverse()
+        '''
+        new_points = []
+        limb_length = 0
+        seg_lengths = [0.0]
+        body_up = self.skel.bodynodes[14].to_world(np.zeros(3)) - self.skel.bodynodes[0].to_world(np.zeros(3))
+        body_up /= np.linalg.norm(body_up)
+        for ix in range(1,len(j_pos)-1):
+            pos = j_pos[ix]
+            n_pos = j_pos[ix+1]
+            p_pos = j_pos[ix-1]
+            from_vec = pos-p_pos
+            limb_length += np.linalg.norm(from_vec)
+            seg_lengths.append(limb_length)
+            to_vec = n_pos-pos
+            from_dir = from_vec/np.linalg.norm(from_vec)
+            to_dir = to_vec/np.linalg.norm(to_vec)
+            from_side = np.cross(from_dir, np.array([0,1.0,0]))
+            to_side = np.cross(to_dir, np.array([0,1.0,0]))
+            #from_side = np.cross(from_dir, body_up)
+            #to_side = np.cross(to_dir, body_up)
+            from_up = np.cross(from_side,from_dir)
+            to_up = np.cross(to_side,to_dir)
+            from_up /= np.linalg.norm(from_up)
+            to_up /= np.linalg.norm(to_up)
+            avg_up = (from_up + to_up)/2.0
+            avg_up /= np.linalg.norm(avg_up)
+            if ix == 1:
+                new_points.append(p_pos + from_up*self.offset_dists[0])
+            new_points.append(pos + avg_up*self.offset_dists[ix])
+            if ix == len(j_pos)-2:
+                new_points.append(n_pos + to_up * self.offset_dists[-1])
+                limb_length += np.linalg.norm(to_vec)
+                seg_lengths.append(limb_length)
+        #self.p_spline = pyutils.Spline()
+        #for ix, p in enumerate(new_points):
+        #    self.p_spline.insert(t=seg_lengths[ix] / limb_length, p=p)
+        '''
+
+        spline_point = self.p_spline.pos(self.traversal_ratio)
+        while np.linalg.norm(spline_point - self.iiwa.skel.bodynodes[9].to_world(np.zeros(3))) < self.d_spline.pos(self.traversal_ratio)+0.05 and self.traversal_ratio < self.traversal_threshold:
+            self.traversal_ratio += 0.01
+            spline_point = self.p_spline.pos(self.traversal_ratio)
+        pos_error = spline_point - self.iiwa.frameInterpolator["target_pos"]
+        tar_dist = self.d_spline.pos(self.traversal_ratio)
+        #print("tar_dist: " + str(tar_dist))
+        if np.linalg.norm(pos_error) < tar_dist:
+            pos_error = (self.iiwa.skel.bodynodes[9].to_world(np.zeros(3)) - spline_point)
+            pos_error /= np.linalg.norm(pos_error)
+            pos_error *= tar_dist
+        control[:3] = pos_error
+
+        # angular control: orient toward the shoulder to within some error
+        frame = pyutils.ShapeFrame()
+        frame.setOrg(org=self.iiwa.frameInterpolator["target_pos"])
+        frame.orientation = np.array(self.iiwa.frameInterpolator["target_frame"])
+        frame.updateQuaternion()
+        v0 = frame.toGlobal(p=[1, 0, 0]) - frame.org
+        v1 = frame.toGlobal(p=[0, 1, 0]) - frame.org
+        v2 = frame.toGlobal(p=[0, 0, 1]) - frame.org
+        eulers_current = pyutils.getEulerAngles3(frame.orientation)
+
+        # toShoulder = self.env.robot_skeleton.bodynodes[9].to_world(np.zeros(3)) - renderFrame.org
+        t_dir = self.p_spline.vel(self.traversal_ratio)
+        t_dir /= np.linalg.norm(t_dir)
+        R = pyutils.rotateTo(v1 / np.linalg.norm(v1), t_dir)
+        frame.applyRotationMatrix(R)
+        eulers_target = pyutils.getEulerAngles3(frame.orientation)
+        eulers_diff = eulers_target - eulers_current
+        control[3:] = eulers_diff
+        # print(eulers_diff)
+
+        #rotate sensors parallel to -y
+        Rdown = pyutils.rotateTo(v2 / np.linalg.norm(v2), np.array([0, -1, 0]))
+        frame.applyRotationMatrix(Rdown)
+        eulers_target = pyutils.getEulerAngles3(frame.orientation)
+        eulers_diff_down = eulers_target - eulers_current
+        control[3] += eulers_diff_down[0]
+        #control[3:] += eulers_diff_down*0.5
+
+        to_point = spline_point - self.iiwa.skel.bodynodes[9].to_world(np.zeros(3))
+        to_point /= np.linalg.norm(to_point)
+        Rdown = pyutils.rotateTo(v2 / np.linalg.norm(v2), to_point)
+        frame.applyRotationMatrix(Rdown)
+        eulers_target = pyutils.getEulerAngles3(frame.orientation)
+        eulers_diff_down = eulers_target - eulers_current
+        #control[3] += eulers_diff_down[0]
+        control[3:] += eulers_diff_down
+
+        control = np.clip(control, -self.env.robot_action_scale*0.5, self.env.robot_action_scale*0.5)
+
+        return control
+
+    def reset(self):
+        self.traversal_ratio = 0.0
+
+    def draw(self):
+
+        sides = []
+        ups = []
+        avg_ups = []
+
+        # rebuild the spline from current limb positions
+        j_pos = pyutils.limbFromNodeSequence(self.skel, self.limb, self.ef_offset)
+        j_pos.reverse()
+
+        '''
+        new_points = []
+        limb_length = 0
+        seg_lengths = [0.0]
+        body_up = self.skel.bodynodes[14].to_world(np.zeros(3)) - self.skel.bodynodes[0].to_world(np.zeros(3))
+        body_up /= np.linalg.norm(body_up)
+        renderUtils.drawArrow(p0=self.skel.bodynodes[0].to_world(np.zeros(3)), p1=self.skel.bodynodes[14].to_world(np.zeros(3)))
+        for ix in range(1, len(j_pos) - 1):
+            pos = j_pos[ix]
+            n_pos = j_pos[ix + 1]
+            p_pos = j_pos[ix - 1]
+            from_vec = pos - p_pos
+            limb_length += np.linalg.norm(from_vec)
+            seg_lengths.append(limb_length)
+            to_vec = n_pos - pos
+            from_dir = from_vec / np.linalg.norm(from_vec)
+            to_dir = to_vec / np.linalg.norm(to_vec)
+            from_side = np.cross(from_dir, np.array([0, 1.0, 0]))
+            to_side = np.cross(to_dir, np.array([0, 1.0, 0]))
+            #from_side = np.cross(from_dir, body_up)
+            #to_side = np.cross(to_dir, body_up)
+            from_side /= np.linalg.norm(from_side)
+            to_side /= np.linalg.norm(to_side)
+            sides.append([pos,pos+to_side])
+            sides.append([pos,pos+from_side])
+            from_up = np.cross(from_side, from_dir)
+            to_up = np.cross(to_side, to_dir)
+            from_up /= np.linalg.norm(from_up)
+            to_up /= np.linalg.norm(to_up)
+            if np.dot(from_up, self.iiwa.root_dofs[3:]-pos) < 0:
+                from_up *= -1.0
+            if np.dot(to_up, self.iiwa.root_dofs[3:]-pos) < 0:
+                to_up *= -1.0
+            ups.append([pos, pos + to_up])
+            ups.append([pos, pos + from_up])
+            avg_up = (from_up + to_up) / 2.0
+            avg_up /= np.linalg.norm(avg_up)
+            avg_ups.append([pos, pos + avg_up])
+            if ix == 1:
+                new_points.append(p_pos + from_up * self.offset_dists[0])
+                sides.append([p_pos, p_pos + from_side])
+                ups.append([p_pos, p_pos + from_up])
+            new_points.append(pos + avg_up * self.offset_dists[ix])
+            if ix == len(j_pos) - 2:
+                new_points.append(n_pos + to_up * self.offset_dists[-1])
+                limb_length += np.linalg.norm(to_vec)
+                seg_lengths.append(limb_length)
+                sides.append([n_pos, n_pos + to_side])
+                ups.append([n_pos, n_pos + to_up])
+
+        self.p_spline = pyutils.Spline()
+        for ix, p in enumerate(new_points):
+            self.p_spline.insert(t=seg_lengths[ix] / limb_length, p=p)
+        '''
+        self.d_spline = pyutils.Spline()
+        self.p_spline = pyutils.Spline()
+        seg_lengths = [0.0]
+        limb_length = 0
+        for ix, p in enumerate(j_pos):
+            if ix==0:
+                continue
+            limb_length += np.linalg.norm(p-j_pos[ix-1])
+            seg_lengths.append(limb_length)
+
+        for ix, p in enumerate(j_pos):
+            self.p_spline.insert(t=seg_lengths[ix] / limb_length, p=p)
+            self.d_spline.insert(t=seg_lengths[ix] / limb_length, p=self.offset_dists[ix])
+
+        self.p_spline.draw()
+        spline_point = self.p_spline.pos(self.traversal_ratio)
+        renderUtils.drawArrow(p0=spline_point, p1=spline_point + self.p_spline.vel(self.traversal_ratio)/np.linalg.norm(self.p_spline.vel(self.traversal_ratio))*0.15)
+        renderUtils.drawSphere(pos=spline_point)
+        end_plane = Plane(org=self.p_spline.pos(self.traversal_threshold), normal=self.p_spline.vel(self.traversal_threshold))
+        end_plane.draw(size=0.05)
+
+        renderUtils.setColor(color=[0, 1, 1])
+        renderUtils.drawLines(lines=sides)
+        renderUtils.setColor(color=[1, 0, 1])
+        renderUtils.drawLines(lines=ups)
+        renderUtils.setColor(color=[1,0,0])
+        renderUtils.drawLines(lines=avg_ups)
+
+
 class Iiwa:
     #contains all necessary structures to define, control, simulate and reset a single Iiwa robot instance
 
@@ -802,6 +1027,7 @@ class Iiwa:
         self.capacitiveSensor = ContinuousCapacitiveSensor(env=self.env, bodynode=self.skel.bodynodes[8])
         self.capacitiveSensor.default2x3setup()
 
+        self.iiwa_frame_controller = None
         #TODO: adjust SPD gains
         self.SPDController = SPDController(self, self.skel, timestep=self.env.dt, ckp=30000.0, ckd=300.0) #computed every simulation timestep (dt)
         #TODO: edit torque limits
@@ -877,7 +1103,6 @@ class Iiwa:
         elif self.near_collision == 0:
             self.skel.dq *= 0.5
 
-
     def setIKPose(self, setFrame=True):
         #set the most recent IK solved pose
         self.skel.set_positions(np.concatenate([np.array(self.root_dofs), self.previousIKResult]))
@@ -930,6 +1155,13 @@ class Iiwa:
             #self.frameInterpolator["target_pos"] = np.array(self.manualFrameTarget.org)
             #self.frameInterpolator["eulers"] = pyutils.getEulerAngles3(self.manualFrameTarget.orientation)
         else:
+            #First excecute scripted changes, then deviations
+            if self.iiwa_frame_controller is not None:
+                scripted_control = self.iiwa_frame_controller.query()
+                self.frameInterpolator["target_pos"] += scripted_control[:3]
+                self.frameInterpolator["eulers"] += scripted_control[3:]
+
+            #neural net policy control
             self.frameInterpolator["target_pos"] += control[:3]
             self.frameInterpolator["eulers"] += control[3:6]
 
@@ -1114,7 +1346,7 @@ class DartClothIiwaEnv(gym.Env):
         self.active_compliance = active_compliance
         self.manual_robot_control = False
         self.manual_human_control = False
-        self.print_skel_details = False
+        self.print_skel_details = True
         self.data_driven_joint_limits = True
         self.screen_size = (720, 720)
         if self.detail_render:
@@ -1672,6 +1904,8 @@ class DartClothIiwaEnv(gym.Env):
 
         for iiwa in self.iiwas:
             iiwa.setRestPose()
+            if iiwa.iiwa_frame_controller is not None:
+                iiwa.iiwa_frame_controller.reset()
 
         self.humanSPDIntperolationTarget = np.zeros(self.human_skel.ndofs)
 
@@ -1794,6 +2028,10 @@ class DartClothIiwaEnv(gym.Env):
             if len(self.humanRobotCollisions) > 0:
                 renderUtils.setColor(color=[1.0,0,0])
             renderUtils.drawArrow(p0=iiwa.handle_node.org, p1=iiwa.handle_node.org + cur_FT[:3] * 0.1)
+
+            #render manual frame control
+            if iiwa.iiwa_frame_controller is not None:
+                iiwa.iiwa_frame_controller.draw()
 
         #draw necessary observation term components
         self.human_obs_manager.draw()

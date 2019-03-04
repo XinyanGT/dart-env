@@ -56,15 +56,15 @@ def main():
     trial = None
 
     # --- new multiarm
-    trial = "experiment_2019_03_02_twoarm_nocompliance_terminal" #TODO
+    #trial = "experiment_2019_03_02_twoarm_nocompliance_terminal" #TODO
     #trial = "experiment_2019_03_02_twoarm_nocompliance" #TODO
     #trial = "experiment_2019_03_02_twoarm_standard" #TODO
     # ---
 
     # -- new env onearm
-    #trial = "experiment_2019_03_02_onearm_weak_nocompliance_strconpen_terminal" #TODO
-    #trial = "experiment_2019_03_02_onearm_nocompliance_strconpen_terminal" #TODO
-    #trial = "experiment_2019_03_02_onearm_warm_nocompliance_4xstrconpen_terminal_MPC" #TODO
+    #trial = "experiment_2019_03_02_onearm_weak_nocompliance_strconpen_terminal"
+    trial = "experiment_2019_03_02_onearm_nocompliance_strconpen_terminal"
+    #trial = "experiment_2019_03_02_onearm_warm_nocompliance_4xstrconpen_terminal_MPC"
     #trial = "experiment_2019_03_01_onearm_weaker_strconpen_128"
     #trial = "experiment_2019_03_01_onearm_weaker_strconpen_noactiverest"
     #trial = "experiment_2019_03_01_onearm_weaker_strconpen"
@@ -505,7 +505,7 @@ def main():
 
     loadSave = False #now done automatically if policy file not found...
     graphOnly = False #if true, exit() after graphing
-    demoSave = True #if ture, create an exp named demo folder and render into it
+    demoSave = False #if ture, create an exp named demo folder and render into it
 
     if loadSave is True:
         import tensorflow as tf
@@ -592,8 +592,8 @@ def main():
     #envName = 'DartIiwaGownAssistCoopt-v2'
     #envName = 'DartIiwaGownAssistCoopt_h-v2'
     #envName = 'DartIiwaGownMultibot-v1'
-    #envName = 'DartIiwaOnearmGown-v1'
-    envName = 'DartIiwaTwoarmGown-v1'
+    envName = 'DartIiwaOnearmGown-v1'
+    #envName = 'DartIiwaTwoarmGown-v1'
 
     if len(sys.argv) > 1:
         #print(sys.argv[1])
