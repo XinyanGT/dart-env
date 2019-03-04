@@ -1527,7 +1527,10 @@ class DartClothIiwaEnv(gym.Env):
         self.otherPolicyFile = self.experiment_prefix + self.experiment_directory + "/policy.pkl"
         self.otherPolicy = None
         if not self.dual_policy:
-            self.otherPolicy = joblib.load(self.otherPolicyFile)
+            try:
+                self.otherPolicy = joblib.load(self.otherPolicyFile)
+            except:
+                print("cannot load the other Policy...")
 
         #NOTE: should be overridden in subclasses unless default human and robot are expected
         self.action_space = spaces.Box(np.ones(1), np.ones(1)*-1.0)
