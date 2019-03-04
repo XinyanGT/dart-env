@@ -55,7 +55,16 @@ def main():
 
     trial = None
 
+    # --- new multiarm
+    trial = "experiment_2019_03_02_twoarm_nocompliance_terminal" #TODO
+    #trial = "experiment_2019_03_02_twoarm_nocompliance" #TODO
+    #trial = "experiment_2019_03_02_twoarm_standard" #TODO
+    # ---
+
     # -- new env onearm
+    #trial = "experiment_2019_03_02_onearm_weak_nocompliance_strconpen_terminal" #TODO
+    #trial = "experiment_2019_03_02_onearm_nocompliance_strconpen_terminal" #TODO
+    #trial = "experiment_2019_03_02_onearm_warm_nocompliance_4xstrconpen_terminal_MPC" #TODO
     #trial = "experiment_2019_03_01_onearm_weaker_strconpen_128"
     #trial = "experiment_2019_03_01_onearm_weaker_strconpen_noactiverest"
     #trial = "experiment_2019_03_01_onearm_weaker_strconpen"
@@ -68,7 +77,7 @@ def main():
     #trial = "experiment_2019_02_27_onearm_standard"
     #trial = "experiment_2019_02_27_onearm_collpen_MPC"
     #trial = "experiment_2019_02_27_onearm_standard_noactivecompliance"
-    # --
+    # ---
 
     # --- Split Network: one arm
     #trial = "experiment_2019_02_20_split_coopt_onearm_noconpen_cap_nodef"
@@ -496,6 +505,7 @@ def main():
 
     loadSave = False #now done automatically if policy file not found...
     graphOnly = False #if true, exit() after graphing
+    demoSave = True #if ture, create an exp named demo folder and render into it
 
     if loadSave is True:
         import tensorflow as tf
@@ -664,7 +674,7 @@ def main():
             useMeanPolicy = True #always use mean if we loaded the policy
             renderGraph(filename=prefix+trial+"/progress.csv")
             if graphOnly:
-                exit()
+                exit(1)
         except:
             print("No PICKLE policy file found. Trying joblib...")
             try:
@@ -727,6 +737,15 @@ def main():
         env2._wrapped_env.env._render(close=True)
         useMeanPolicy = False #don't use the mean when we want to test a fresh policy initialization
     #print(policy.output_layer)
+
+    if demoSave:
+        #first create the folder
+        demo_directory = "/home/alexander/Documents/frame_capture_output/demos/"
+        demo_directory += trial
+        if not os.path.exists(demo_directory):
+            os.makedirs(demo_directory)
+        env._get_viewer().capturing = True
+        env._get_viewer().captureDirectory = demo_directory
 
     print("about to run")
     paused = False
