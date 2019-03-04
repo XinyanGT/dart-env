@@ -1498,7 +1498,7 @@ class DartClothIiwaEnv(gym.Env):
         self.active_compliance = active_compliance
         self.manual_robot_control = False
         self.manual_human_control = False
-        self.print_skel_details = True
+        self.print_skel_details = False
         self.data_driven_joint_limits = True
         self.screen_size = (720, 720)
         if self.detail_render:
