@@ -71,14 +71,14 @@ class DartClothIiwaOnearmEnv(DartClothIiwaEnv):
         #setup rewards
         rest_pose_weights = np.ones(self.human_skel.ndofs)
         rest_pose_weights[:2] *= 40 #stable torso
-        rest_pose_weights[2] *= 2 #spine
-        #rest_pose_weights[3:11] *= 0 #ignore active arm
-        #rest_pose_weights[11:19] *= 2 #passive arm
-        rest_pose_weights[3:19] *= 0 #ignore rest pose
-        rest_pose_weights[19:] *= 5 #stable head
+        rest_pose_weights[2] *= 5 #spine
+        rest_pose_weights[3:11] *= 1 #ignore active arm
+        rest_pose_weights[11:19] *= 5 #passive arm
+        #rest_pose_weights[3:19] *= 0 #ignore rest pose
+        rest_pose_weights[19:] *= 10 #stable head
         self.reward_manager.addTerm(term=RestPoseRewardTerm(self.human_skel, pose=np.zeros(self.human_skel.ndofs), weights=rest_pose_weights))
         self.reward_manager.addTerm(term=LimbProgressRewardTerm(dressing_target=self.dressing_targets[0], terminal=True, weight=40))
-        self.reward_manager.addTerm(term=ClothDeformationRewardTerm(self, weight=1))
+        self.reward_manager.addTerm(term=ClothDeformationRewardTerm(self, weight=20))
         self.reward_manager.addTerm(term=HumanContactRewardTerm(self, weight=40))
 
         #set the observation space
