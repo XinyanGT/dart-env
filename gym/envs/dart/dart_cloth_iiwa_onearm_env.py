@@ -2,7 +2,7 @@ from gym.envs.dart.dart_cloth_iiwa_env import *
 
 class DartClothIiwaOnearmEnv(DartClothIiwaEnv):
     def __init__(self):
-        dual_policy = False
+        dual_policy = True
         is_human = True
 
         self.limbNodesR = [3, 4, 5, 6, 7]
@@ -42,7 +42,7 @@ class DartClothIiwaOnearmEnv(DartClothIiwaEnv):
 
         #manual control target
         #self.iiwas[0].iiwa_frame_controller = IiwaLimbTraversalController(env=self, skel=self.human_skel, iiwa=self.iiwas[0], limb=self.limbNodesL, ef_offset=self.fingertip, offset_dists=[0.1, 0.1, 0.1, 0.15, 0.18, 0.18])
-        self.iiwas[0].iiwa_frame_controller = IiwaApproachHoverProceedAvoidController(self, self.iiwas[0], dressingTargets=self.dressing_targets, target_node=8, node_offset=np.array([0.21, 0.1, 0]), distance=0.4, noise=0.0, control_fraction=0.3, slack=(0.1, 0.075), hold_time=1.0, avoidDist=0.1)
+        #self.iiwas[0].iiwa_frame_controller = IiwaApproachHoverProceedAvoidController(self, self.iiwas[0], dressingTargets=self.dressing_targets, target_node=8, node_offset=np.array([0.21, 0.1, 0]), distance=0.4, noise=0.0, control_fraction=0.3, slack=(0.1, 0.075), hold_time=1.0, avoidDist=0.1)
 
 
         #setup handle nodes
@@ -57,7 +57,7 @@ class DartClothIiwaOnearmEnv(DartClothIiwaEnv):
         self.human_obs_manager.addObsFeature(feature=SPDTargetObsFeature(self))
         #self.human_obs_manager.addObsFeature(feature=DataDrivenJointLimitsObsFeature(self))
         #self.human_obs_manager.addObsFeature(feature=CollisionMPCObsFeature(env=self,is_human=True))
-        #self.human_obs_manager.addObsFeature(feature=WeaknessScaleObsFeature(self,self.limbDofs[1],scale_range=(0.1,0.3)))
+        self.human_obs_manager.addObsFeature(feature=WeaknessScaleObsFeature(self,self.limbDofs[1],scale_range=(0.1,0.3)))
         self.human_obs_manager.addObsFeature(feature=OracleObsFeature(env=self,sensor_ix=21,dressing_target=self.dressing_targets[-1],sep_mesh=self.separated_meshes[-1]))
         for iiwa in self.iiwas:
             self.human_obs_manager.addObsFeature(feature=JointPositionObsFeature(iiwa.skel, ignored_joints=[1], name="iiwa " + str(iiwa.index) + " joint positions"))
@@ -77,13 +77,13 @@ class DartClothIiwaOnearmEnv(DartClothIiwaEnv):
         rest_pose_weights[:2] *= 40 #stable torso
         rest_pose_weights[2] *= 5 #spine
         rest_pose_weights[3:11] *= 5 #passive arm
-        rest_pose_weights[11:19] *= 1 #active arm
+        rest_pose_weights[11:19] *= 0.5 #active arm
         #rest_pose_weights[3:19] *= 0 #ignore rest pose
         rest_pose_weights[19:] *= 10 #stable head
         self.reward_manager.addTerm(term=RestPoseRewardTerm(self.human_skel, pose=np.zeros(self.human_skel.ndofs), weights=rest_pose_weights))
         self.reward_manager.addTerm(term=LimbProgressRewardTerm(dressing_target=self.dressing_targets[0], terminal=True, weight=40))
-        self.reward_manager.addTerm(term=ClothDeformationRewardTerm(self, weight=20))
-        self.reward_manager.addTerm(term=HumanContactRewardTerm(self, weight=50, tanh_params=(2, 0.15, 10))) #saturates at ~10 and ~38
+        self.reward_manager.addTerm(term=ClothDeformationRewardTerm(self, weight=2))
+        self.reward_manager.addTerm(term=HumanContactRewardTerm(self, weight=10, tanh_params=(2, 0.15, 10))) #saturates at ~10 and ~38
 
         #set the observation space
         self.obs_dim = self.human_obs_manager.obs_size
