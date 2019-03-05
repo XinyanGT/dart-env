@@ -115,6 +115,12 @@ class DartClothIiwaTwoarmEnv(DartClothIiwaEnv):
             #self.human_skel.set_positions([0.0, 0.0, 0.0, -0.09486478804170062, 0.16919563098552753, -0.4913244737893412, -1.371164742525659, -0.1465004046206566, 0.3062212857520513, 0.18862771696450964, 0.4970038523987025, -0.09486478804170062, 0.16919563098552753, 0.4913244737893412, -1.371164742525659, 0.1465004046206566, 0.3062212857520513, 0.18862771696450964, 0.4970038523987025, 0.48155552859527917, -0.13660824713013747, 0.6881130165905589])
             #self.humanSPDIntperolationTarget = np.array(self.human_skel.q)
 
+        human_pose = np.array(self.human_skel.q)
+        human_pose[8] = 2.4
+        human_pose[16] = 2.4
+        self.human_skel.set_positions(human_pose)
+        self.humanSPDIntperolationTarget = human_pose
+
         if self.manual_robot_control:
             for iiwa in self.iiwas:
                 valid = False

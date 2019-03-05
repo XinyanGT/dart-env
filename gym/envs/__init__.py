@@ -782,6 +782,12 @@ register(
 )
 
 register(
+    id='DartIiwaTwoarmTshirt-v1',
+    entry_point='gym.envs.dart:DartClothIiwaTwoarmTshirtEnv',
+    #max_episode_steps=250,
+)
+
+register(
     id='DartTrialTest-v1',
     entry_point='gym.envs.dart:DartClothExperimentTestingEnv',
     #max_episode_steps=250,

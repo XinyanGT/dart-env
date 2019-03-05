@@ -56,12 +56,17 @@ def main():
     trial = None
 
     # --- new multiarm
+    #trial = "experiment_2019_03_04_twoarm_human_strongpenalties_hoverbot" #TODO
     #trial = "experiment_2019_03_02_twoarm_nocompliance_terminal" #TODO
     #trial = "experiment_2019_03_02_twoarm_nocompliance" #TODO
     #trial = "experiment_2019_03_02_twoarm_standard" #TODO
     # ---
 
     # -- new env onearm
+    #trial = "experiment_2019_03_04_onearm_human_strongpenalties_hoverbot"  # TODO
+    #trial = "experiment_2019_03_04_onearm_strongpenalties" #TODO
+    #trial = "experiment_2019_03_04_onearm_nocompliance_weak_term_4xconpen_4xupright" #TODO
+    #trial = "experiment_2019_03_04_onearm_warm_4xconpen_4xupright_rest_20xdef" #TODO
     #trial = "experiment_2019_03_02_onearm_weak_nocompliance_strconpen_terminal"
     #trial = "experiment_2019_03_02_onearm_nocompliance_strconpen_terminal"
     #trial = "experiment_2019_03_02_onearm_warm_nocompliance_4xstrconpen_terminal_MPC"
@@ -592,8 +597,9 @@ def main():
     #envName = 'DartIiwaGownAssistCoopt-v2'
     #envName = 'DartIiwaGownAssistCoopt_h-v2'
     #envName = 'DartIiwaGownMultibot-v1'
-    envName = 'DartIiwaOnearmGown-v1'
-    #envName = 'DartIiwaTwoarmGown-v1'
+    #envName = 'DartIiwaOnearmGown-v1'
+    envName = 'DartIiwaTwoarmGown-v1'
+    #envName = 'DartIiwaTwoarmTshirt-v1'
 
     if len(sys.argv) > 1:
         #print(sys.argv[1])

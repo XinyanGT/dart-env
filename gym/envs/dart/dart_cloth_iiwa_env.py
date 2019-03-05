@@ -1154,6 +1154,25 @@ class IiwaApproachHoverProceedAvoidController(IiwaFrameController):
             renderUtils.drawLines(lines=[[self.closest_point, iiwa_frame_org]])
             renderUtils.drawSphere(pos=self.closest_point)
 
+class IiwaTrackController(IiwaFrameController):
+    def __init__(self, env, track_spline, iiwa):
+        IiwaFrameController.__init__(self,env)
+        self.track_spline = track_spline
+        self.iiwa = iiwa
+        self.track_time = 0
+
+    def query(self):
+        #note:  control[3] = about red (pitch)
+        #       control[4] = about blue (yaw)
+        #       control[5] = about green (roll)
+        return np.zeros(6)
+
+    def reset(self):
+        self.track_time = 0
+
+    def draw(self):
+        self.track_spline.draw()
+
 
 class Iiwa:
     #contains all necessary structures to define, control, simulate and reset a single Iiwa robot instance
@@ -1406,6 +1425,8 @@ class Iiwa:
         self.handle_node.updatePrevConstraintPositions()
 
     def updateClothHandle(self):
+        if self.handle_node is None:
+            return
         #update cloth handle and FT sensor reading
         hn = self.skel.bodynodes[self.handle_bodynode]  # end effector (hand) node
         self.handle_node.updatePrevConstraintPositions()
@@ -1487,18 +1508,19 @@ class DartClothIiwaEnv(gym.Env):
 
         #setup some flags
         self.dual_policy = dual_policy #if true, expect an action space concatenation of human/robot(s)
+        self.dualPolicy = dual_policy
         self.is_human = is_human #(ignore if dualPolicy is True) if true, human action space is active, otherwise robot action space is active.
         self.rendering = False
         self.dart_render = True
         self.proxy_render = False
         self.cloth_render = True
         self.detail_render = False
-        self.simulating = True #used to allow simulation freezing while rendering continues
+        self.simulating = False #used to allow simulation freezing while rendering continues
         self.passive_robots = False #if true, no motor torques from the robot
         self.active_compliance = active_compliance
         self.manual_robot_control = False
         self.manual_human_control = False
-        self.print_skel_details = False
+        self.print_skel_details = True
         self.data_driven_joint_limits = True
         self.screen_size = (720, 720)
         if self.detail_render:
@@ -2103,6 +2125,17 @@ class DartClothIiwaEnv(gym.Env):
 
     def extraRenderFunction(self):
 
+        #TODO: remove after testing
+        #render the offset of the head
+        #h_off = np.array([0,0.25,0])
+        #h_off = np.array([0,0,0])
+        #h_off_p = self.human_skel.bodynodes[13].to_world(h_off)
+        #renderUtils.drawArrow(p0=h_off_p+np.array([0.5,0.5,0]),p1=h_off_p)
+
+        #cloth_centroid = self.clothScene.getVertexCentroid(cid=0)
+        #renderUtils.drawArrow(p0=cloth_centroid + np.array([0.5, 0.5, 0]), p1=cloth_centroid)
+
+
         if self.proxy_render:
             renderUtils.drawLines(pyutils.getRobotLinks(self.proxy_human_skel, pose=self.proxy_human_skel.q))
 
@@ -2182,7 +2215,8 @@ class DartClothIiwaEnv(gym.Env):
             renderUtils.setColor(color=[1.0, 0, 1.0])
             if len(self.humanRobotCollisions) > 0:
                 renderUtils.setColor(color=[1.0,0,0])
-            renderUtils.drawArrow(p0=iiwa.handle_node.org, p1=iiwa.handle_node.org + cur_FT[:3] * 0.1)
+            if iiwa.handle_node is not None:
+                renderUtils.drawArrow(p0=iiwa.handle_node.org, p1=iiwa.handle_node.org + cur_FT[:3] * 0.1)
 
             #render manual frame control
             if iiwa.iiwa_frame_controller is not None:
@@ -2200,7 +2234,7 @@ class DartClothIiwaEnv(gym.Env):
 
         #draw cloth features
         for feature in self.cloth_features:
-            feature.drawProjectionPoly(renderNormal=True, renderBasis=False)
+            feature.drawProjectionPoly(renderNormal=True, renderBasis=False,fill=False)
 
         # render geodesic
         if False:
