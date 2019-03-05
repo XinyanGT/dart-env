@@ -1515,12 +1515,12 @@ class DartClothIiwaEnv(gym.Env):
         self.proxy_render = False
         self.cloth_render = True
         self.detail_render = False
-        self.simulating = False #used to allow simulation freezing while rendering continues
+        self.simulating = True #used to allow simulation freezing while rendering continues
         self.passive_robots = False #if true, no motor torques from the robot
         self.active_compliance = active_compliance
         self.manual_robot_control = False
         self.manual_human_control = False
-        self.print_skel_details = True
+        self.print_skel_details = False
         self.data_driven_joint_limits = True
         self.screen_size = (720, 720)
         if self.detail_render:
