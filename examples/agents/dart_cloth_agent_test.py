@@ -597,9 +597,9 @@ def main():
     #envName = 'DartIiwaGownAssistCoopt-v2'
     #envName = 'DartIiwaGownAssistCoopt_h-v2'
     #envName = 'DartIiwaGownMultibot-v1'
-    envName = 'DartIiwaOnearmGown-v1'
+    #envName = 'DartIiwaOnearmGown-v1'
     #envName = 'DartIiwaTwoarmGown-v1'
-    #envName = 'DartIiwaTwoarmTshirt-v1'
+    envName = 'DartIiwaTwoarmTshirt-v1'
 
     if len(sys.argv) > 1:
         #print(sys.argv[1])
@@ -703,7 +703,7 @@ def main():
     if True and policy is None:
         env2 = normalize(GymEnv(envName, record_log=False, record_video=False))
         #env2 = normalize(GymEnv('DartSawyerRigidAssist-v1', record_log=False, record_video=False))
-        if False:
+        if True:
             human_obs_size = 251 #single arm coopt
             human_obs_size = env2.wrapped_env.env.human_obs_manager.obs_size
             policy = SplitGaussianMLPPolicy(

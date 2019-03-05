@@ -2609,9 +2609,9 @@ class DartClothIiwaEnv(gym.Env):
         lower = self.human_skel.position_lower_limits()
         for d in range(len(upper)):
             if math.isinf(upper[d]):
-                upper[d] = 2.0
+                upper[d] = 4.0
             if math.isinf(lower[d]):
-                lower[d] = -2.0
+                lower[d] = -4.0
         valid = False
         counter = 0
         new_pose = None
@@ -2620,9 +2620,10 @@ class DartClothIiwaEnv(gym.Env):
         while (not valid):
             valid = True
             new_pose = np.random.uniform(lower, upper)
-            #new_pose[0] = 0
-            #new_pose[1] = 0
-            #new_pose[2] = 0
+            new_pose[0] = 0
+            new_pose[1] = 0
+            new_pose[2] = 0
+            new_pose[19:] = np.zeros(3)
             if symmetrical:
                 new_pose[11:19] = new_pose[3:11]
                 new_pose[13] *= -1
@@ -2631,8 +2632,8 @@ class DartClothIiwaEnv(gym.Env):
             self.dart_world.step()
 
             efL = self.human_skel.bodynodes[12].to_world(np.zeros(3))
-            if efL[2] > -0.2:
-                valid = False
+            #if efL[2] > -0.2:
+            #    valid = False
 
             # print("constraint indices" + str(self.dataDrivenConstraints))
             constraintQuery = []

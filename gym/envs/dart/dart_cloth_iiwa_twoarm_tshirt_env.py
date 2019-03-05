@@ -81,6 +81,7 @@ class DartClothIiwaTwoarmTshirtEnv(DartClothIiwaEnv):
         #self.human_obs_manager.addObsFeature(feature=WeaknessScaleObsFeature(self,self.limbDofs[0],scale_range=(0.1,0.4)))
         self.human_obs_manager.addObsFeature(feature=OracleObsFeature(env=self,sensor_ix=21,dressing_target=self.dressing_targets[0],sep_mesh=self.separated_meshes[0]))
         self.human_obs_manager.addObsFeature(feature=OracleObsFeature(env=self,sensor_ix=12,dressing_target=self.dressing_targets[1],sep_mesh=self.separated_meshes[1]))
+        self.human_obs_manager.addObsFeature(feature=OracleObsFeature(env=self,sensor_ix=3,dressing_target=self.dressing_targets[2],sep_mesh=self.separated_meshes[2]))
         #TODO: head oracle?
         for iiwa in self.iiwas:
             self.human_obs_manager.addObsFeature(feature=JointPositionObsFeature(iiwa.skel, ignored_joints=[1], name="iiwa " + str(iiwa.index) + " joint positions"))
@@ -96,20 +97,26 @@ class DartClothIiwaTwoarmTshirtEnv(DartClothIiwaEnv):
         self.robot_obs_manager.addObsFeature(feature=JointPositionObsFeature(self.human_skel, name="human joint positions"))
 
         #setup rewards
+        #pose: arms outreached above head
+        rest_pose = np.array([0.0, 0.0, 0.0, 0.2014567442644234, 0.12976885838990154, 0.07445680418190292, 3.95336417358366, -0.9002739292338819, 0.29925007698275996, 0.4400513472819564, 0.0051886712832222015, 0.2014567442644234, 0.12976885838990154, -0.07445680418190292, 3.95336417358366, 0.9002739292338819, 0.29925007698275996, 0.4400513472819564, 0.0051886712832222015, 0.0, 0.0, 0.0])
         rest_pose_weights = np.ones(self.human_skel.ndofs)
         rest_pose_weights[:2] *= 40 #stable torso
         rest_pose_weights[2] *= 5 #spine
         #rest_pose_weights[3:11] *= 0 #ignore active arm
         #rest_pose_weights[11:19] *= 2 #passive arm
-        rest_pose_weights[3:19] *= 0 #ignore rest pose
-        rest_pose_weights[19:] *= 4 #stable head
-        self.reward_manager.addTerm(term=RestPoseRewardTerm(self.human_skel, pose=np.zeros(self.human_skel.ndofs), weights=rest_pose_weights))
-        self.reward_manager.addTerm(term=LimbProgressRewardTerm(dressing_target=self.dressing_targets[0], terminal=True, weight=40))
-        self.reward_manager.addTerm(term=LimbProgressRewardTerm(dressing_target=self.dressing_targets[1], terminal=True, weight=40))
-        self.reward_manager.addTerm(term=LimbProgressRewardTerm(dressing_target=self.dressing_targets[2], terminal=True, weight=40))
-        self.reward_manager.addTerm(term=LimbProgressRewardTerm(dressing_target=self.dressing_targets[3], terminal=True, weight=40))
+        #rest_pose_weights[3:19] *= 0 #ignore rest pose
+        rest_pose_weights[19:] *= 3 #stable head
+        self.reward_manager.addTerm(term=RestPoseRewardTerm(self.human_skel, pose=rest_pose, weights=rest_pose_weights))
+        self.reward_manager.addTerm(term=LimbProgressRewardTerm(dressing_target=self.dressing_targets[0], terminal=True, weight=30))
+        self.reward_manager.addTerm(term=LimbProgressRewardTerm(dressing_target=self.dressing_targets[1], terminal=True, weight=30))
+        self.reward_manager.addTerm(term=LimbProgressRewardTerm(dressing_target=self.dressing_targets[2], terminal=True, weight=30))
+        self.reward_manager.addTerm(term=LimbProgressRewardTerm(dressing_target=self.dressing_targets[3], terminal=True, weight=30))
+        self.reward_manager.addTerm(term=GeodesicContactRewardTerm(sensor_index=21, env=self, separated_mesh=self.separated_meshes[0], dressing_target=self.dressing_targets[0], weight=15))
+        self.reward_manager.addTerm(term=GeodesicContactRewardTerm(sensor_index=12, env=self, separated_mesh=self.separated_meshes[1], dressing_target=self.dressing_targets[1], weight=15))
+        self.reward_manager.addTerm(term=GeodesicContactRewardTerm(sensor_index=3, env=self, separated_mesh=self.separated_meshes[2], dressing_target=self.dressing_targets[2], weight=15))
+
         self.reward_manager.addTerm(term=ClothDeformationRewardTerm(self, weight=10))
-        self.reward_manager.addTerm(term=HumanContactRewardTerm(self, weight=50, tanh_params=(2, 0.15, 10)))
+        self.reward_manager.addTerm(term=HumanContactRewardTerm(self, weight=10, tanh_params=(2, 0.15, 10)))
 
         #set the observation space
         self.obs_dim = self.human_obs_manager.obs_size
@@ -126,9 +133,10 @@ class DartClothIiwaTwoarmTshirtEnv(DartClothIiwaEnv):
 
         #set manual target to random pose
         if self.manual_human_control:
-            self.human_manual_target = self.getValidRandomPose(verbose=False)
-            self.human_manual_target = np.array([0.0, 0.0, 0.0, -0.09486478804170062, 0.16919563098552753, -0.4913244737893412, -1.371164742525659, -0.1465004046206566, 0.3062212857520513, 0.18862771696450964, 0.4970038523987025, -0.09486478804170062, 0.16919563098552753, 0.4913244737893412, -1.371164742525659, 0.1465004046206566, 0.3062212857520513, 0.18862771696450964, 0.4970038523987025, 0.48155552859527917, -0.13660824713013747, 0.6881130165905589])
-
+            self.human_manual_target = self.getValidRandomPose(verbose=False,symmetrical=True)
+            self. human_manual_target = np.array([0.0, 0.0, 0.0, 0.2014567442644234, 0.12976885838990154, 0.07445680418190292, 3.95336417358366, -0.9002739292338819, 0.29925007698275996, 0.4400513472819564, 0.0051886712832222015, 0.2014567442644234, 0.12976885838990154, -0.07445680418190292, 3.95336417358366, 0.9002739292338819, 0.29925007698275996, 0.4400513472819564, 0.0051886712832222015, 0.0, 0.0, 0.0])
+            #self.human_manual_target = np.array([0.0, 0.0, 0.0, -0.09486478804170062, 0.16919563098552753, -0.4913244737893412, -1.371164742525659, -0.1465004046206566, 0.3062212857520513, 0.18862771696450964, 0.4970038523987025, -0.09486478804170062, 0.16919563098552753, 0.4913244737893412, -1.371164742525659, 0.1465004046206566, 0.3062212857520513, 0.18862771696450964, 0.4970038523987025, 0.48155552859527917, -0.13660824713013747, 0.6881130165905589])
+            self.human_skel.set_positions(self.human_manual_target)
             print("chose manual target = " + str(self.human_manual_target.tolist()))
             for iiwa in self.iiwas:
                 iiwa.setRestPose()
@@ -174,8 +182,10 @@ class DartClothIiwaTwoarmTshirtEnv(DartClothIiwaEnv):
 
         #initialize the robot poses
         # pick p0 for both robots with rejection sampling
-        handleMaxDistance = 0.5
-        handleMinXDistance = 0.2
+        handleMaxDistance = 0.55
+        handleMinXDistance = 0.4
+        handleMaxYDistance = 0.1
+        handleMaxZDistance = 0.1
         diskRad = 0.7
         good = False
         r_pivotL = self.iiwas[0].skel.bodynodes[3].to_world(np.zeros(3))
@@ -203,6 +213,14 @@ class DartClothIiwaTwoarmTshirtEnv(DartClothIiwaEnv):
 
             if abs(p0L[0] - p0R[0]) < handleMinXDistance:
                 good = False
+
+            if abs(p0L[1] - p0R[1]) > handleMaxYDistance:
+                good = False
+
+            if abs(p0L[2] - p0R[2]) > handleMaxZDistance:
+                good = False
+
+
 
             if not good:
                 p0L = r_pivotL + pyutils.sampleDirections(num=1)[0] * diskRad
@@ -293,7 +311,6 @@ class DartClothIiwaTwoarmTshirtEnv(DartClothIiwaEnv):
                     sm.computeGeodesic(feature=self.cloth_features[ix], oneSided=True, side=0, normalSide=0, border_skip_vertices=border_skips)
 
         # now simulate the cloth while interpolating the handle node positions
-        #TODO: maybe save some version of this as the load state for speed?
         self.clothScene.clearInterpolation()
         simFrames = 50
         hL_init = np.array(self.iiwas[0].handle_node.org)
