@@ -1004,7 +1004,7 @@ class IiwaLimbTraversalController(IiwaFrameController):
 
 class IiwaApproachHoverProceedAvoidController(IiwaFrameController):
     # This controller approaches the character and hovers at a reasonable range to allow the human to dress the sleeve
-    def __init__(self, env, iiwa, dressingTargets, target_node, node_offset, distance, noise=0.0, control_fraction=0.3, slack=(0.1, 0.075), hold_time=1.0, avoidDist=0.1, other_iiwas=None, hold_elevation_node=None, hold_elevation_node_offset=None):
+    def __init__(self, env, iiwa, dressingTargets, target_node, node_offset, distance, noise=0.0, control_fraction=0.3, slack=(0.1, 0.075), hold_time=1.0, avoidDist=0.1, other_iiwas=None, hold_elevation_node=None, hold_elevation_node_offset=None, end_pursuit=False):
         IiwaFrameController.__init__(self, env)
         self.iiwa = iiwa
         self.other_iiwas = []
@@ -1019,6 +1019,7 @@ class IiwaApproachHoverProceedAvoidController(IiwaFrameController):
             if hold_elevation_node_offset is not None:
                 self.hold_elevation_node_offset = hold_elevation_node_offset
         self.target_position = np.zeros(3)
+        self.end_pursuit = end_pursuit
         self.distance = distance
         self.noise = noise
         self.control_fraction = control_fraction
@@ -1038,6 +1039,8 @@ class IiwaApproachHoverProceedAvoidController(IiwaFrameController):
         worldTarget = self.env.human_skel.bodynodes[self.hold_elevation_node].to_world(self.hold_elevation_node_offset)
 
         if self.proceeding:
+            if self.end_pursuit: #recompute the target continuously.
+                self.target_position = self.env.human_skel.bodynodes[self.target_node].to_world(self.nodeOffset)
             worldTarget = np.array(self.target_position)
         iiwaEf = self.iiwa.skel.bodynodes[8].to_world(np.array([0, 0, 0.05]))
         iiwa_frame_org = self.iiwa.frameInterpolator["target_pos"]
