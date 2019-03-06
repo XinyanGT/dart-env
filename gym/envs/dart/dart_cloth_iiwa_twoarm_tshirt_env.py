@@ -9,6 +9,8 @@ class DartClothIiwaTwoarmTshirtEnv(DartClothIiwaEnv):
         self.limbNodesL = [8, 9, 10, 11, 12]
         self.limbNodesH = [13,14] #neck/head limb
         self.limbNodesB = [1,13,14] #torso/neck/head limb
+        self.limbNodesRT = [1,3, 4, 5, 6, 7] #rigt arm and torso
+        self.limbNodesLT = [1,8, 9, 10, 11, 12] #left arm and torso
 
         #setup robot root dofs
         # setup robot base location
@@ -57,6 +59,8 @@ class DartClothIiwaTwoarmTshirtEnv(DartClothIiwaEnv):
         self.dressing_targets.append(DressingTarget(env=self, skel=self.human_skel, feature=self.sleeveRSeamFeature, limb_sequence=self.limbNodesR, distal_offset=self.fingertip))
         self.dressing_targets.append(DressingTarget(env=self, skel=self.human_skel, feature=self.collarFeature, limb_sequence=self.limbNodesH, distal_offset=np.array([0,0.25,0])))
         self.dressing_targets.append(DressingTarget(env=self, skel=self.human_skel, feature=self.waistFeature, limb_sequence=self.limbNodesB, distal_offset=np.array([0,0.25,0])))
+        self.dressing_targets.append(DressingTarget(env=self, skel=self.human_skel, feature=self.waistFeature, limb_sequence=self.limbNodesLT, distal_offset=self.fingertip))
+        self.dressing_targets.append(DressingTarget(env=self, skel=self.human_skel, feature=self.waistFeature, limb_sequence=self.limbNodesRT, distal_offset=self.fingertip))
 
         #manual control target
         #self.iiwas[0].iiwa_frame_controller = IiwaLimbTraversalController(env=self, skel=self.human_skel, iiwa=self.iiwas[0], limb=self.limbNodesL, ef_offset=self.fingertip, offset_dists=[0.1, 0.1, 0.1, 0.15, 0.18, 0.18])
@@ -107,16 +111,18 @@ class DartClothIiwaTwoarmTshirtEnv(DartClothIiwaEnv):
         #rest_pose_weights[3:19] *= 0 #ignore rest pose
         rest_pose_weights[19:] *= 3 #stable head
         self.reward_manager.addTerm(term=RestPoseRewardTerm(self.human_skel, pose=rest_pose, weights=rest_pose_weights))
-        self.reward_manager.addTerm(term=LimbProgressRewardTerm(dressing_target=self.dressing_targets[0], terminal=True, weight=30))
-        self.reward_manager.addTerm(term=LimbProgressRewardTerm(dressing_target=self.dressing_targets[1], terminal=True, weight=30))
-        self.reward_manager.addTerm(term=LimbProgressRewardTerm(dressing_target=self.dressing_targets[2], terminal=True, weight=30))
-        self.reward_manager.addTerm(term=LimbProgressRewardTerm(dressing_target=self.dressing_targets[3], terminal=True, weight=30))
+        self.reward_manager.addTerm(term=LimbProgressRewardTerm(dressing_target=self.dressing_targets[0], terminal=True, weight=20))
+        self.reward_manager.addTerm(term=LimbProgressRewardTerm(dressing_target=self.dressing_targets[1], terminal=True, weight=20))
+        self.reward_manager.addTerm(term=LimbProgressRewardTerm(dressing_target=self.dressing_targets[2], terminal=True, weight=20))
+        self.reward_manager.addTerm(term=LimbProgressRewardTerm(dressing_target=self.dressing_targets[3], terminal=True, weight=20))
+        self.reward_manager.addTerm(term=LimbProgressRewardTerm(dressing_target=self.dressing_targets[4], terminal=False, weight=20))
+        self.reward_manager.addTerm(term=LimbProgressRewardTerm(dressing_target=self.dressing_targets[5], terminal=False, weight=20))
         self.reward_manager.addTerm(term=GeodesicContactRewardTerm(sensor_index=21, env=self, separated_mesh=self.separated_meshes[0], dressing_target=self.dressing_targets[0], weight=15))
         self.reward_manager.addTerm(term=GeodesicContactRewardTerm(sensor_index=12, env=self, separated_mesh=self.separated_meshes[1], dressing_target=self.dressing_targets[1], weight=15))
         self.reward_manager.addTerm(term=GeodesicContactRewardTerm(sensor_index=3, env=self, separated_mesh=self.separated_meshes[2], dressing_target=self.dressing_targets[2], weight=15))
 
-        self.reward_manager.addTerm(term=ClothDeformationRewardTerm(self, weight=10))
-        self.reward_manager.addTerm(term=HumanContactRewardTerm(self, weight=10, tanh_params=(2, 0.15, 10)))
+        self.reward_manager.addTerm(term=ClothDeformationRewardTerm(self, weight=5))
+        self.reward_manager.addTerm(term=HumanContactRewardTerm(self, weight=5, tanh_params=(2, 0.15, 10)))
 
         #set the observation space
         self.obs_dim = self.human_obs_manager.obs_size

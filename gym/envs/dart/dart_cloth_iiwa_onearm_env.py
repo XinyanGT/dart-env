@@ -42,7 +42,8 @@ class DartClothIiwaOnearmEnv(DartClothIiwaEnv):
 
         #manual control target
         #self.iiwas[0].iiwa_frame_controller = IiwaLimbTraversalController(env=self, skel=self.human_skel, iiwa=self.iiwas[0], limb=self.limbNodesL, ef_offset=self.fingertip, offset_dists=[0.1, 0.1, 0.1, 0.15, 0.18, 0.18])
-        #self.iiwas[0].iiwa_frame_controller = IiwaApproachHoverProceedAvoidController(self, self.iiwas[0], dressingTargets=self.dressing_targets, target_node=8, node_offset=np.array([0.21, 0.1, 0]), distance=0.4, noise=0.0, control_fraction=0.3, slack=(0.1, 0.075), hold_time=1.0, avoidDist=0.1)
+        #self.iiwas[0].iiwa_frame_controller = IiwaApproachHoverProceedAvoidController(self, self.iiwas[0], dressingTargets=self.dressing_targets, target_node=8, node_offset=np.array([0.21, 0.1, 0]), distance=0.1, noise=0.0, control_fraction=0.3, slack=(0.1, 0.075), hold_time=0.75, avoidDist=0.05, hold_elevation_node=11, hold_elevation_node_offset=np.array([0,00.05,-0.15]))
+        self.iiwas[0].iiwa_frame_controller = IiwaApproachHoverProceedAvoidMultistageController(self, self.iiwas[0], dressing_targets=self.dressing_targets, target_nodes=[11,10,8], node_offsets=[np.array([0,0,-0.15]), np.array([0,0.05,-0.1]), np.array([0.15, 0.12, 0]) ], distances=[0.1, 0.15, 0.1], control_fraction=0.3, slack=(0.05, 0.075), hold_time=0.75, avoid_dist=0.08)
 
 
         #setup handle nodes

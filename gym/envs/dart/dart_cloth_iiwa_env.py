@@ -1004,7 +1004,7 @@ class IiwaLimbTraversalController(IiwaFrameController):
 
 class IiwaApproachHoverProceedAvoidController(IiwaFrameController):
     # This controller approaches the character and hovers at a reasonable range to allow the human to dress the sleeve
-    def __init__(self, env, iiwa, dressingTargets, target_node, node_offset, distance, noise=0.0, control_fraction=0.3, slack=(0.1, 0.075), hold_time=1.0, avoidDist=0.1, other_iiwas=None):
+    def __init__(self, env, iiwa, dressingTargets, target_node, node_offset, distance, noise=0.0, control_fraction=0.3, slack=(0.1, 0.075), hold_time=1.0, avoidDist=0.1, other_iiwas=None, hold_elevation_node=None, hold_elevation_node_offset=None):
         IiwaFrameController.__init__(self, env)
         self.iiwa = iiwa
         self.other_iiwas = []
@@ -1012,6 +1012,12 @@ class IiwaApproachHoverProceedAvoidController(IiwaFrameController):
             self.other_iiwas = other_iiwas
         self.dressingTargets = dressingTargets
         self.target_node = target_node
+        self.hold_elevation_node = self.target_node
+        self.hold_elevation_node_offset = node_offset
+        if hold_elevation_node is not None:
+            self.hold_elevation_node = hold_elevation_node
+            if hold_elevation_node_offset is not None:
+                self.hold_elevation_node_offset = hold_elevation_node_offset
         self.target_position = np.zeros(3)
         self.distance = distance
         self.noise = noise
@@ -1028,7 +1034,9 @@ class IiwaApproachHoverProceedAvoidController(IiwaFrameController):
     def query(self):
         control = np.zeros(6)
         #noiseAddition = np.random.uniform(-self.env.robot_action_scale, self.env.robot_action_scale) * self.noise
-        worldTarget = self.env.human_skel.bodynodes[self.target_node].to_world(self.nodeOffset)
+        #worldTarget = self.env.human_skel.bodynodes[self.target_node].to_world(self.nodeOffset)
+        worldTarget = self.env.human_skel.bodynodes[self.hold_elevation_node].to_world(self.hold_elevation_node_offset)
+
         if self.proceeding:
             worldTarget = np.array(self.target_position)
         iiwaEf = self.iiwa.skel.bodynodes[8].to_world(np.array([0, 0, 0.05]))
@@ -1060,7 +1068,7 @@ class IiwaApproachHoverProceedAvoidController(IiwaFrameController):
             if self.time_held > self.hold_time:
                 if not self.proceeding:
                     self.proceeding = True
-                    self.target_position = np.array(worldTarget)
+                    self.target_position = self.env.human_skel.bodynodes[self.target_node].to_world(self.nodeOffset)
                 # now begin moving toward the arm again (still using the slack distance)
                 # TODO: better way to measure distance at the end?
                 control[:3] = t_dir * (t_dist - self.slack[0])
@@ -1077,7 +1085,9 @@ class IiwaApproachHoverProceedAvoidController(IiwaFrameController):
         eulers_current = pyutils.getEulerAngles3(frame.orientation)
 
         # toShoulder = self.env.robot_skeleton.bodynodes[9].to_world(np.zeros(3)) - renderFrame.org
-        R = pyutils.rotateTo(v1 / np.linalg.norm(v1), t_dir)
+        to_final_target = self.env.human_skel.bodynodes[self.target_node].to_world(self.nodeOffset) - iiwa_frame_org
+        to_final_target /= np.linalg.norm(to_final_target)
+        R = pyutils.rotateTo(v1 / np.linalg.norm(v1), to_final_target)
         frame.applyRotationMatrix(R)
         eulers_target = pyutils.getEulerAngles3(frame.orientation)
         eulers_diff = eulers_target - eulers_current
@@ -1145,11 +1155,176 @@ class IiwaApproachHoverProceedAvoidController(IiwaFrameController):
 
     def draw(self):
         worldTarget = self.env.human_skel.bodynodes[self.target_node].to_world(self.nodeOffset)
+        world_hover_target = self.env.human_skel.bodynodes[self.hold_elevation_node].to_world(self.hold_elevation_node_offset)
         if self.proceeding:
             worldTarget = np.array(self.target_position)
         iiwa_frame_org = self.iiwa.frameInterpolator["target_pos"]
         renderUtils.drawLines(lines=[[worldTarget, iiwa_frame_org]])
         renderUtils.drawSphere(pos=worldTarget)
+        renderUtils.drawLines(lines=[[world_hover_target, iiwa_frame_org]])
+        renderUtils.drawSphere(pos=world_hover_target)
+        if self.dist_to_closest_point > 0:
+            renderUtils.drawLines(lines=[[self.closest_point, iiwa_frame_org]])
+            renderUtils.drawSphere(pos=self.closest_point)
+
+class IiwaApproachHoverProceedAvoidMultistageController(IiwaFrameController):
+    # This controller approaches the character's target_nodes in order, hovering at a reasonable range from the first to allow the human to dress the sleeve
+    def __init__(self, env, iiwa, dressing_targets, target_nodes, node_offsets, distances, control_fraction=0.3, slack=(0.1, 0.075), hold_time=1.0, avoid_dist=0.1, other_iiwas=None):
+        IiwaFrameController.__init__(self, env)
+        self.iiwa = iiwa
+        self.other_iiwas = []
+        if other_iiwas is not None: #list of other robots this one should regulate distance with
+            self.other_iiwas = other_iiwas
+        self.dressingTargets = dressing_targets
+        self.target_nodes = target_nodes
+        self.current_node_index = 0
+        #self.target_position = np.zeros(3)
+        self.distances = distances
+        self.control_fraction = control_fraction
+        self.slack = slack
+        self.hold_time = hold_time  # time to wait after limb progress > 0 before continuing
+        self.time_held = 0.0
+        self.proceeding = False
+        self.node_offsets = node_offsets
+        self.avoid_dist = avoid_dist
+        self.closest_point = None
+        self.dist_to_closest_point = -1
+
+    def query(self):
+        control = np.zeros(6)
+
+        world_target = self.env.human_skel.bodynodes[self.target_nodes[self.current_node_index]].to_world(self.node_offsets[self.current_node_index])
+        print(self.target_nodes[self.current_node_index])
+
+        #iiwaEf = self.iiwa.skel.bodynodes[8].to_world(np.array([0, 0, 0.05]))
+        iiwa_frame_org = self.iiwa.frameInterpolator["target_pos"]
+        t_disp = world_target - iiwa_frame_org
+        t_dist = np.linalg.norm(t_disp)
+        t_dir = t_disp / t_dist
+
+        # move down to level with target by default (should counter the avoidance)
+        y_disp = world_target[1] - iiwa_frame_org[1]
+        if y_disp < 0:
+            control[1] = y_disp
+
+        relevant_limb_progress = 1.0
+        for tar in self.dressingTargets:
+            relevant_limb_progress = min(relevant_limb_progress, tar.previous_evaluation)
+
+        #print(relevant_limb_progress)
+
+        if relevant_limb_progress < 0 and not self.proceeding:
+            #move toward the target distance
+            if t_dist > (self.slack[0] + self.distances[self.current_node_index]):
+                control[:3] = t_dir * (t_dist - self.distances[self.current_node_index] + self.slack[0])
+            elif t_dist < (self.distances[self.current_node_index] - self.slack[0]):
+                control[:3] = t_dir * (t_dist - self.distances[self.current_node_index] - self.slack[0])
+        else:
+            self.time_held += self.env.dt*self.env.frame_skip
+            #print("self.time_held: " + str(self.time_held))
+            if self.time_held > self.hold_time:
+                if not self.proceeding:
+                    #end of first hover
+                    self.proceeding = True
+                    self.current_node_index = min(self.current_node_index+1, len(self.target_nodes)-1)
+                else:
+                    #proceed to the next point
+                    if t_dist <= self.distances[self.current_node_index]: #transtion to the next target
+                        self.current_node_index = min(self.current_node_index + 1, len(self.target_nodes) - 1)
+
+                    control[:3] = t_dir * (t_dist - self.slack[0])
+
+
+        # angular control: orient toward the shoulder to within some error
+        frame = pyutils.ShapeFrame()
+        frame.setOrg(org=self.iiwa.frameInterpolator["target_pos"])
+        frame.orientation = np.array(self.iiwa.frameInterpolator["target_frame"])
+        frame.updateQuaternion()
+        v0 = frame.toGlobal(p=[1, 0, 0]) - frame.org
+        v1 = frame.toGlobal(p=[0, 1, 0]) - frame.org
+        v2 = frame.toGlobal(p=[0, 0, 1]) - frame.org
+        eulers_current = pyutils.getEulerAngles3(frame.orientation)
+
+        # toShoulder = self.env.robot_skeleton.bodynodes[9].to_world(np.zeros(3)) - renderFrame.org
+        to_next_target = t_dir
+        if len(self.target_nodes)-1 > self.current_node_index:
+            to_next_target = self.env.human_skel.bodynodes[self.target_nodes[self.current_node_index+1]].to_world(self.node_offsets[self.current_node_index+1]) - iiwa_frame_org
+            to_next_target /= np.linalg.norm(to_next_target)
+        R = pyutils.rotateTo(v1 / np.linalg.norm(v1), to_next_target)
+        frame.applyRotationMatrix(R)
+        eulers_target = pyutils.getEulerAngles3(frame.orientation)
+        eulers_diff = eulers_target - eulers_current
+        control[3:] = eulers_diff
+
+        Rdown = pyutils.rotateTo(v2 / np.linalg.norm(v2), np.array([0, -1, 0]))
+        frame.applyRotationMatrix(Rdown)
+        eulers_target = pyutils.getEulerAngles3(frame.orientation)
+        eulers_diff_down = eulers_target - eulers_current
+        control[3] += eulers_diff_down[0]
+
+        for i in range(3):
+            if abs(control[3 + i]) < self.slack[1]:
+                control[3 + i] = 0
+
+        control = np.clip(control, -self.env.robot_action_scale[self.iiwa.index*6:self.iiwa.index*6+6]* self.control_fraction, self.env.robot_action_scale[self.iiwa.index*6:self.iiwa.index*6+6]*self.control_fraction)
+
+        #check control frame position against body distance and deflect if necessary
+
+        #1: find the closest point on the body
+        projected_frame_center = control[:3] + iiwa_frame_org
+        self.dist_to_closest_point = -1
+        for cap in self.env.skelCapsules:
+            p0 = self.env.human_skel.bodynodes[cap[0]].to_world(cap[2])
+            p1 = self.env.human_skel.bodynodes[cap[3]].to_world(cap[5])
+            #renderUtils.drawCapsule(p0=p0, p1=p1, r0=cap[1], r1=cap[4])
+            closestPoint = pyutils.projectToCapsule(p=projected_frame_center,c0=p0,c1=p1,r0=cap[1],r1=cap[4])[0]
+            #print(closestPoint)
+            disp_to_point = (projected_frame_center-closestPoint)
+            dist_to_point = np.linalg.norm(disp_to_point)
+            if(self.dist_to_closest_point > dist_to_point or self.dist_to_closest_point<0):
+                self.dist_to_closest_point = dist_to_point
+                self.closest_point = np.array(closestPoint)
+
+        #if that point is too close, push back against it as necessary
+        if self.dist_to_closest_point < self.avoid_dist:
+            disp_to_point = self.closest_point - projected_frame_center
+            dir_to_point = disp_to_point/self.dist_to_closest_point
+            control[:3] += -dir_to_point*(self.avoid_dist-self.dist_to_closest_point)
+            #control[:3] = np.clip(control[:3], -self.env.robot_action_scale[self.iiwa.index*6:self.iiwa.index*6+3] * self.control_fraction,self.env.robot_action_scale[self.iiwa.index*6:self.iiwa.index*6+3] * self.control_fraction)
+
+        for other_iiwa in self.other_iiwas:
+            #if the two robots are too far from one another, move toward the other
+            v_bt_frames = other_iiwa.frameInterpolator["target_pos"] - self.iiwa.frameInterpolator["target_pos"]
+            dist_bt_frames = abs(np.linalg.norm(v_bt_frames))
+            if dist_bt_frames > 0.48:
+                dir_to_other = v_bt_frames/dist_bt_frames
+                control[:3] += dir_to_other
+                #control[:3] = np.clip(control[:3], -self.env.robot_action_scale[self.iiwa.index*6:self.iiwa.index*6+3] * self.control_fraction,self.env.robot_action_scale[self.iiwa.index*6:self.iiwa.index*6+3] * self.control_fraction)
+            # if the two robots are too close, move away
+            elif dist_bt_frames < 0.2:
+                v_bt_frames *= -1.0
+                dir_from_other = v_bt_frames / dist_bt_frames
+                control[:3] += dir_from_other
+        control[:3] = np.clip(control[:3], -self.env.robot_action_scale[self.iiwa.index*6:self.iiwa.index*6+3] * self.control_fraction,self.env.robot_action_scale[self.iiwa.index*6:self.iiwa.index*6+3] * self.control_fraction)
+
+
+        return control #+ noiseAddition
+
+    def reset(self):
+        self.time_held = 0
+        self.proceeding = False
+        self.current_node_index = 0
+
+    def draw(self):
+        world_target = self.env.human_skel.bodynodes[self.target_nodes[self.current_node_index]].to_world(self.node_offsets[self.current_node_index])
+
+        iiwa_frame_org = self.iiwa.frameInterpolator["target_pos"]
+        renderUtils.drawLines(lines=[[world_target, iiwa_frame_org]])
+
+        for nix,n in enumerate(self.target_nodes):
+            world_n_target = self.env.human_skel.bodynodes[n].to_world(self.node_offsets[nix])
+            renderUtils.drawSphere(pos=world_n_target)
+
         if self.dist_to_closest_point > 0:
             renderUtils.drawLines(lines=[[self.closest_point, iiwa_frame_org]])
             renderUtils.drawSphere(pos=self.closest_point)
@@ -1515,6 +1690,7 @@ class DartClothIiwaEnv(gym.Env):
         self.proxy_render = False
         self.cloth_render = True
         self.detail_render = False
+        self.demo_render = True #if true, render only the body and robot
         self.simulating = True #used to allow simulation freezing while rendering continues
         self.passive_robots = False #if true, no motor torques from the robot
         self.active_compliance = active_compliance
@@ -1745,7 +1921,10 @@ class DartClothIiwaEnv(gym.Env):
 
         # if no alternative given, load default iiwa bot
         if robot_file is None:
-            robot_file = '/iiwa_description/urdf/iiwa7_simplified_collision_complete.urdf'
+            if not self.demo_render:
+                robot_file = '/iiwa_description/urdf/iiwa7_simplified_collision_complete.urdf'
+            else:
+                robot_file = '/iiwa_description/urdf/iiwa7_simplified_collision_complete_demorender.urdf'
 
         # convert to full path
         robot_file = os.path.dirname(__file__) + "/assets" + robot_file
@@ -2150,7 +2329,8 @@ class DartClothIiwaEnv(gym.Env):
             renderUtils.drawLines(lines)
 
         #render a central axis
-        renderUtils.drawArrowAxis(org=np.zeros(3), v0=np.array([1.0,0,0]), v1=np.array([0,1.0,0]), v2=np.array([0,0,1.0]), scale=0.5)
+        if not self.demo_render:
+            renderUtils.drawArrowAxis(org=np.zeros(3), v0=np.array([1.0,0,0]), v1=np.array([0,1.0,0]), v2=np.array([0,0,1.0]), scale=0.5)
 
         #render the valid initial point box
         if False:
@@ -2168,7 +2348,7 @@ class DartClothIiwaEnv(gym.Env):
             renderUtils.drawSphere(pos=r_pivot,rad=0.7,solid=False)
 
         #render the SPD target for the human
-        if True:
+        if True and not self.demo_render:
             q = np.array(self.human_skel.q)
             dq = np.array(self.human_skel.dq)
 
@@ -2191,41 +2371,45 @@ class DartClothIiwaEnv(gym.Env):
             self.human_skel.set_positions(q)
             self.human_skel.set_velocities(dq)
 
-        for iiwa in self.iiwas:
-            # draw robot capactive sensors
-            iiwa.capacitiveSensor.draw()
+        if not self.demo_render:
+            for iiwa in self.iiwas:
 
-            # draw interpolation frames
-            f_int = iiwa.frameInterpolator
-            if f_int["active"]:
-                renderFrame = pyutils.ShapeFrame()
-                renderFrame.setOrg(org=f_int["target_pos"])
-                renderFrame.orientation = np.array(f_int["target_frame"])
-                renderFrame.updateQuaternion()
-                renderFrame.drawArrowFrame(size=0.5)
+                # draw robot capactive sensors
+                iiwa.capacitiveSensor.draw()
 
-                renderUtils.setColor(color=[0, 0, 0])
-                renderUtils.drawLineStrip(points=[iiwa.ik_target.org, f_int["target_pos"]])
-                renderUtils.drawSphere(pos=renderFrame.org + renderFrame.org - renderFrame.toGlobal(p=f_int["localOffset"]), rad=0.02)
+                # draw interpolation frames
+                f_int = iiwa.frameInterpolator
+                if f_int["active"]:
+                    renderFrame = pyutils.ShapeFrame()
+                    renderFrame.setOrg(org=f_int["target_pos"])
+                    renderFrame.orientation = np.array(f_int["target_frame"])
+                    renderFrame.updateQuaternion()
+                    renderFrame.drawArrowFrame(size=0.5)
 
-            iiwa.ik_target.drawArrowFrame(size=0.2)
+                    renderUtils.setColor(color=[0, 0, 0])
+                    renderUtils.drawLineStrip(points=[iiwa.ik_target.org, f_int["target_pos"]])
+                    renderUtils.drawSphere(pos=renderFrame.org + renderFrame.org - renderFrame.toGlobal(p=f_int["localOffset"]), rad=0.02)
 
-            #render the FT sensor reading
-            cur_FT = iiwa.getFTSensorReading()
-            renderUtils.setColor(color=[1.0, 0, 1.0])
-            if len(self.humanRobotCollisions) > 0:
-                renderUtils.setColor(color=[1.0,0,0])
-            if iiwa.handle_node is not None:
-                renderUtils.drawArrow(p0=iiwa.handle_node.org, p1=iiwa.handle_node.org + cur_FT[:3] * 0.1)
 
-            #render manual frame control
-            if iiwa.iiwa_frame_controller is not None:
-                iiwa.iiwa_frame_controller.draw()
+                iiwa.ik_target.drawArrowFrame(size=0.15)
+
+                # render the FT sensor reading
+                cur_FT = iiwa.getFTSensorReading()
+                renderUtils.setColor(color=[1.0, 0, 1.0])
+                if len(self.humanRobotCollisions) > 0:
+                    renderUtils.setColor(color=[1.0,0,0])
+                if iiwa.handle_node is not None:
+                    renderUtils.drawArrow(p0=iiwa.handle_node.org, p1=iiwa.handle_node.org + cur_FT[:3] * 0.1)
+
+                #render manual frame control
+                if iiwa.iiwa_frame_controller is not None:
+                    iiwa.iiwa_frame_controller.draw()
 
         #draw necessary observation term components
-        self.human_obs_manager.draw()
-        self.robot_obs_manager.draw()
-        self.reward_manager.draw()
+        if not self.demo_render:
+            self.human_obs_manager.draw()
+            self.robot_obs_manager.draw()
+            self.reward_manager.draw()
 
         #inner bicep indicator strips
         renderUtils.setColor([0,0,0])
@@ -2234,7 +2418,7 @@ class DartClothIiwaEnv(gym.Env):
 
         #draw cloth features
         for feature in self.cloth_features:
-            feature.drawProjectionPoly(renderNormal=True, renderBasis=False,fill=False)
+            feature.drawProjectionPoly(renderNormal=False, renderBasis=False, fill=False)
 
         # render geodesic
         if False:
@@ -2260,9 +2444,10 @@ class DartClothIiwaEnv(gym.Env):
         textHeight = 15
         textLines = 2
         renderUtils.setColor(color=[0., 0, 0])
-        for text in self.text_queue:
-            self.clothScene.drawText(x=15., y=textLines*textHeight, text=text, color=(0., 0, 0))
-            textLines += 1
+        if not self.demo_render:
+            for text in self.text_queue:
+                self.clothScene.drawText(x=15., y=textLines*textHeight, text=text, color=(0., 0, 0))
+                textLines += 1
 
         #empty the queue
         self.text_queue = []

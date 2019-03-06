@@ -2,8 +2,6 @@ from gym.envs.dart.dart_cloth_iiwa_env import *
 
 class DartClothExperimentTestingEnv(DartClothIiwaEnv):
     def __init__(self):
-        dual_policy = False
-        is_human = True
 
         self.limbNodesR = [3, 4, 5, 6, 7]
         self.limbNodesL = [8, 9, 10, 11, 12]
@@ -17,13 +15,15 @@ class DartClothExperimentTestingEnv(DartClothIiwaEnv):
 
         # robots mirrored around z
         self.iiwa_root_dofs.append(np.array([-1.2, -1.2, -1.2, self.dFromRoot * math.sin(self.aFrom_invZ), -0.2, -self.dFromRoot * math.cos(self.aFrom_invZ)]))
-        self.iiwa_root_dofs.append(np.array([-1.2, -1.2, -1.2, self.dFromRoot * math.sin(-self.aFrom_invZ), -0.2, -self.dFromRoot * math.cos(-self.aFrom_invZ)]))
+        #self.iiwa_root_dofs.append(np.array([-1.2, -1.2, -1.2, self.dFromRoot * math.sin(-self.aFrom_invZ), -0.2, -self.dFromRoot * math.cos(-self.aFrom_invZ)]))
 
         #initialize the base env
         cloth_mesh_file = "fullgown1.obj"
-        #cloth_mesh_state_file = "hanginggown.obj"
-        cloth_mesh_state_file = "fullgown1.obj"
-        DartClothIiwaEnv.__init__(self, robot_root_dofs=self.iiwa_root_dofs, active_compliance=False, cloth_mesh_file=cloth_mesh_file, cloth_mesh_state_file=cloth_mesh_state_file, cloth_scale=1.3, dual_policy=dual_policy, is_human=is_human)
+        cloth_mesh_state_file = "hanginggown.obj"
+        DartClothIiwaEnv.__init__(self, robot_root_dofs=self.iiwa_root_dofs, active_compliance=False, cloth_mesh_file=cloth_mesh_file, cloth_mesh_state_file=cloth_mesh_state_file, cloth_scale=1.3)
+
+        #manual control target
+
 
         #setup features
         self.sleeveRVerts = [532, 451, 251, 252, 253, 1334, 1320, 1184, 945, 985, 1062, 1607, 1037, 484, 1389, 679, 1230, 736, 1401, 1155, 486, 1410]
@@ -31,24 +31,20 @@ class DartClothExperimentTestingEnv(DartClothIiwaEnv):
         self.sleeveLSeamFeature = ClothFeature(verts=self.sleeveLVerts, clothScene=self.clothScene)
         self.sleeveRSeamFeature = ClothFeature(verts=self.sleeveRVerts, clothScene=self.clothScene)
         self.cloth_features.append(self.sleeveLSeamFeature)
-        self.cloth_features.append(self.sleeveRSeamFeature)
+        #self.cloth_features.append(self.sleeveRSeamFeature)
 
         #setup separated meshes
         # setup specific separated meshes and dressing targets for this task
         self.separated_meshes.append(meshgraph.MeshGraph(clothscene=self.clothScene))  # left sleeve
-        self.separated_meshes.append(meshgraph.MeshGraph(clothscene=self.clothScene))  # right sleeve
 
+        #self.separated_meshes.append(meshgraph.MeshGraph(clothscene=self.clothScene))  # right sleeve
         self.dressing_targets.append(DressingTarget(env=self, skel=self.human_skel, feature=self.sleeveLSeamFeature, limb_sequence=self.limbNodesL, distal_offset=self.fingertip))
-        self.dressing_targets.append(DressingTarget(env=self, skel=self.human_skel, feature=self.sleeveRSeamFeature, limb_sequence=self.limbNodesR, distal_offset=self.fingertip))
-
-        #manual control target
-        #self.iiwas[0].iiwa_frame_controller = IiwaLimbTraversalController(env=self, skel=self.human_skel, iiwa=self.iiwas[0], limb=self.limbNodesL, ef_offset=self.fingertip, offset_dists=[0.1, 0.1, 0.1, 0.15, 0.18, 0.18])
-        self.iiwas[0].iiwa_frame_controller = IiwaApproachHoverProceedAvoidController(self, self.iiwas[0], dressingTargets=self.dressing_targets, target_node=8, node_offset=np.array([0.21, 0.1, 0]), distance=0.4, noise=0.0, control_fraction=0.3, slack=(0.1, 0.075), hold_time=1.0, avoidDist=0.1)
-        self.iiwas[1].iiwa_frame_controller = IiwaApproachHoverProceedAvoidController(self, self.iiwas[1], dressingTargets=self.dressing_targets, target_node=3, node_offset=np.array([-0.21, 0.1, 0]), distance=0.4, noise=0.0, control_fraction=0.3, slack=(0.1, 0.075), hold_time=1.0, avoidDist=0.1)
+        #self.dressing_targets.append(DressingTarget(env=self, skel=self.human_skel, feature=self.sleeveRSeamFeature, limb_sequence=self.limbNodesR, distal_offset=self.fingertip))
 
         #setup handle nodes
         self.iiwas[0].addClothHandle(verts=[1552, 2090, 1525, 954, 1800, 663, 1381, 1527, 1858, 1077, 759, 533, 1429, 1131], offset=np.array([0, 0, 0.05]))
-        self.iiwas[1].addClothHandle(verts=[1502, 808, 554, 1149, 819, 1619, 674, 1918, 1528, 1654, 484, 1590, 1802, 1924], offset=np.array([0, 0, 0.05]))
+        #self.iiwas[0].addClothHandle(verts=[1552], offset=np.array([0, 0, 0.05]))
+        #self.iiwas[0].addClothHandle(verts=[1552, 2090, 1525, 954, 1800, 663, 1381, 1527, 1858, 1077, 759, 533, 1429, 1131], offset=np.array([0, 0, 0]))
 
         #setup human obs
         self.human_obs_manager.addObsFeature(feature=ProprioceptionObsFeature(skel=self.human_skel, name="human proprioception"))
@@ -57,10 +53,8 @@ class DartClothExperimentTestingEnv(DartClothIiwaEnv):
         self.human_obs_manager.addObsFeature(feature=SPDTargetObsFeature(self))
         #self.human_obs_manager.addObsFeature(feature=DataDrivenJointLimitsObsFeature(self))
         #self.human_obs_manager.addObsFeature(feature=CollisionMPCObsFeature(env=self,is_human=True))
-        #self.human_obs_manager.addObsFeature(feature=WeaknessScaleObsFeature(self,self.limbDofs[1],scale_range=(0.1,0.4)))
-        #self.human_obs_manager.addObsFeature(feature=WeaknessScaleObsFeature(self,self.limbDofs[0],scale_range=(0.1,0.4)))
-        self.human_obs_manager.addObsFeature(feature=OracleObsFeature(env=self,sensor_ix=21,dressing_target=self.dressing_targets[0],sep_mesh=self.separated_meshes[0]))
-        self.human_obs_manager.addObsFeature(feature=OracleObsFeature(env=self,sensor_ix=12,dressing_target=self.dressing_targets[1],sep_mesh=self.separated_meshes[1]))
+        self.human_obs_manager.addObsFeature(feature=WeaknessScaleObsFeature(self,self.limbDofs[1],scale_range=(0.1,0.3)))
+        self.human_obs_manager.addObsFeature(feature=OracleObsFeature(env=self,sensor_ix=21,dressing_target=self.dressing_targets[-1],sep_mesh=self.separated_meshes[-1]))
         for iiwa in self.iiwas:
             self.human_obs_manager.addObsFeature(feature=JointPositionObsFeature(iiwa.skel, ignored_joints=[1], name="iiwa " + str(iiwa.index) + " joint positions"))
 
@@ -76,23 +70,22 @@ class DartClothExperimentTestingEnv(DartClothIiwaEnv):
 
         #setup rewards
         rest_pose_weights = np.ones(self.human_skel.ndofs)
-        rest_pose_weights[:2] *= 40 #stable torso
-        rest_pose_weights[2] *= 5 #spine
+        rest_pose_weights[:2] *= 10 #stable torso
+        rest_pose_weights[3] *= 1 #spine
         #rest_pose_weights[3:11] *= 0 #ignore active arm
         #rest_pose_weights[11:19] *= 2 #passive arm
         rest_pose_weights[3:19] *= 0 #ignore rest pose
-        rest_pose_weights[19:] *= 4 #stable head
+        rest_pose_weights[19:] *= 2 #stable head
         self.reward_manager.addTerm(term=RestPoseRewardTerm(self.human_skel, pose=np.zeros(self.human_skel.ndofs), weights=rest_pose_weights))
         self.reward_manager.addTerm(term=LimbProgressRewardTerm(dressing_target=self.dressing_targets[0], terminal=True, weight=40))
-        self.reward_manager.addTerm(term=LimbProgressRewardTerm(dressing_target=self.dressing_targets[1], terminal=True, weight=40))
-        self.reward_manager.addTerm(term=ClothDeformationRewardTerm(self, weight=10))
-        self.reward_manager.addTerm(term=HumanContactRewardTerm(self, weight=50, tanh_params=(2, 0.15, 10)))
+        self.reward_manager.addTerm(term=ClothDeformationRewardTerm(self, weight=1))
+        self.reward_manager.addTerm(term=HumanContactRewardTerm(self, weight=10))
 
         #set the observation space
         self.obs_dim = self.human_obs_manager.obs_size
-        if self.dual_policy:
+        if self.dualPolicy:
             self.obs_dim += self.robot_obs_manager.obs_size
-        elif not self.is_human:
+        elif not self.isHuman:
             self.obs_dim = self.robot_obs_manager.obs_size
 
         self.observation_space = spaces.Box(np.inf * np.ones(self.obs_dim) * -1.0, np.inf * np.ones(self.obs_dim))
@@ -143,110 +136,60 @@ class DartClothExperimentTestingEnv(DartClothIiwaEnv):
         root_quat = (root_quat.x, root_quat.y, root_quat.z, root_quat.w)
         p.resetBasePositionAndOrientation(self.pyBulletIiwa, posObj=np.zeros(3), ornObj=root_quat)
 
-        #initialize the robot poses
-        # pick p0 for both robots with rejection sampling
-        handleMaxDistance = 0.5
-        handleMinXDistance = 0.1
+        #initialize the robot pose
+        # pick p0 with rejection sampling
         diskRad = 0.7
         good = False
-        r_pivotL = self.iiwas[0].skel.bodynodes[3].to_world(np.zeros(3))
-        r_pivotR = self.iiwas[1].skel.bodynodes[3].to_world(np.zeros(3))
-        p0L = r_pivotL + pyutils.sampleDirections(num=1)[0] * diskRad
-        p0R = r_pivotR + pyutils.sampleDirections(num=1)[0] * diskRad
+        r_pivot = self.iiwas[0].skel.bodynodes[3].to_world(np.zeros(3))
+        p0 = r_pivot + pyutils.sampleDirections(num=1)[0] * diskRad
         depth_offset = 0.15
         while (not good):
             good = True
             # xz0 = np.array([p0[0], p0[2]])
 
-            # cut off points too close or behind the robot in x (side)
-            if p0L[0] > (r_pivotL[0] - depth_offset):
+            # cut off points too close or behind the robot in x
+            if p0[0] > (r_pivot[0] - depth_offset):
                 good = False
 
-            if p0R[0] < (r_pivotR[0] + depth_offset):
-                good = False
-
-            # cut off points too close or behind the robots in z
-            if p0L[2] > (r_pivotL[2] - depth_offset) or p0R[2] > (r_pivotR[2] - depth_offset):
-                good = False
-
-            if np.linalg.norm(p0L - p0R) > handleMaxDistance:
-                good = False
-
-            if abs(p0L[0] - p0R[0]) < handleMinXDistance:
+            # cut off points too close or behind the robot in z
+            if p0[2] > (r_pivot[2] - depth_offset):
                 good = False
 
             if not good:
-                p0L = r_pivotL + pyutils.sampleDirections(num=1)[0] * diskRad
-                p0R = r_pivotR + pyutils.sampleDirections(num=1)[0] * diskRad
+                p0 = r_pivot + pyutils.sampleDirections(num=1)[0] * diskRad
 
-        self.iiwas[0].ik_target.setFromDirectionandUp(dir=np.array([0, -1.0, 0]), up=np.array([0, 0, 1.0]), org=p0L)
-        self.iiwas[1].ik_target.setFromDirectionandUp(dir=np.array([0, -1.0, 0]), up=np.array([0, 0, 1.0]), org=p0R)
+        self.iiwas[0].ik_target.setFromDirectionandUp(dir=np.array([0, -1.0, 0]), up=np.array([0, 0, 1.0]), org=p0)
         self.iiwas[0].computeIK(maxIter=300)
-        self.iiwas[1].computeIK(maxIter=300)
         self.iiwas[0].skel.set_velocities(np.zeros(len(self.iiwas[0].skel.dq)))
         self.iiwas[0].setIKPose() #frame set in here too
-        self.iiwas[1].skel.set_velocities(np.zeros(len(self.iiwas[0].skel.dq)))
-        self.iiwas[1].setIKPose() #frame set in here too
 
         #initialize the garment location
-        for iiwa in self.iiwas:
-            hn = iiwa.skel.bodynodes[iiwa.handle_bodynode]
+        hn = self.iiwas[0].skel.bodynodes[self.iiwas[0].handle_bodynode]
 
-            iiwa.handle_node.setOrgToCentroid()
-            iiwa.handle_node.setOrientation(R=hn.T[:3, :3])
+        self.iiwas[0].handle_node.setOrgToCentroid()
+        self.iiwas[0].handle_node.setOrientation(R=hn.T[:3, :3])
+        self.clothScene.translateCloth(0, -self.iiwas[0].handle_node.org)
 
-            iiwa.handle_node.recomputeOffsets()
-            iiwa.handle_node.updatePrevConstraintPositions()
+        self.clothScene.rotateCloth(cid=0, R=pyutils.rotateX(-math.pi / 2.0))
+        self.clothScene.rotateCloth(cid=0, R=hn.T[:3, :3])
 
-        handleCentroid = (self.iiwas[0].handle_node.org + self.iiwas[1].handle_node.org) / 2.0
+        self.clothScene.translateCloth(0, hn.to_world(self.iiwas[0].handle_node_offset))
+        self.iiwas[0].handle_node.setOrgToCentroid()
 
-        # first translate the handleCentroid to the origin
-        self.clothScene.translateCloth(0, -1.0 * handleCentroid)
-        # then rotate the cloth about that point
-        self.clothScene.rotateCloth(cid=0, R=pyutils.rotateZ(math.pi))
-        self.clothScene.rotateCloth(cid=0, R=pyutils.rotateY(math.pi))
+        self.iiwas[0].handle_node.recomputeOffsets()
+        self.iiwas[0].handle_node.updatePrevConstraintPositions()
 
-        # now translate to desired location
-        self.clothScene.translateCloth(0, (p0L + p0R) / 2.0)
-
-        # reset the handle positions
-        for iiwa in self.iiwas:
-            iiwa.handle_node.setOrgToCentroid()
-            iiwa.handle_node.recomputeOffsets()
-            iiwa.handle_node.updatePrevConstraintPositions()
-
-        # now simulate the cloth while interpolating the handle node positions
-        self.clothScene.clearInterpolation()
-        simFrames = 100
-        hL_init = np.array(self.iiwas[0].handle_node.org)
-        hR_init = np.array(self.iiwas[1].handle_node.org)
-        for frame in range(simFrames):
-            self.iiwas[0].handle_node.org = hL_init + (p0L - hL_init) * (frame / (simFrames - 1))
-            self.iiwas[1].handle_node.org = hR_init + (p0R - hR_init) * (frame / (simFrames - 1))
-            self.iiwas[0].handle_node.updateHandles()
-            self.iiwas[1].handle_node.updateHandles()
-            self.clothScene.step()
-
-        #ensure feature normal directions
+        #ensure feature normal direction
         self.sleeveLSeamFeature.fitPlane()
         from_origin = self.sleeveLSeamFeature.plane.org
         from_origin = from_origin / np.linalg.norm(from_origin)
         self.sleeveLSeamFeature.fitPlane(normhint=from_origin)
-
-        self.sleeveRSeamFeature.fitPlane()
-        from_origin = self.sleeveRSeamFeature.plane.org
-        from_origin = from_origin / np.linalg.norm(from_origin)
-        self.sleeveRSeamFeature.fitPlane(normhint=from_origin)
 
         #using the expected normal of the plane, so do this here only once
         if self.reset_number == 0:
             self.separated_meshes[0].initSeparatedMeshGraph()
             self.separated_meshes[0].updateWeights()
             self.separated_meshes[0].computeGeodesic(feature=self.sleeveLSeamFeature, oneSided=True, side=0, normalSide=1)
-            vertex_blacklist = [2055]
-            self.separated_meshes[1].initSeparatedMeshGraph()
-            self.separated_meshes[1].updateWeights()
-            self.separated_meshes[1].computeGeodesic(feature=self.sleeveRSeamFeature, oneSided=True, side=0, normalSide=1, boundary_skip_vertices=vertex_blacklist)
 
     def _getFile(self):
         return __file__
