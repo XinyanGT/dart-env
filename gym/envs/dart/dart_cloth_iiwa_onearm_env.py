@@ -43,7 +43,7 @@ class DartClothIiwaOnearmEnv(DartClothIiwaEnv):
         #manual control target
         #self.iiwas[0].iiwa_frame_controller = IiwaLimbTraversalController(env=self, skel=self.human_skel, iiwa=self.iiwas[0], limb=self.limbNodesL, ef_offset=self.fingertip, offset_dists=[0.1, 0.1, 0.1, 0.15, 0.18, 0.18])
         #self.iiwas[0].iiwa_frame_controller = IiwaApproachHoverProceedAvoidController(self, self.iiwas[0], dressingTargets=self.dressing_targets, target_node=8, node_offset=np.array([0.21, 0.1, 0]), distance=0.1, noise=0.0, control_fraction=0.3, slack=(0.1, 0.075), hold_time=0.75, avoidDist=0.05, hold_elevation_node=11, hold_elevation_node_offset=np.array([0,00.05,-0.15]))
-        self.iiwas[0].iiwa_frame_controller = IiwaApproachHoverProceedAvoidMultistageController(self, self.iiwas[0], dressing_targets=self.dressing_targets, target_nodes=[11,10,8], node_offsets=[np.array([0,0,-0.15]), np.array([0,0.05,-0.1]), np.array([0.15, 0.12, 0]) ], distances=[0.1, 0.15, 0.1], control_fraction=0.3, slack=(0.05, 0.075), hold_time=0.75, avoid_dist=0.08)
+        #self.iiwas[0].iiwa_frame_controller = IiwaApproachHoverProceedAvoidMultistageController(self, self.iiwas[0], dressing_targets=self.dressing_targets, target_nodes=[11,10,8], node_offsets=[np.array([0,0,-0.15]), np.array([0,0.05,-0.1]), np.array([0.15, 0.12, 0]) ], distances=[0.1, 0.15, 0.1], control_fraction=0.3, slack=(0.05, 0.075), hold_time=0.75, avoid_dist=0.08)
 
 
         #setup handle nodes
@@ -76,15 +76,15 @@ class DartClothIiwaOnearmEnv(DartClothIiwaEnv):
         #setup rewards
         rest_pose_weights = np.ones(self.human_skel.ndofs)
         rest_pose_weights[:2] *= 40 #stable torso
-        rest_pose_weights[2] *= 5 #spine
-        rest_pose_weights[3:11] *= 5 #passive arm
+        rest_pose_weights[2] *= 4 #spine
+        rest_pose_weights[3:11] *= 4 #passive arm
         rest_pose_weights[11:19] *= 0.5 #active arm
         #rest_pose_weights[3:19] *= 0 #ignore rest pose
-        rest_pose_weights[19:] *= 10 #stable head
+        rest_pose_weights[19:] *= 8 #stable head
         self.reward_manager.addTerm(term=RestPoseRewardTerm(self.human_skel, pose=np.zeros(self.human_skel.ndofs), weights=rest_pose_weights))
-        self.reward_manager.addTerm(term=LimbProgressRewardTerm(dressing_target=self.dressing_targets[0], terminal=True, weight=40))
-        self.reward_manager.addTerm(term=ClothDeformationRewardTerm(self, weight=2))
-        self.reward_manager.addTerm(term=HumanContactRewardTerm(self, weight=10, tanh_params=(2, 0.15, 10))) #saturates at ~10 and ~38
+        self.reward_manager.addTerm(term=LimbProgressRewardTerm(dressing_target=self.dressing_targets[0], terminal=True, weight=50))
+        self.reward_manager.addTerm(term=ClothDeformationRewardTerm(self, weight=1))
+        self.reward_manager.addTerm(term=HumanContactRewardTerm(self, weight=1, tanh_params=(2, 0.15, 10))) #saturates at ~10 and ~38
 
         #set the observation space
         self.obs_dim = self.human_obs_manager.obs_size
