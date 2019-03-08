@@ -80,6 +80,15 @@ pose_squat_rad = VAL2RADIAN(pose_squat_val)
 pose_stand_rad = VAL2RADIAN(pose_stand_val)
 pose_left_stand_rad = VAL2RADIAN(pose_left_stand_val)
 pose_right_stand_rad = VAL2RADIAN(pose_right_stand_val)
+
+SIM2HW_JOINT_INDEX = [3,0,4,1,5,2,14,8,15,9,16,10,17,11,18,12,19,13,6,7]
+HW2SIM_JOINT_INDEX = np.argsort(SIM2HW_JOINT_INDEX).astype(int).tolist()
+
+def SIM2HW_INDEX(input):
+    return (np.array(input)[SIM2HW_JOINT_INDEX])
+
+def HW2SIM_INDEX(input):
+    return (np.array(input)[HW2SIM_JOINT_INDEX])
 ######################################################
 
 

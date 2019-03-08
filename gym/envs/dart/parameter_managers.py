@@ -1285,4 +1285,6 @@ class darwinParamManager:
                     break
                 else:
                     x = np.random.uniform(-0.05, 1.05, np.sum(self.MU_DIMS[self.controllable_param]))
+        x = np.array([0.9] * 14)
+        x[5:10] -= 0.7
         self.set_simulator_parameters(x)

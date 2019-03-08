@@ -4,7 +4,7 @@
     <link name="ground_link">
         <inertial>
             <mass value="1.0" />
-            <origin xyz="0 0 -1.368" rpy="0 0 0"/>
+            <origin xyz="2.5 0 -1.368" rpy="0 0 0"/>
             <inertia ixx="1.0" ixy="0" ixz="0" iyy="1.0" iyz="0" izz="1.0" />
         </inertial>
         <visual>
@@ -69,15 +69,15 @@
                 <box size="125 25 0.1" />
             </geometry>
             <material name="Grey">
-                <color rgba ="1.0 1.0 0.55 0.3"/>
+                <color rgba ="0.9 0.9 0.47 1.0"/>
             </material>
         </visual>
-        <collision group="default">
+        <!--<collision group="default">
             <origin xyz="0 0.5 0" rpy="1.57 0 0" />
             <geometry>
                 <box size="125 25 0.1" />
             </geometry>
-        </collision>
+        </collision>-->
     </link>
     <joint name="ground_joint_wall" type="fixed">
         <origin xyz="0 0 0" rpy="0 0 0" />
@@ -86,21 +86,19 @@
     </joint>
 
 
-
-
-    <!--<link name="pillar1">
+    <link name="pillar1">
         <inertial>
             <mass value="1.0" />
-            <origin xyz="0 0 -0.368" rpy="0 0 0"/>
+            <origin xyz="0 0 0.368" rpy="0 0 0"/>
             <inertia ixx="1.0" ixy="0" ixz="0" iyy="1.0" iyz="0" izz="1.0" />
         </inertial>
         <visual>
-            <origin xyz="-1 1 -0.368" rpy="0 0 0" />
+            <origin xyz="0.7 0.47 0.368" rpy="0 0 0" />
             <geometry>
                 <box size="0.1 0.1 10.0" />
             </geometry>
-            <material name="Grey">
-                <color rgba ="1.0 1.0 0.55 1.0"/>
+            <material name="pillar">
+                <color rgba ="0.9 0.9 0.47 1.0"/>
             </material>
         </visual>
     </link>
@@ -117,12 +115,12 @@
             <inertia ixx="1.0" ixy="0" ixz="0" iyy="1.0" iyz="0" izz="1.0" />
         </inertial>
         <visual>
-            <origin xyz="0 1 -0.368" rpy="0 0 0" />
+            <origin xyz="0.0 0.47 -0.368" rpy="0 0 0" />
             <geometry>
                 <box size="0.1 0.1 10.0" />
             </geometry>
-            <material name="Grey">
-                <color rgba ="1.0 1.0 0.55 1.0"/>
+            <material name="pillar">
+                <color rgba ="0.9 0.9 0.47 1.0"/>
             </material>
         </visual>
     </link>
@@ -140,12 +138,12 @@
             <inertia ixx="1.0" ixy="0" ixz="0" iyy="1.0" iyz="0" izz="1.0" />
         </inertial>
         <visual>
-            <origin xyz="1 1 -0.368" rpy="0 0 0" />
+            <origin xyz="1.4 0.47 -0.368" rpy="0 0 0" />
             <geometry>
                 <box size="0.1 0.1 10.0" />
             </geometry>
-            <material name="Grey">
-                <color rgba ="1.0 1.0 0.55 1.0"/>
+            <material name="pillar">
+                <color rgba ="0.9 0.9 0.47 1.0"/>
             </material>
         </visual>
     </link>
@@ -153,6 +151,6 @@
         <origin xyz="0 0 0" rpy="0 0 0" />
         <parent link="ground_link" />
         <child link="pillar3" />
-    </joint>-->
+    </joint>
 
 </robot>

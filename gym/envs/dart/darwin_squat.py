@@ -70,9 +70,9 @@ class DartDarwinSquatEnv(dart_env.DartEnv, utils.EzPickle):
         self.use_settled_initial_states = False
         self.limited_joint_vel = True
         self.joint_vel_limit = 20000.0
-        self.train_UP = True
+        self.train_UP = False
         self.noisy_input = False
-        self.resample_MP = True
+        self.resample_MP = False
         self.range_robust = 0.0 # std to sample at each step
         self.randomize_timestep = False
         self.load_keyframe_from_file = True
@@ -90,7 +90,7 @@ class DartDarwinSquatEnv(dart_env.DartEnv, utils.EzPickle):
         self.kd = None
         self.kc = None
 
-        self.task_mode = self.BONGOBOARD
+        self.task_mode = self.STEPPING
         self.side_walk = False
 
         if self.use_DCMotor:
@@ -130,7 +130,7 @@ class DartDarwinSquatEnv(dart_env.DartEnv, utils.EzPickle):
         else:
             # normal pose
             self.permitted_contact_ids = [-1, -2, -7, -8, 6, 11]
-            self.init_root_pert = np.array([0.0, 0.16, 0.0, 0.0, 0.0, 0.0])
+            self.init_root_pert = np.array([0.0, 0.28, 0.0, 0.0, 0.0, 0.0])
         self.initialize_falling = False # initialize darwin to have large ang vel so that it falls
 
         if self.side_walk:
@@ -140,7 +140,7 @@ class DartDarwinSquatEnv(dart_env.DartEnv, utils.EzPickle):
         #self.permitted_contact_ids = [-1, -2, -7, -8, 6, 11]
         #self.init_root_pert = np.array([-0.8, 0.0, 0.0, 0.0, 0.0, 0.0])
 
-        self.delta_angle_scale = 0.3
+        self.delta_angle_scale = 0.0
 
         self.alive_bonus = 5.0
         self.energy_weight = 0.01
@@ -267,24 +267,22 @@ class DartDarwinSquatEnv(dart_env.DartEnv, utils.EzPickle):
         ################# temp code, ugly for now, should fix later ###################################
         if self.use_sysid_model:
             self.param_manager.set_simulator_parameters(
-                np.array([2.87159059e-01, 4.03160514e-01, 4.36576586e-01, 3.86221239e-01,
-                          7.85789054e-01, 1.04277029e-01, 3.64862787e-01, 3.98563863e-01,
-                          9.36966648e-01, 9.56131312e-01, 8.74345365e-01, 8.39548565e-01,
-                          9.90829332e-01, 1.07563860e-01, 6.43309153e-01, 9.88438984e-01,
-                          2.85672012e-01, 9.67511394e-01, 5.98024447e-01, 1.59794372e-01,
-                          9.97536608e-01, 4.88691407e-01, 5.01293655e-01, 7.95171350e-01,
-                          9.95825152e-02, 7.09580629e-03, 4.66536839e-01, 5.25860303e-01,
-                          8.20514312e-01, 9.35216575e-04, 2.74604822e-01, 7.11505683e-02,
-                          4.56312986e-01, 9.28976189e-01, 7.45092860e-01, 5.09716306e-01,
-                          6.45103472e-01, 7.33841140e-01, 3.06389080e-01, 9.99043259e-01,
-                          2.37641857e-01]))
+                np.array([0.9871185, 0.30693133, 0.55750181, 0.32011938, 0.83834972,
+                          0.19811364, 0.42096536, 0.61904185, 0.94576554, 0.88540345,
+                          0.61765617, 0.53025605, 0.6601418, 0.98033778, 0.01099768,
+                          0.62265568, 0.92992245, 0.09896464, 0.01640911, 0.31857002,
+                          0.54002977, 0.64721217, 0.32402525, 0.10521349, 0.97609499,
+                          0.73081197, 0.06033072, 0.00145424, 0.04051737, 0.88555918,
+                          0.98172773, 0.92858226, 0.47659046, 0.09164595, 0.28666262,
+                          0.00248305, 0.96489041, 0.74031199, 0.30488491, 0.97574428,
+                          0.80104332]))
             self.param_manager.controllable_param.remove(self.param_manager.NEURAL_MOTOR)
-            self.param_manager.set_bounds(np.array([0.62754478, 1., 1., 0.91796176, 0.99481419,
-                                                    0.62411285, 0.58039399, 1., 1., 1.,
-                                                    1., 0.51500521, 1., 0.6]),
-                                          np.array([0.1620302, 0.23465617, 0.18431452, 0.24797362, 0.53741423,
-                                                    0., 0.052823, 0.22073834, 0.34243664, 0.74839466,
-                                                    0., 0., 0., 0.1]))
+            self.param_manager.set_bounds(np.array([1., 0.94205264, 1., 0.62146521, 1.,
+                                                    0.54466883, 0.72042693, 0.96991085, 1., 1.,
+                                                    1., 0.53370363, 1., 1., 0.8]),
+                                          np.array([0.53918709, 0.11094337, 0.14376797, 0.14442369, 0.49152166,
+                                                    0., 0.07523888, 0.35500491, 0.41446191, 0.73130195,
+                                                    0., 0.07850994, 0., 0.34002881, 0.1]))
 
 
         self.default_kp_ratios = np.copy(self.kp_ratios)
@@ -348,21 +346,22 @@ class DartDarwinSquatEnv(dart_env.DartEnv, utils.EzPickle):
     def setup_stepping(self): # step up stepping task
         self.load_keyframe_from_file = True
         if self.load_keyframe_from_file:
-            fullpath = os.path.join(os.path.dirname(__file__), "assets", 'darwinmodel/rig_keyframe_step.txt')
+            fullpath = os.path.join(os.path.dirname(__file__), "assets", 'darwinmodel/rig_keyframe_new_step.txt')
             rig_keyframe = np.loadtxt(fullpath)
 
-            self.interp_sch = [[0.0, VAL2RADIAN(0.5 * (np.array([2509, 2297, 1714, 1508, 1816, 2376,
+            '''self.interp_sch = [[0.0, VAL2RADIAN(0.5 * (np.array([2509, 2297, 1714, 1508, 1816, 2376,
                                         2047, 2171,
                                         2032, 2039, 2795, 648, 1241, 2040, 2041, 2060, 1281, 3448, 2855, 2073]) + np.array([1500, 2048, 2048, 2500, 2048, 2048,
                                         2048, 2048,
-                                        2048, 2048, 2048, 2048, 2048, 2048, 2048, 2048, 2048, 2048, 2048, 2048])))]]
+                                        2048, 2048, 2048, 2048, 2048, 2048, 2048, 2048, 2048, 2048, 2048, 2048])))]]'''
+            rig_keyframe = [HW2SIM_INDEX(v) for v in VAL2RADIAN(rig_keyframe)]
+            self.interp_sch = [[0.0, rig_keyframe[0]]]
             interp_time = 0.2
             for i in range(1):
                 for k in range(0, len(rig_keyframe)):
                     self.interp_sch.append([interp_time, rig_keyframe[k]])
                     interp_time += 0.03
             self.interp_sch.append([interp_time, rig_keyframe[0]])
-
         self.compos_range = 0.3
         self.forward_reward = 10.0
         if self.use_settled_initial_states:
@@ -492,7 +491,7 @@ class DartDarwinSquatEnv(dart_env.DartEnv, utils.EzPickle):
         self.compos_range = 0.3
         self.forward_reward = 0.0
         self.init_root_pert = np.array([0.0, 0.06, 0.0, 0.0, 0.0, 0.0])
-        self.delta_angle_scale = 1.0
+        self.delta_angle_scale = 0.5
         self.upright_weight = 0.5
         self.comvel_pen = 0.5
         self.compos_pen = 1.0
@@ -502,10 +501,10 @@ class DartDarwinSquatEnv(dart_env.DartEnv, utils.EzPickle):
         self.param_manager.MU_UP_BOUNDS[self.param_manager.GROUND_FRICTION] = [2.0]
         self.param_manager.MU_LOW_BOUNDS[self.param_manager.GROUND_FRICTION] = [1.0]
 
-        self.assist_timeout = 10.0
+        self.assist_timeout = 0.0
         self.assist_schedule = [[0.0, [2000, 2000]], [2.0, [1500, 1500]], [4.0, [1125.0, 1125.0]]]
 
-        q = self.robot_skeleton.q
+        '''q = self.robot_skeleton.q
         q[6:] = p
         self.robot_skeleton.q = q
         # gradually move the robot down until it touches the board
@@ -533,7 +532,7 @@ class DartDarwinSquatEnv(dart_env.DartEnv, utils.EzPickle):
             if (contact.bodynode1 in feet and contact.bodynode2 == board) or \
                 (contact.bodynode1 == board and contact.bodynode2 in feet):
                 bc = BallJointConstraint(contact.bodynode1, contact.bodynode2, contact.point)
-                bc.add_to_world(self.dart_world)
+                bc.add_to_world(self.dart_world)'''
 
 
     def _bodynode_spd(self, bn, kp, dof, target_vel=None):
@@ -608,7 +607,7 @@ class DartDarwinSquatEnv(dart_env.DartEnv, utils.EzPickle):
         self.target[6:] = np.clip(self.target[6:], JOINT_LOW_BOUND, JOINT_UP_BOUND)
 
         dup_pos = np.copy(self.target)
-        dup_pos[4] = 0.5
+        dup_pos[4] = 0.8
         self.dupSkel.set_positions(dup_pos)
         self.dupSkel.set_velocities(self.target*0)
 
@@ -885,7 +884,7 @@ class DartDarwinSquatEnv(dart_env.DartEnv, utils.EzPickle):
             if contact.bodynode1 not in self.permitted_contact_bodies and contact.bodynode2 not in self.permitted_contact_bodies:
                 if contact.bodynode1 in ground_bodies or contact.bodynode2 in ground_bodies:
                     self.fall_on_ground = True
-            if contact.bodynode1.skel == contact.bodynode2.skel:
+            if contact.bodynode1.skel == contact.bodynode2.skel and self.cur_step > 1:
                 self_colliding = True
 
         if self.t > self.interp_sch[-1][0] + 2:
@@ -896,6 +895,8 @@ class DartDarwinSquatEnv(dart_env.DartEnv, utils.EzPickle):
             done = True
         if self.init_q[5] - self.robot_skeleton.q[5] > self.height_drop_threshold:
             done = True
+
+
         if self.compos_range > 0:
             if self.forward_reward == 0:
                 if np.linalg.norm(self.init_q[3:6] - self.robot_skeleton.q[3:6]) > self.compos_range:
@@ -1030,7 +1031,7 @@ class DartDarwinSquatEnv(dart_env.DartEnv, utils.EzPickle):
         if self.task_mode == self.CRAWL:
             q[5] += -0.3 - np.min([self.robot_skeleton.bodynodes[-1].C[2], self.robot_skeleton.bodynodes[-7].C[2]])
         elif self.task_mode == self.BONGOBOARD:
-            q[5] += -0.25 - np.min([self.robot_skeleton.bodynodes[-1].C[2], self.robot_skeleton.bodynodes[-7].C[2]])
+            q[5] += -0.29 - np.min([self.robot_skeleton.bodynodes[-1].C[2], self.robot_skeleton.bodynodes[-7].C[2]])
         else:
             q[5] += -0.335 - np.min([self.robot_skeleton.bodynodes[-1].C[2], self.robot_skeleton.bodynodes[-7].C[2]])
 
@@ -1104,6 +1105,7 @@ class DartDarwinSquatEnv(dart_env.DartEnv, utils.EzPickle):
 
     def viewer_setup(self):
         if not self.disableViewer:
+            #self.track_skeleton_id = 0
             self._get_viewer().scene.tb.trans[0] = 0.0
             self._get_viewer().scene.tb.trans[2] = -1.0
             self._get_viewer().scene.tb.trans[1] = 0.0
