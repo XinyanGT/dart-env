@@ -56,20 +56,25 @@ def main():
     trial = None
 
     # --- robot TShirt
-    #trial = "experiment_2019_03_05_twoarm_tshirt_split" #TODO
+    #trial = "experiment_2019_03_06_twoarm_tshirt_split_cont2" #TODO
+    #trial = "experiment_2019_03_06_twoarm_tshirt_split_cont"
+    #trial = "experiment_2019_03_06_twoarm_tshirt_split"
+    #trial = "experiment_2019_03_05_twoarm_tshirt_split"
     # ---
 
     # --- new multiarm
+    #trial = "experiment_2019_03_06_twoarm_human_hoverbot_pursuit_reducedpen"
     #trial = "experiment_2019_03_05_twoarm_human_strongpenalties_hoverbot" #TODO
     #trial = "experiment_2019_03_04_twoarm_human_strongpenalties_hoverbot"
     #trial = "experiment_2019_03_02_twoarm_nocompliance_terminal"
-    #trial = "experiment_2019_03_02_twoarm_nocompliance_cont" #TODO
+    #trial = "experiment_2019_03_02_twoarm_nocompliance_cont"
     #trial = "experiment_2019_03_02_twoarm_nocompliance"
     #trial = "experiment_2019_03_02_twoarm_standard"
     # ---
 
     # -- new env onearm
-    #trial = "experiment_2019_03_05_onearm_weaker_4xrest" #TODO
+    trial = "experiment_2019_03_06_onearm_weaker"
+    #trial = "experiment_2019_03_05_onearm_weaker_4xrest"
     #trial = "experiment_2019_03_04_onearm_human_strongpenalties_hoverbot"
     #trial = "experiment_2019_03_04_onearm_strongpenalties"
     #trial = "experiment_2019_03_04_onearm_nocompliance_weak_term_4xconpen_4xupright"
@@ -517,7 +522,7 @@ def main():
 
     loadSave = False #now done automatically if policy file not found...
     graphOnly = False #if true, exit() after graphing
-    demoSave = True #if true, create an exp named demo folder and render into it
+    demoSave = False #if true, create an exp named demo folder and render into it
 
     if loadSave is True:
         import tensorflow as tf
