@@ -19,6 +19,9 @@ class DartClothIiwaTwoarmEnv(DartClothIiwaEnv):
         self.iiwa_root_dofs.append(np.array([-1.2, -1.2, -1.2, self.dFromRoot * math.sin(self.aFrom_invZ), -0.2, -self.dFromRoot * math.cos(self.aFrom_invZ)]))
         self.iiwa_root_dofs.append(np.array([-1.2, -1.2, -1.2, self.dFromRoot * math.sin(-self.aFrom_invZ), -0.2, -self.dFromRoot * math.cos(-self.aFrom_invZ)]))
 
+        #self.iiwa_root_dofs.append(np.array([-math.pi/2.0, 0, 0, self.dFromRoot * math.sin(self.aFrom_invZ), -0.2, -self.dFromRoot * math.cos(self.aFrom_invZ)]))
+        #self.iiwa_root_dofs.append(np.array([-math.pi/2.0, 0, 0, self.dFromRoot * math.sin(-self.aFrom_invZ), -0.2, -self.dFromRoot * math.cos(-self.aFrom_invZ)]))
+
         #initialize the base env
         cloth_mesh_file = "fullgown1.obj"
         #cloth_mesh_state_file = "hanginggown.obj"

@@ -292,16 +292,49 @@ class ObservationFeature:
     def reset(self):
         pass
 
+    def mirrorObs(self):
+        #get mirrored obs for symmetry reward
+        return self.getObs()
+
 class ProprioceptionObsFeature(ObservationFeature):
     #cos(q), sin(q), dq
-    def __init__(self, skel, start_dof=0, name="proprioception", render=False):
+    def __init__(self, skel, isHuman=True, start_dof=0, name="proprioception", render=False):
         self.start_dof = start_dof
         ObservationFeature.__init__(self, name=name, dim=(len(skel.q)-start_dof)*3, render=render)
         self.skel = skel
+        self.isHuman = isHuman
 
     def getObs(self):
         obs = np.concatenate([np.cos(self.skel.q[self.start_dof:]),np.sin(self.skel.q[self.start_dof:]), self.skel.dq[self.start_dof:]])
         return obs
+
+    def mirrorObs(self):
+        #TODO
+        q = np.array(self.skel.q)
+        dq = np.array(self.skel.dq)
+        mirror_correspondance = []
+        mirror_multiplier = np.ones(len(q))
+        if self.isHuman:
+            mirror_correspondance = [0, 1, 2, 11, 12, 13, 14, 15, 16, 17, 18, 3, 4, 5, 6, 7, 8, 9, 10, 19, 20, 21]
+            mirror_multiplier[0] = -1
+            mirror_multiplier[2] = -1
+            mirror_multiplier[5] = -1
+            mirror_multiplier[7] = -1
+            mirror_multiplier[13] = -1
+            mirror_multiplier[15] = -1
+            mirror_multiplier[19] = -1
+            mirror_multiplier[21] = -1
+        else:
+            mirror_correspondance = range(len(q))
+            #mirror_multiplier[0]
+            #TODO: robot
+        q_mirror = np.zeros(len(q))
+        dq_mirror = np.zeros(len(q))
+        for ix, dof in enumerate(mirror_correspondance):
+            q_mirror[ix] = q[dof] * mirror_multiplier[ix]
+            dq_mirror[ix] = dq[dof] * mirror_multiplier[ix]
+
+        pass
 
 class HumanHapticObsFeature(ObservationFeature):
     #human haptic sensor observation
@@ -1693,7 +1726,7 @@ class DartClothIiwaEnv(gym.Env):
         self.proxy_render = False
         self.cloth_render = True
         self.detail_render = False
-        self.demo_render = True #if true, render only the body and robot
+        self.demo_render = False #if true, render only the body and robot
         self.simulating = True #used to allow simulation freezing while rendering continues
         self.passive_robots = False #if true, no motor torques from the robot
         self.active_compliance = active_compliance
@@ -2355,13 +2388,40 @@ class DartClothIiwaEnv(gym.Env):
             q = np.array(self.human_skel.q)
             dq = np.array(self.human_skel.dq)
 
-            for i in range(2):
+            for i in range(2,3):
                 if i==0:
                     self.human_skel.set_positions(self.humanSPDIntperolationTarget)
                     renderUtils.setColor(color=[0.8, 0.6, 0.6])
-                else:
+                elif i==1:
                     self.human_skel.set_positions(self.humanSPDController.target)
                     renderUtils.setColor(color=[0.6, 0.8, 0.6])
+                elif i==2: #mirror pose
+                    mirror_mask = np.array([
+                        -q[0],
+                        q[1],
+                        -q[2],
+                        q[11],
+                        q[12],
+                        -q[13],
+                        q[14],
+                        -q[15],
+                        q[16],
+                        q[17],
+                        q[18],
+                        q[3],
+                        q[4],
+                        -q[5],
+                        q[6],
+                        -q[7],
+                        q[8],
+                        q[9],
+                        q[10],
+                        -q[19],
+                        q[20],
+                        -q[21]
+                    ])
+                    self.human_skel.set_positions(mirror_mask)
+                    renderUtils.setColor(color=[0.8, 0.6, 0.8])
 
                 if self.skelCapsulesDefined:
                     #renderUtils.setColor(color=[0.8, 0.6, 0.6])
@@ -2469,6 +2529,43 @@ class DartClothIiwaEnv(gym.Env):
 
             #draw pose with target
             renderUtils.renderDofs(self.human_skel,self.humanSPDIntperolationTarget,True,_topLeft=[15, self.viewer.viewport[3] - 12])
+
+        #mirror iiwa test
+        if False:
+            q = np.array(self.iiwas[0].skel.q)
+            dq = np.array(self.iiwas[0].skel.dq)
+            mirror_multiplier = np.ones(len(q))
+            mirror_offset = np.zeros(len(q))
+            mirror_correspondance = range(len(q))
+
+            mirror_multiplier[3] = -1
+            mirror_multiplier[6] = -1
+            mirror_offset[6] = math.pi
+            mirror_multiplier[7] = -1
+            #print(q[6])
+            #q[6] = 0
+            mirror_multiplier[8] = -1
+            mirror_multiplier[9] = -1
+            mirror_multiplier[10] = -1
+            mirror_multiplier[11] = -1
+
+            q[6:] = np.zeros(len(q)-6)
+            q[0] = -math.pi/2.0
+            q[1] = 0
+            q[2] = 0
+
+            #q[0] = self.numSteps*self.dt*self.frame_skip*0.1
+
+            q_mirror = np.zeros(len(q))
+            dq_mirror = np.zeros(len(q))
+            for ix, dof in enumerate(mirror_correspondance):
+                q_mirror[ix] = q[dof] * mirror_multiplier[ix] + mirror_offset[ix]
+                dq_mirror[ix] = dq[dof] * mirror_multiplier[ix]
+
+            self.iiwas[0].skel.set_positions(q_mirror)
+            self.iiwas[0].skel.render()
+            self.iiwas[0].skel.set_positions(q)
+            self.iiwas[0].skel.set_velocities(dq)
 
     def _get_viewer(self):
         if self.viewer is None:

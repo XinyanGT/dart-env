@@ -134,17 +134,16 @@ class DartClothIiwaTwoarmTshirtEnv(DartClothIiwaEnv):
         self.observation_space = spaces.Box(np.inf * np.ones(self.obs_dim) * -1.0, np.inf * np.ones(self.obs_dim))
         print(self.observation_space)
 
-    def additionalResets(self):
-        # setting the orientation of the pyBulletIiwa, other settings are unnecessary as we give rest poses for IK
-
-        #head bending
-        dof_change = 0.3
+        # head bending
+        dof_change = 0.4
         dof = 20
         self.human_skel.dof(dof).set_position_lower_limit(
             self.human_skel.dof(dof).position_lower_limit() - dof_change)
         self.human_skel.dof(dof).set_position_upper_limit(
             self.human_skel.dof(dof).position_upper_limit() + dof_change)
 
+    def additionalResets(self):
+        # setting the orientation of the pyBulletIiwa, other settings are unnecessary as we give rest poses for IK
 
         #set manual target to random pose
         if self.manual_human_control:

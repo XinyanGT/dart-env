@@ -1108,6 +1108,7 @@ class PoseInteractor(BaseInteractor):
         self.clickz = 0
         self.mouseGlobal = None
         self.mouseAtClick = np.zeros(2)
+        self.selected_dof = 0
 
     def defineBoxRanges(self):
         #manually defined
@@ -1242,6 +1243,10 @@ class PoseInteractor(BaseInteractor):
     def click(self, button, state, x, y):
         tb = self.viewer.scene.tb
         self.mouseAtClick = np.array([x,y])
+
+        if self.viewer.key_down[120]:
+            return
+
         if state == 0:  # Mouse pressed
             self.selectedBox = self.boxClickTest(np.array([x,y]))
             if not self.viewer.mouseRButton and not self.viewer.mouseLButton:
@@ -1293,6 +1298,15 @@ class PoseInteractor(BaseInteractor):
         dx = x - self.viewer.mouseLastPos[0]
         dy = y - self.viewer.mouseLastPos[1]
 
+        if self.viewer.key_down[120]:
+            print("x down")
+            new_q = self.viewer.env.human_skel.q
+            new_q[self.selected_dof] += dx*0.001
+            new_q = np.clip(new_q, self.viewer.env.human_skel.position_lower_limits(), self.viewer.env.human_skel.position_upper_limits())
+            self.viewer.env.human_skel.set_positions(new_q)
+            self.viewer.mouseLastPos = np.array([x, y])
+            return
+
         if self.selectedNode is not None:
             self.mouseGlobal = np.array(self.viewer.unproject(np.array([self.viewer.mouseLastPos[0], self.viewer.viewport[3] - self.viewer.mouseLastPos[1], self.clickz])))
             forceScale = 20.0
@@ -1323,12 +1337,23 @@ class PoseInteractor(BaseInteractor):
 
     def keyboard(self, key, x, y):
         keycode = ord(key)
+        #print(keycode)
         if keycode == 27:
             self.viewer.close()
             return
         if keycode == 13:  # ENTER
             if self.viewer.inputFunc is not None:
                 self.viewer.inputFunc()
+            return
+        if keycode == 39: # '
+            self.selected_dof += 1
+            self.selected_dof = min(self.selected_dof,self.viewer.env.human_skel.ndofs-1)
+            print("self.selected_dof: " + str(self.selected_dof))
+            return
+        if keycode == 59: # ;
+            self.selected_dof -= 1
+            self.selected_dof = max(self.selected_dof, 0)
+            print("self.selected_dof: " + str(self.selected_dof))
             return
         if keycode == 98: #'b'
             self.defineBoxRanges()
