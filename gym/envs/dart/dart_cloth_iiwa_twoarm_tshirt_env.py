@@ -137,6 +137,15 @@ class DartClothIiwaTwoarmTshirtEnv(DartClothIiwaEnv):
     def additionalResets(self):
         # setting the orientation of the pyBulletIiwa, other settings are unnecessary as we give rest poses for IK
 
+        #head bending
+        dof_change = 0.3
+        dof = 20
+        self.human_skel.dof(dof).set_position_lower_limit(
+            self.human_skel.dof(dof).position_lower_limit() - dof_change)
+        self.human_skel.dof(dof).set_position_upper_limit(
+            self.human_skel.dof(dof).position_upper_limit() + dof_change)
+
+
         #set manual target to random pose
         if self.manual_human_control:
             self.human_manual_target = self.getValidRandomPose(verbose=False,symmetrical=True)

@@ -56,7 +56,7 @@ def main():
     trial = None
 
     # --- robot TShirt
-    #trial = "experiment_2019_03_06_twoarm_tshirt_split_cont2" #TODO
+    trial = "experiment_2019_03_06_twoarm_tshirt_split_cont2" #TODO
     #trial = "experiment_2019_03_06_twoarm_tshirt_split_cont"
     #trial = "experiment_2019_03_06_twoarm_tshirt_split"
     #trial = "experiment_2019_03_05_twoarm_tshirt_split"
@@ -73,7 +73,7 @@ def main():
     # ---
 
     # -- new env onearm
-    trial = "experiment_2019_03_06_onearm_weaker"
+    #trial = "experiment_2019_03_06_onearm_weaker"
     #trial = "experiment_2019_03_05_onearm_weaker_4xrest"
     #trial = "experiment_2019_03_04_onearm_human_strongpenalties_hoverbot"
     #trial = "experiment_2019_03_04_onearm_strongpenalties"
