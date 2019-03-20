@@ -124,6 +124,9 @@ class DartClothExperimentTestingEnv(DartClothIiwaEnv):
         self.reward_manager.addTerm(term=ClothDeformationRewardTerm(self, weight=5))
         self.reward_manager.addTerm(term=HumanContactRewardTerm(self, weight=5, tanh_params=(2, 0.15, 10)))
 
+        #TODO: testing
+        self.reward_manager.addTerm(term=BodyDistancePenaltyTerm(self, node1=self.iiwas[0].skel.bodynodes[8], offset1=np.zeros(3), node2=self.iiwas[1].skel.bodynodes[8], offset2=np.zeros(3), target_range=(0,0.4), weight=5))
+
         #set the observation space
         self.obs_dim = self.human_obs_manager.obs_size
         if self.dual_policy:
@@ -134,17 +137,16 @@ class DartClothExperimentTestingEnv(DartClothIiwaEnv):
         self.observation_space = spaces.Box(np.inf * np.ones(self.obs_dim) * -1.0, np.inf * np.ones(self.obs_dim))
         print(self.observation_space)
 
-    def additionalResets(self):
-        # setting the orientation of the pyBulletIiwa, other settings are unnecessary as we give rest poses for IK
-
-        #head bending
-        dof_change = 0.3
+        # head bending
+        dof_change = 0.4
         dof = 20
         self.human_skel.dof(dof).set_position_lower_limit(
             self.human_skel.dof(dof).position_lower_limit() - dof_change)
         self.human_skel.dof(dof).set_position_upper_limit(
             self.human_skel.dof(dof).position_upper_limit() + dof_change)
 
+    def additionalResets(self):
+        # setting the orientation of the pyBulletIiwa, other settings are unnecessary as we give rest poses for IK
 
         #set manual target to random pose
         if self.manual_human_control:

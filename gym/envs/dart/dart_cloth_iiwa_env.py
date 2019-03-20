@@ -108,7 +108,7 @@ class RewardTerm:
         pass
 
 #TODO: convert various reward terms into class structures for re-use
-#TODO: oracle displacement
+#TODO:  oracle displacement reward
 
 class RestPoseRewardTerm(RewardTerm):
     #skeleton rest pose of any weight pose subset
@@ -136,6 +136,8 @@ class LimbProgressRewardTerm(RewardTerm):
         self.dressing_target = dressing_target
         self.continuous = continuous
         self.terminal = terminal
+        if self.terminal and self.continuous:
+            max = 2.0
         self.success_threshold=success_threshold
         self.previous_progress = 0
         RewardTerm.__init__(self, name=name, weight=weight, min=min, max=max)
@@ -160,7 +162,7 @@ class LimbProgressRewardTerm(RewardTerm):
         limb = pyutils.limbFromNodeSequence(self.dressing_target.skel, nodes=self.dressing_target.limb_sequence, offset=self.dressing_target.distal_offset)
         p,v = pyutils.getLimbPointVec(limb, 1.0-self.success_threshold)
         point_plane = Plane(org=p, normal=v/np.linalg.norm(v))
-        point_plane.draw(0.1)
+        point_plane.draw(0.12)
 
 class GeodesicContactRewardTerm(RewardTerm):
     #reward for touching the cloth close to the target feature
@@ -248,6 +250,29 @@ class HumanContactRewardTerm(RewardTerm):
 
     def reset(self):
         self.true_max_avg_force = 0
+
+class BodyDistancePenaltyTerm(RewardTerm):
+    #penalty for distance between two bodynode offset points outside a range
+    def __init__(self, env, node1=None, offset1=np.zeros(3), node2=None, offset2=np.zeros(3), target_range=(0,1.0), name="body distance penalty", weight=1.0, min=-1.0, max=0.0):
+        self.env = env
+        self.b1 = {"node":node1, "offset":offset1}
+        self.b2 = {"node":node2, "offset":offset2}
+        self.target_range = target_range
+        RewardTerm.__init__(self, name=name, weight=weight, min=min, max=max)
+
+    def evaluateReward(self):
+        wp1 = np.array(self.b1["offset"])
+        wp2 = np.array(self.b2["offset"])
+
+        if self.b1["node"] is not None:
+            wp1 = self.b1["node"].to_world(self.b1["offset"])
+        if self.b2["node"] is not None:
+            wp2 = self.b2["node"].to_world(self.b2["offset"])
+
+        self.previous_evaluation = np.linalg.norm(wp1-wp2)
+        closest_range_point = max(min(self.previous_evaluation, self.target_range[1]), self.target_range[0])
+        self.previous_evaluation = -abs(self.previous_evaluation - closest_range_point)
+        return self.previous_evaluation
 
 class ObservationManager:
     def __init__(self):
@@ -2350,6 +2375,8 @@ class DartClothIiwaEnv(gym.Env):
         #cloth_centroid = self.clothScene.getVertexCentroid(cid=0)
         #renderUtils.drawArrow(p0=cloth_centroid + np.array([0.5, 0.5, 0]), p1=cloth_centroid)
 
+        #hs1z = self.human_skel.bodynodes[1].to_world(np.zeros(3))
+        #renderUtils.drawArrow(p0=hs1z + np.array([0.5,0.5,0]), p1=hs1z)
 
         if self.proxy_render:
             renderUtils.drawLines(pyutils.getRobotLinks(self.proxy_human_skel, pose=self.proxy_human_skel.q))
@@ -2905,6 +2932,7 @@ class DartClothIiwaEnv(gym.Env):
         while (not valid):
             valid = True
             new_pose = np.random.uniform(lower, upper)
+            #manual constraints
             new_pose[0] = 0
             new_pose[1] = 0
             new_pose[2] = 0

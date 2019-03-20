@@ -56,8 +56,8 @@ def main():
     trial = None
 
     # --- robot TShirt
-    #trial = "experiment_2019_03_06_twoarm_tshirt_split_cont3_bendhead" #TODO
-    #trial = "experiment_2019_03_06_twoarm_tshirt_split_cont2" #TODO
+    trial = "experiment_2019_03_06_twoarm_tshirt_split_cont3_bendhead" #TODO
+    #trial = "experiment_2019_03_06_twoarm_tshirt_split_cont2"
     #trial = "experiment_2019_03_06_twoarm_tshirt_split_cont"
     #trial = "experiment_2019_03_06_twoarm_tshirt_split"
     #trial = "experiment_2019_03_05_twoarm_tshirt_split"
@@ -65,7 +65,7 @@ def main():
 
     # --- new multiarm
     #trial = "experiment_2019_03_06_twoarm_human_hoverbot_pursuit_reducedpen"
-    #trial = "experiment_2019_03_05_twoarm_human_strongpenalties_hoverbot" #TODO
+    #trial = "experiment_2019_03_05_twoarm_human_strongpenalties_hoverbot"
     #trial = "experiment_2019_03_04_twoarm_human_strongpenalties_hoverbot"
     #trial = "experiment_2019_03_02_twoarm_nocompliance_terminal"
     #trial = "experiment_2019_03_02_twoarm_nocompliance_cont"
@@ -74,6 +74,8 @@ def main():
     # ---
 
     # -- new env onearm
+    #trial = "experiment_2019_03_11_onearm_weakstrong"
+    #trial = "experiment_2019_03_06_onearm_weaker_warm_incConPen"
     #trial = "experiment_2019_03_06_onearm_weaker"
     #trial = "experiment_2019_03_05_onearm_weaker_4xrest"
     #trial = "experiment_2019_03_04_onearm_human_strongpenalties_hoverbot"
@@ -522,6 +524,8 @@ def main():
     #trial = "experiment_2017_09_11_mode7_nohapticsbaseline"
 
     loadSave = False #now done automatically if policy file not found...
+    loadSave_frame = None #if none, use most recent
+    #loadSave_frame = 40
     graphOnly = False #if true, exit() after graphing
     demoSave = False #if true, create an exp named demo folder and render into it
 
@@ -531,7 +535,11 @@ def main():
             #load the params.pkl file and save a policy.pkl file
             with tf.Session() as sess:
                 print("trying to load the params.pkl file")
-                data = joblib.load(prefix+trial+"/params.pkl")
+                frame_num = ""
+                if loadSave_frame is not None:
+                    frame_num = str(loadSave_frame)
+                params_file = prefix+trial+"/params"+frame_num+".pkl"
+                data = joblib.load(params_file)
                 print("loaded the pkl file")
                 policy = data['policy']
                 pickle.dump(policy, open(prefix+trial+"/policy.pkl", "wb"))
