@@ -86,7 +86,7 @@ class DartClothIiwaTwoarmTshirtEnv(DartClothIiwaEnv):
         self.human_obs_manager.addObsFeature(feature=OracleObsFeature(env=self,sensor_ix=21,dressing_target=self.dressing_targets[0],sep_mesh=self.separated_meshes[0]))
         self.human_obs_manager.addObsFeature(feature=OracleObsFeature(env=self,sensor_ix=12,dressing_target=self.dressing_targets[1],sep_mesh=self.separated_meshes[1]))
         self.human_obs_manager.addObsFeature(feature=OracleObsFeature(env=self,sensor_ix=3,dressing_target=self.dressing_targets[2],sep_mesh=self.separated_meshes[2]))
-        #TODO: head oracle?
+
         for iiwa in self.iiwas:
             self.human_obs_manager.addObsFeature(feature=JointPositionObsFeature(iiwa.skel, ignored_joints=[1], name="iiwa " + str(iiwa.index) + " joint positions"))
 
@@ -121,9 +121,9 @@ class DartClothIiwaTwoarmTshirtEnv(DartClothIiwaEnv):
         self.reward_manager.addTerm(term=GeodesicContactRewardTerm(sensor_index=12, env=self, separated_mesh=self.separated_meshes[1], dressing_target=self.dressing_targets[1], weight=15))
         self.reward_manager.addTerm(term=GeodesicContactRewardTerm(sensor_index=3, env=self, separated_mesh=self.separated_meshes[2], dressing_target=self.dressing_targets[2], weight=15))
 
-        self.reward_manager.addTerm(term=ClothDeformationRewardTerm(self, weight=4))
-        self.reward_manager.addTerm(term=ClothAvgDeformationRewardTerm(self, weight=5))
-        self.reward_manager.addTerm(term=HumanContactRewardTerm(self, weight=5, tanh_params=(2, 0.15, 10)))
+        self.reward_manager.addTerm(term=ClothDeformationRewardTerm(self, weight=10))
+        self.reward_manager.addTerm(term=ClothAvgDeformationRewardTerm(self, weight=40))
+        self.reward_manager.addTerm(term=HumanContactRewardTerm(self, weight=15, tanh_params=(2, 0.15, 10)))
 
         self.reward_manager.addTerm(term=BodyDistancePenaltyTerm(self, node1=self.iiwas[0].skel.bodynodes[8], offset1=np.zeros(3), node2=self.iiwas[1].skel.bodynodes[8], offset2=np.zeros(3), target_range=(0,0.4), weight=5))
 
