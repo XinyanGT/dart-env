@@ -9,6 +9,7 @@ import os
 from gym import error, spaces
 from gym.utils import seeding
 import numpy as np
+import quaternion
 from os import path
 import gym
 import time
@@ -192,8 +193,8 @@ class GeodesicContactRewardTerm(RewardTerm):
         return self.previous_evaluation
 
 class ClothDeformationRewardTerm(RewardTerm):
-    #penalty for deforming the garment
-    def __init__(self, env, tanh_params=(2, 0.7, 15), name="cloth deformation", weight=1.0, min=-1.0, max=0.0):
+    #penalty for max single triangle deformation of the garment
+    def __init__(self, env, tanh_params=(2, 0.7, 15), name="max cloth deformation", weight=1.0, min=-1.0, max=0.0):
         self.env = env
         self.tanh_params = tanh_params
         RewardTerm.__init__(self, name=name, weight=weight, min=min, max=max)
@@ -207,6 +208,24 @@ class ClothDeformationRewardTerm(RewardTerm):
         t = self.tanh_params[2]
         #note, this tanh will return [0,-2], so divide by 2 to get min = -weight
         self.previous_evaluation = (math.tanh(s*t - s*deformation + z) - 1) * self.weight * 0.5
+        return self.previous_evaluation
+
+class ClothAvgDeformationRewardTerm(RewardTerm):
+    #penalty on total deformation of the garment (avg of all triangle deformations
+    def __init__(self, env, tanh_params=(2, 0.7, 15), name="avg cloth deformation", weight=1.0, min=-1.0, max=0.0):
+        self.env = env
+        self.tanh_params = tanh_params
+        RewardTerm.__init__(self, name=name, weight=weight, min=min, max=max)
+
+    def evaluateReward(self):
+        deformation = self.env.clothScene.getAverageDeformationRatio(0)
+        # params = (z,s,t)
+        # reward = tanh(s*t - s*deformation + z)-1
+        z = self.tanh_params[0]
+        s = self.tanh_params[1]
+        t = self.tanh_params[2]
+        # note, this tanh will return [0,-2], so divide by 2 to get min = -weight
+        self.previous_evaluation = (math.tanh(s * t - s * deformation + z) - 1) * self.weight * 0.5
         return self.previous_evaluation
 
 class HumanContactRewardTerm(RewardTerm):
@@ -446,6 +465,16 @@ class SPDTargetObsFeature (ObservationFeature):
     def __init__(self, env, name="Human SPD Interpolation Target", render=False):
         self.env = env
         ObservationFeature.__init__(self, name=name, dim=22, render=render)
+
+    def getObs(self):
+        obs = np.array(self.env.humanSPDIntperolationTarget)
+        return obs
+
+class robotSPDTargetObsFeature(ObservationFeature):
+    # observation of the interpolation pose for human SPD
+    def __init__(self, env, name="Robot SPD Interpolation Target", render=False):
+        self.env = env
+        ObservationFeature.__init__(self, name=name, dim=7*len(env.iiwas), render=render)
 
     def getObs(self):
         obs = np.array(self.env.humanSPDIntperolationTarget)
@@ -1413,18 +1442,21 @@ class IiwaTrackController(IiwaFrameController):
 class Iiwa:
     #contains all necessary structures to define, control, simulate and reset a single Iiwa robot instance
 
-    def __init__(self, skel, env, index, root_dofs=np.zeros(6), active_compliance=True):
+    def __init__(self, skel, env, index, root_dofs=np.zeros(6), active_compliance=True, quat_control=False):
         self.env = env
         self.skel = skel
         self.index = index
         self.active_compliance = active_compliance
 
-        self.frameInterpolator = {"active": True, "target_pos": np.zeros(3), "target_frame": np.identity(3), "speed": 0.5, "aSpeed": 4, "localOffset": np.array([0, 0, 0]), "eulers": np.zeros(3), "distanceLimit": 0.15}
+        self.frameInterpolator = {"active": True, "quat_control":quat_control, "target_pos": np.zeros(3), "target_frame": np.identity(3), "target_quat":np.quaternion(1, 0, 0, 0), "speed": 0.5, "aSpeed": 4, "localOffset": np.array([0, 0, 0]), "eulers": np.zeros(3), "distanceLimit": 0.15}
         self.manualFrameTarget = pyutils.ShapeFrame()
         self.manualFrameTarget.setFromDirectionandUp(dir=np.array([0, -1.0, 0]), up=np.array([0, 0, 1.0]), org=np.zeros(3))
         self.frameEulerState = np.array([math.pi/2.0, -0.2, -0.15]) #XYZ used as euler angles to modify orientation base
         self.ik_target = pyutils.ShapeFrame()
         self.previousIKResult = np.zeros(7)
+        self.pose_interpolation_target = np.zeros(7) #for use with SPD target control
+        self.pose_interpolation_rate = 0.3 #maximum portion of total joint limit range to move in one second
+        self.control_mode = 0 #0 is frame, 1 is SPD target
         self.near_collision = 1.0
 
         self.handle_node = None
@@ -1579,6 +1611,13 @@ class Iiwa:
             # print("clamping frame")
             self.frameInterpolator["target_pos"] = self.skel.bodynodes[9].to_world(np.zeros(3)) + -(toRoboEF / distToRoboEF) * self.frameInterpolator["distanceLimit"]
 
+    def controlSPDTarget(self, control):
+        #directly control self.pose_interpolation_target and assign new self.previousIKResult for use as SPD target
+        #self.previousIKResult =
+        j_ranges = self.skel.position_upper_limit() - self.skel.position_lower_limit()
+        max_pose = self.skel.q[:6] + np.ones(7)*self.pose_interpolation_rate
+        #TODO
+
     def interpolateIKTarget(self, dt=None):
         #if not dt is given, use the env default timestep
         if dt is None:
@@ -1639,9 +1678,12 @@ class Iiwa:
 
     def step(self, control):
         #update frame, interpolate ikTarget, compute IK, update internal structures
-        self.controlFrame(control)
-        self.interpolateIKTarget()
-        self.computeIK()
+        if self.control_mode == 0:
+            self.controlFrame(control)
+            self.interpolateIKTarget()
+            self.computeIK()
+        else:
+            self.controlSPDTarget(control)
 
     def updateCapacitiveSensor(self):
         #update capacitive sensor readings
@@ -1751,7 +1793,7 @@ class DartClothIiwaEnv(gym.Env):
         self.proxy_render = False
         self.cloth_render = True
         self.detail_render = False
-        self.demo_render = False #if true, render only the body and robot
+        self.demo_render = True #if true, render only the body and robot
         self.simulating = True #used to allow simulation freezing while rendering continues
         self.passive_robots = False #if true, no motor torques from the robot
         self.active_compliance = active_compliance
@@ -1782,8 +1824,9 @@ class DartClothIiwaEnv(gym.Env):
         self.experiment_directory = experiment_directory
         if self.experiment_directory is None:
             #default to this experiment
-            self.experiment_directory = "experiment_2019_02_13_human_multibot"
-        self.otherPolicyFile = self.experiment_prefix + self.experiment_directory + "/policy.pkl"
+            #self.experiment_directory = "experiment_2019_02_13_human_multibot"
+            self.experiment_directory = "experiment_2019_03_06_twoarm_tshirt_split_cont3_bendhead"
+        self.otherPolicyFile = self.experiment_prefix + self.experiment_directory + "/h_policy.pkl"
         self.otherPolicy = None
         if not self.dual_policy:
             try:
@@ -2415,7 +2458,7 @@ class DartClothIiwaEnv(gym.Env):
             q = np.array(self.human_skel.q)
             dq = np.array(self.human_skel.dq)
 
-            for i in range(2,3):
+            for i in range(1):
                 if i==0:
                     self.human_skel.set_positions(self.humanSPDIntperolationTarget)
                     renderUtils.setColor(color=[0.8, 0.6, 0.6])
@@ -3026,6 +3069,30 @@ class DartClothIiwaEnv(gym.Env):
         #self.proxy_human_skel.set_self_collision_check(True)
         #self.proxy_human_skel.set_adjacent_body_check(False)
 
+    def resetControl(self):
+        #called to reset frame targets, SPD targets, etc... to current state
+        self.humanSPDController.target = np.array(self.human_skel.q)
+        self.humanSPDIntperolationTarget = np.array(self.human_skel.q)
+        for iiwa in self.iiwas:
+            #reset SPD target
+            iiwa.SPDController.target = np.array(iiwa.skel.q[6:])
+
+            #reset body and frames
+            iiwa.previousIKResult = np.array(iiwa.skel.q[6:])
+            iiwa.setIKPose()
+
+            #reset IK target
+            targetFrame = pyutils.ShapeFrame()
+            targetFrame.orientation = np.array(iiwa.frameInterpolator["target_frame"])
+            targetFrame.org = np.array(iiwa.frameInterpolator["target_pos"])
+            targetFrame.updateQuaternion()
+            iiwa.ik_target = pyutils.ShapeFrame(org=targetFrame.org, orientation=targetFrame.quat)
+
+            #handle node resets also
+            iiwa.handle_node.setOrgToCentroid()
+            iiwa.handle_node.recomputeOffsets()
+            iiwa.handle_node.updatePrevConstraintPositions()
+
     def saveObjState(self, filename=None):
         print("Trying to save the object state")
         print("filename: " + str(filename))
@@ -3046,7 +3113,7 @@ class DartClothIiwaEnv(gym.Env):
 
         f.write("\n")
 
-        for ix,dof in enumerate(self.skel.dq):
+        for ix,dof in enumerate(skel.dq):
             if ix > 0:
                 f.write(" ")
             f.write(str(dof))
@@ -3078,26 +3145,35 @@ class DartClothIiwaEnv(gym.Env):
         skel.set_velocities(qvel)
         f.close()
 
-    def saveRandomState(self, directory=None, max_state_number=100):
-        state_number = random.randint(0,max_state_number)
+    def saveState(self, directory=None, state_number=0):
         if directory is None:
             directory = self.experiment_prefix + self.experiment_directory + "/states/"
         self.saveSkelState(self.human_skel, directory+"human_%05d" % state_number)
         for iiwa in self.iiwas:
+            print(directory + "iiwa"+str(iiwa.index)+"_%05d" % state_number)
             self.saveSkelState(iiwa.skel, directory + "iiwa"+str(iiwa.index)+"_%05d" % state_number)
 
         self.saveObjState(directory+"cloth_%05d" % state_number)
 
-    def loadRandomState(self, directory=None, max_state_number=100):
-        state_number = random.randint(0, max_state_number)
+    def loadState(self, directory=None, state_number=0):
         if directory is None:
             directory = self.experiment_prefix + self.experiment_directory + "/states/"
-        self.loadSkelState(self.human_skel, directory+"human_%05d" % state_number)
+        self.loadSkelState(self.human_skel, directory + "human_%05d" % state_number)
         for iiwa in self.iiwas:
             self.loadSkelState(iiwa.skel, directory + "iiwa"+str(iiwa.index)+"_%05d" % state_number)
 
         #load the cloth
         self.clothScene.loadObjState(filename=directory+"cloth_%05d" % state_number)
+
+        self.resetControl()
+
+    def saveRandomState(self, directory=None, max_state_number=100):
+        state_number = random.randint(0,max_state_number)
+        self.saveState(directory, state_number)
+
+    def loadRandomState(self, directory=None, max_state_number=100):
+        state_number = random.randint(0, max_state_number)
+        self.loadState(directory, state_number)
 
     def fillSavedStates(self, directory=None, max_state_number=100):
         if directory is None:

@@ -269,10 +269,22 @@ class StaticClothGLUTWindow(StaticGLUTWindow):
             except:
                 print("no controllers to switch")
             return
+
+        if keycode == 108: #'l'
+            try:
+                print("trying to load state")
+                self.env.loadState()
+                print("...successfully loaded state")
+            except:
+                print("...could not load the state")
+            return
+
         if keycode == 115: #'s'
             try:
                 print("trying to save state")
                 #fname = self.env.state_save_directory + self.env.controllers[self.env.currentController].name
+                #old code...
+                '''
                 fname = self.env.state_save_directory + "matchgrip"
                 print(fname)
                 count = 0
@@ -285,6 +297,10 @@ class StaticClothGLUTWindow(StaticGLUTWindow):
                 print(objfname_ix)
                 self.env.saveObjState(filename=objfname_ix)
                 self.env.saveCharacterState(filename=charfname_ix)
+                '''
+
+                #new code using full state saver
+                self.env.saveState()
                 print("...successfully saved state")
             except:
                 print("...could not save the state")
@@ -1455,6 +1471,7 @@ class Frame6DInteractor(BaseInteractor):
         self.ikNodes = []
         self.selectedHandle = None
         self.skelix = 1 #change this if the skel file changes
+        self.mirror = False #if true, assume another iiwa with same frame mirrored in x
 
     def key_down(self):
         #check for all function key_down booleans
@@ -1481,6 +1498,10 @@ class Frame6DInteractor(BaseInteractor):
         if keycode == 13:  # ENTER
             if self.viewer.inputFunc is not None:
                 self.viewer.inputFunc()
+        if keycode == 98: #'b'
+            self.mirror = not self.mirror
+            print("frame control mirror: " + str(self.mirror))
+            return
         if keycode == 102:  # 'f'
             self.f_down = True
         if keycode == 112:  # 'p'
@@ -1550,7 +1571,10 @@ class Frame6DInteractor(BaseInteractor):
                 except:
                     self.viewer.env.iiwas[0].frameInterpolator["target_pos"][0] += dx*0.001
             else:
-                self.viewer.env.frameInterpolator["eulers"][0] += dx*0.001
+                try:
+                    self.viewer.env.frameInterpolator["eulers"][0] += dx*0.001
+                except:
+                    self.viewer.env.iiwas[0].frameInterpolator["eulers"][0] += dx * 0.001
                 #self.viewer.env.frameEulerState[0] += dx*0.001
         elif (self.y_down):
             if not self.rotationToggle:
@@ -1559,7 +1583,10 @@ class Frame6DInteractor(BaseInteractor):
                 except:
                     self.viewer.env.iiwas[0].frameInterpolator["target_pos"][1] += dx*0.001
             else:
-                self.viewer.env.frameInterpolator["eulers"][1] += dx*0.001
+                try:
+                    self.viewer.env.frameInterpolator["eulers"][1] += dx*0.001
+                except:
+                    self.viewer.env.iiwas[0].frameInterpolator["eulers"][1] += dx * 0.001
                 #self.viewer.env.frameEulerState[1] += dx*0.001
         elif (self.z_down):
             if not self.rotationToggle:
@@ -1568,9 +1595,19 @@ class Frame6DInteractor(BaseInteractor):
                 except:
                     self.viewer.env.iiwas[0].frameInterpolator["target_pos"][2] += dx*0.001
             else:
-                self.viewer.env.frameInterpolator["eulers"][2] += dx * 0.001
+                try:
+                    self.viewer.env.frameInterpolator["eulers"][2] += dx*0.001
+                except:
+                    self.viewer.env.iiwas[0].frameInterpolator["eulers"][2] += dx * 0.001
                 #self.viewer.env.frameEulerState[2] += dx * 0.001
 
+        if (self.x_down or self.y_down or self.z_down) and self.mirror:
+            self.viewer.env.iiwas[1].frameInterpolator["target_pos"] = np.array(self.viewer.env.iiwas[0].frameInterpolator["target_pos"])
+            self.viewer.env.iiwas[1].frameInterpolator["target_pos"][0] *= -1
+            self.viewer.env.iiwas[1].frameInterpolator["eulers"] = np.array(self.viewer.env.iiwas[0].frameInterpolator["eulers"])
+            self.viewer.env.iiwas[1].frameInterpolator["eulers"][1] *= -1.0
+            #TODO: #self.viewer.env.iiwas[1].frameInterpolator["eulers"][2] = 1.56 + self.viewer.env.iiwas[1].frameInterpolator["eulers"][2]
+            #print(self.viewer.env.iiwas[1].frameInterpolator["eulers"])
         self.viewer.mouseLastPos = np.array([x, y])
 
     def click(self, button, state, x, y):

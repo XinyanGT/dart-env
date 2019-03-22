@@ -56,7 +56,9 @@ def main():
     trial = None
 
     # --- robot TShirt
-    trial = "experiment_2019_03_06_twoarm_tshirt_split_cont3_bendhead" #TODO
+    trial = "experiment_2019_03_20_twoarm_tshirt"
+    #trial = "experiment_2019_03_20_twoarm_tshirt_06cont3_warm_penalties"
+    #trial = "experiment_2019_03_06_twoarm_tshirt_split_cont3_bendhead"
     #trial = "experiment_2019_03_06_twoarm_tshirt_split_cont2"
     #trial = "experiment_2019_03_06_twoarm_tshirt_split_cont"
     #trial = "experiment_2019_03_06_twoarm_tshirt_split"
@@ -527,7 +529,7 @@ def main():
     loadSave_frame = None #if none, use most recent
     #loadSave_frame = 40
     graphOnly = False #if true, exit() after graphing
-    demoSave = False #if true, create an exp named demo folder and render into it
+    demoSave = True #if true, create an exp named demo folder and render into it
 
     if loadSave is True:
         import tensorflow as tf
