@@ -4,7 +4,7 @@ class DartClothIiwaOnearmEnv(DartClothIiwaEnv):
     def __init__(self):
         dual_policy = False
         is_human = False
-        iiwa_control_mode = 0 #0=frame control, 1=pose control
+        iiwa_control_mode = 1 #0=frame control, 1=pose control
         #manual control config
         manual_human_control = True
 
