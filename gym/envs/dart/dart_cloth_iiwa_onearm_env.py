@@ -4,7 +4,7 @@ class DartClothIiwaOnearmEnv(DartClothIiwaEnv):
     def __init__(self):
         dual_policy = False
         is_human = False
-        iiwa_control_mode = 0 #pose control
+        iiwa_control_mode = 0 #0=frame control, 1=pose control
         #manual control config
         manual_human_control = True
 
@@ -107,9 +107,9 @@ class DartClothIiwaOnearmEnv(DartClothIiwaEnv):
 
         #set manual target to random pose
         if self.manual_human_control:
-            self.human_manual_target = self.getValidRandomPose(verbose=False,symmetrical=False,dofs=[11,12,13,14,15,16,17,18],static_able=True)
+            #self.human_manual_target = self.getValidRandomPose(verbose=False,symmetrical=False,dofs=[11,12,13,14,15,16,17,18],static_able=True)
             #self.human_manual_target = np.array([0.0, 0.0, 0.0, -0.09486478804170062, 0.16919563098552753, -0.4913244737893412, -1.371164742525659, -0.1465004046206566, 0.3062212857520513, 0.18862771696450964, 0.4970038523987025, -0.09486478804170062, 0.16919563098552753, 0.4913244737893412, -1.371164742525659, 0.1465004046206566, 0.3062212857520513, 0.18862771696450964, 0.4970038523987025, 0.48155552859527917, -0.13660824713013747, 0.6881130165905589])
-
+            self.human_manual_target = np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, -0.060695429912757115, -0.1166434684398091, 1.6455526352595298, -1.0340351849542877, -0.1808887017727232, 0.6099234608345806, -0.0401376005833739, -0.19003591622638777, 0.0, 0.0, 0.0])
             #print("chose manual target = " + str(self.human_manual_target.tolist()))
             for iiwa in self.iiwas:
                 iiwa.setRestPose()
