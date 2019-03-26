@@ -56,7 +56,9 @@ def main():
     trial = None
 
     # --- robot TShirt
-    trial = "experiment_2019_03_20_twoarm_tshirt"
+    #trial = "experiment_2019_03_22_twoarm_tshirt"
+    #trial = "experiment_2019_03_22_twoarm_tshirt_06cont3_warm_penalties"
+    #trial = "experiment_2019_03_20_twoarm_tshirt"
     #trial = "experiment_2019_03_20_twoarm_tshirt_06cont3_warm_penalties"
     #trial = "experiment_2019_03_06_twoarm_tshirt_split_cont3_bendhead"
     #trial = "experiment_2019_03_06_twoarm_tshirt_split_cont2"
@@ -529,7 +531,7 @@ def main():
     loadSave_frame = None #if none, use most recent
     #loadSave_frame = 40
     graphOnly = False #if true, exit() after graphing
-    demoSave = True #if true, create an exp named demo folder and render into it
+    demoSave = False #if true, create an exp named demo folder and render into it
 
     if loadSave is True:
         import tensorflow as tf
@@ -620,9 +622,9 @@ def main():
     #envName = 'DartIiwaGownAssistCoopt-v2'
     #envName = 'DartIiwaGownAssistCoopt_h-v2'
     #envName = 'DartIiwaGownMultibot-v1'
-    #envName = 'DartIiwaOnearmGown-v1'
+    envName = 'DartIiwaOnearmGown-v1'
     #envName = 'DartIiwaTwoarmGown-v1'
-    envName = 'DartIiwaTwoarmTshirt-v1'
+    #envName = 'DartIiwaTwoarmTshirt-v1'
 
     if len(sys.argv) > 1:
         #print(sys.argv[1])
@@ -732,7 +734,7 @@ def main():
             policy = SplitGaussianMLPPolicy(
                 env_spec=env2.spec,
                 # The neural network policy should have two hidden layers, each with 32 hidden units.
-                hidden_sizes=(64, 64),
+                hidden_sizes=(128, 64),
                 #split_index=281, #multibot
                 split_index=human_obs_size,
                 merge_index=22,

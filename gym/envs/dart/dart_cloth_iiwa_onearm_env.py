@@ -2,8 +2,11 @@ from gym.envs.dart.dart_cloth_iiwa_env import *
 
 class DartClothIiwaOnearmEnv(DartClothIiwaEnv):
     def __init__(self):
-        dual_policy = True
-        is_human = True
+        dual_policy = False
+        is_human = False
+        iiwa_control_mode = 1 #pose control
+        #manual control config
+        manual_human_control = True
 
         self.limbNodesR = [3, 4, 5, 6, 7]
         self.limbNodesL = [8, 9, 10, 11, 12]
@@ -22,7 +25,7 @@ class DartClothIiwaOnearmEnv(DartClothIiwaEnv):
         #initialize the base env
         cloth_mesh_file = "fullgown1.obj"
         cloth_mesh_state_file = "hanginggown.obj"
-        DartClothIiwaEnv.__init__(self, robot_root_dofs=self.iiwa_root_dofs, active_compliance=False, cloth_mesh_file=cloth_mesh_file, cloth_mesh_state_file=cloth_mesh_state_file, cloth_scale=1.3, dual_policy=dual_policy, is_human=is_human)
+        DartClothIiwaEnv.__init__(self, robot_root_dofs=self.iiwa_root_dofs, active_compliance=False, cloth_mesh_file=cloth_mesh_file, cloth_mesh_state_file=cloth_mesh_state_file, cloth_scale=1.3, dual_policy=dual_policy, is_human=is_human, iiwa_control_mode=iiwa_control_mode, manual_human_control=manual_human_control)
 
         #setup features
         self.sleeveRVerts = [532, 451, 251, 252, 253, 1334, 1320, 1184, 945, 985, 1062, 1607, 1037, 484, 1389, 679, 1230, 736, 1401, 1155, 486, 1410]
@@ -58,18 +61,21 @@ class DartClothIiwaOnearmEnv(DartClothIiwaEnv):
         self.human_obs_manager.addObsFeature(feature=SPDTargetObsFeature(self))
         #self.human_obs_manager.addObsFeature(feature=DataDrivenJointLimitsObsFeature(self))
         #self.human_obs_manager.addObsFeature(feature=CollisionMPCObsFeature(env=self,is_human=True))
-        self.human_obs_manager.addObsFeature(feature=WeaknessScaleObsFeature(self,self.limbDofs[1],scale_range=(0.1,0.3)))
+        #self.human_obs_manager.addObsFeature(feature=WeaknessScaleObsFeature(self,self.limbDofs[1],scale_range=(0.1,0.3)))
         self.human_obs_manager.addObsFeature(feature=OracleObsFeature(env=self,sensor_ix=21,dressing_target=self.dressing_targets[-1],sep_mesh=self.separated_meshes[-1]))
         for iiwa in self.iiwas:
             self.human_obs_manager.addObsFeature(feature=JointPositionObsFeature(iiwa.skel, ignored_joints=[1], name="iiwa " + str(iiwa.index) + " joint positions"))
 
         #setup robot obs
         for iiwa in self.iiwas:
-            self.robot_obs_manager.addObsFeature(feature=ProprioceptionObsFeature(skel=iiwa.skel, start_dof=6, name="iiwa " + str(iiwa.index) + "proprioception"))
+            self.robot_obs_manager.addObsFeature(feature=ProprioceptionObsFeature(skel=iiwa.skel, start_dof=6, name="iiwa " + str(iiwa.index) + " proprioception"))
             self.robot_obs_manager.addObsFeature(feature=JointPositionObsFeature(iiwa.skel, ignored_joints=[1], name="iiwa " + str(iiwa.index) + " joint positions"))
-            self.robot_obs_manager.addObsFeature(feature=RobotFramesObsFeature(iiwa, name="iiwa " + str(iiwa.index) + " frame"))
+            if iiwa_control_mode == 0:
+                self.robot_obs_manager.addObsFeature(feature=RobotFramesObsFeature(iiwa, name="iiwa " + str(iiwa.index) + " frame"))
             self.robot_obs_manager.addObsFeature(feature=CapacitiveSensorObsFeature(iiwa, name="iiwa " + str(iiwa.index) + " cap sensor"))
             self.robot_obs_manager.addObsFeature(feature=FTSensorObsFeature(self, iiwa, name="iiwa " + str(iiwa.index) + " FT sensor"))
+            if iiwa_control_mode == 1:
+                self.robot_obs_manager.addObsFeature(feature=RobotSPDTargetObsFeature(self, iiwa, name="iiwa " + str(iiwa.index) + " interp target"))
         #self.robot_obs_manager.addObsFeature(feature=CollisionMPCObsFeature(env=self, is_human=False))
         self.robot_obs_manager.addObsFeature(feature=JointPositionObsFeature(self.human_skel, name="human joint positions"))
 
@@ -83,8 +89,8 @@ class DartClothIiwaOnearmEnv(DartClothIiwaEnv):
         rest_pose_weights[19:] *= 8 #stable head
         self.reward_manager.addTerm(term=RestPoseRewardTerm(self.human_skel, pose=np.zeros(self.human_skel.ndofs), weights=rest_pose_weights))
         self.reward_manager.addTerm(term=LimbProgressRewardTerm(dressing_target=self.dressing_targets[0], terminal=True, weight=40))
-        self.reward_manager.addTerm(term=ClothDeformationRewardTerm(self, weight=20))
-        self.reward_manager.addTerm(term=HumanContactRewardTerm(self, weight=30, tanh_params=(2, 0.15, 10))) #saturates at ~10 and ~38
+        self.reward_manager.addTerm(term=ClothDeformationRewardTerm(self, weight=5))
+        self.reward_manager.addTerm(term=HumanContactRewardTerm(self, weight=5, tanh_params=(2, 0.15, 10))) #saturates at ~10 and ~38
 
         #set the observation space
         self.obs_dim = self.human_obs_manager.obs_size
@@ -101,14 +107,18 @@ class DartClothIiwaOnearmEnv(DartClothIiwaEnv):
 
         #set manual target to random pose
         if self.manual_human_control:
-            self.human_manual_target = self.getValidRandomPose(verbose=False)
-            self.human_manual_target = np.array([0.0, 0.0, 0.0, -0.09486478804170062, 0.16919563098552753, -0.4913244737893412, -1.371164742525659, -0.1465004046206566, 0.3062212857520513, 0.18862771696450964, 0.4970038523987025, -0.09486478804170062, 0.16919563098552753, 0.4913244737893412, -1.371164742525659, 0.1465004046206566, 0.3062212857520513, 0.18862771696450964, 0.4970038523987025, 0.48155552859527917, -0.13660824713013747, 0.6881130165905589])
+            self.human_manual_target = self.getValidRandomPose(verbose=False,symmetrical=False,dofs=[11,12,13,14,15,16,17,18],static_able=True)
+            #self.human_manual_target = np.array([0.0, 0.0, 0.0, -0.09486478804170062, 0.16919563098552753, -0.4913244737893412, -1.371164742525659, -0.1465004046206566, 0.3062212857520513, 0.18862771696450964, 0.4970038523987025, -0.09486478804170062, 0.16919563098552753, 0.4913244737893412, -1.371164742525659, 0.1465004046206566, 0.3062212857520513, 0.18862771696450964, 0.4970038523987025, 0.48155552859527917, -0.13660824713013747, 0.6881130165905589])
 
-            print("chose manual target = " + str(self.human_manual_target.tolist()))
+            #print("chose manual target = " + str(self.human_manual_target.tolist()))
             for iiwa in self.iiwas:
                 iiwa.setRestPose()
 
+            #self.human_manual_target = self.getValidRandomPose(verbose=False,symmetrical=False,dofs=[11,12,13,14,15,16,17,18],static_able=True)
+
+
             #TODO: remove after testing
+            self.human_skel.set_positions(self.human_manual_target)
             #self.human_skel.set_positions([0.0, 0.0, 0.0, -0.21890184289240233, 0.1618533105311784, -0.03417282760690066, 0.670498809614021, -0.16780524349209935, 1.8045016700105585, -0.3012597961534294, 0.4064480138415224, -0.21890184289240233, 0.1618533105311784, 0.03417282760690066, 0.670498809614021, 0.16780524349209935, 1.8045016700105585, -0.3012597961534294, 0.4064480138415224, 0.2530563478930248, -0.5648952906859239, 0.9915228996786887])
             #self.human_skel.set_positions([0.0, 0.0, 0.0, -0.09486478804170062, 0.16919563098552753, -0.4913244737893412, -1.371164742525659, -0.1465004046206566, 0.3062212857520513, 0.18862771696450964, 0.4970038523987025, -0.09486478804170062, 0.16919563098552753, 0.4913244737893412, -1.371164742525659, 0.1465004046206566, 0.3062212857520513, 0.18862771696450964, 0.4970038523987025, 0.48155552859527917, -0.13660824713013747, 0.6881130165905589])
             #self.humanSPDIntperolationTarget = np.array(self.human_skel.q)
@@ -160,13 +170,20 @@ class DartClothIiwaOnearmEnv(DartClothIiwaEnv):
             if p0[2] > (r_pivot[2] - depth_offset):
                 good = False
 
+            #cut off points too close to or past the fingers
+            if p0[2] > self.human_skel.bodynodes[12].to_world(self.fingertip)[2]:
+                good = False
+
             if not good:
                 p0 = r_pivot + pyutils.sampleDirections(num=1)[0] * diskRad
+
 
         self.iiwas[0].ik_target.setFromDirectionandUp(dir=np.array([0, -1.0, 0]), up=np.array([0, 0, 1.0]), org=p0)
         self.iiwas[0].computeIK(maxIter=300)
         self.iiwas[0].skel.set_velocities(np.zeros(len(self.iiwas[0].skel.dq)))
         self.iiwas[0].setIKPose() #frame set in here too
+        #set the interpolation pose
+        self.iiwas[0].pose_interpolation_target = np.array(self.iiwas[0].skel.q[6:])
 
         #initialize the garment location
         hn = self.iiwas[0].skel.bodynodes[self.iiwas[0].handle_bodynode]

@@ -470,14 +470,15 @@ class SPDTargetObsFeature (ObservationFeature):
         obs = np.array(self.env.humanSPDIntperolationTarget)
         return obs
 
-class robotSPDTargetObsFeature(ObservationFeature):
+class RobotSPDTargetObsFeature(ObservationFeature):
     # observation of the interpolation pose for human SPD
-    def __init__(self, env, name="Robot SPD Interpolation Target", render=False):
+    def __init__(self, env, iiwa, name="Robot SPD Interpolation Target", render=False):
         self.env = env
-        ObservationFeature.__init__(self, name=name, dim=7*len(env.iiwas), render=render)
+        self.iiwa = iiwa
+        ObservationFeature.__init__(self, name=name, dim=7, render=render)
 
     def getObs(self):
-        obs = np.array(self.env.humanSPDIntperolationTarget)
+        obs = np.array(self.iiwa.pose_interpolation_target)
         return obs
 
 class RobotFramesObsFeature(ObservationFeature):
@@ -1442,21 +1443,21 @@ class IiwaTrackController(IiwaFrameController):
 class Iiwa:
     #contains all necessary structures to define, control, simulate and reset a single Iiwa robot instance
 
-    def __init__(self, skel, env, index, root_dofs=np.zeros(6), active_compliance=True, quat_control=False):
+    def __init__(self, skel, env, index, root_dofs=np.zeros(6), active_compliance=True, control_mode=0):
         self.env = env
         self.skel = skel
         self.index = index
         self.active_compliance = active_compliance
+        self.control_mode = control_mode #0=frame, 1=SPD pose, 2=quat
 
-        self.frameInterpolator = {"active": True, "quat_control":quat_control, "target_pos": np.zeros(3), "target_frame": np.identity(3), "target_quat":np.quaternion(1, 0, 0, 0), "speed": 0.5, "aSpeed": 4, "localOffset": np.array([0, 0, 0]), "eulers": np.zeros(3), "distanceLimit": 0.15}
+        self.frameInterpolator = {"active": True, "target_pos": np.zeros(3), "target_frame": np.identity(3), "target_quat":np.quaternion(1, 0, 0, 0), "speed": 0.5, "aSpeed": 4, "localOffset": np.array([0, 0, 0]), "eulers": np.zeros(3), "distanceLimit": 0.15}
         self.manualFrameTarget = pyutils.ShapeFrame()
         self.manualFrameTarget.setFromDirectionandUp(dir=np.array([0, -1.0, 0]), up=np.array([0, 0, 1.0]), org=np.zeros(3))
         self.frameEulerState = np.array([math.pi/2.0, -0.2, -0.15]) #XYZ used as euler angles to modify orientation base
         self.ik_target = pyutils.ShapeFrame()
         self.previousIKResult = np.zeros(7)
         self.pose_interpolation_target = np.zeros(7) #for use with SPD target control
-        self.pose_interpolation_rate = 0.3 #maximum portion of total joint limit range to move in one second
-        self.control_mode = 0 #0 is frame, 1 is SPD target
+        self.pose_interpolation_rate = 0.5 #maximum portion of total joint limit range to move in one second
         self.near_collision = 1.0
 
         self.handle_node = None
@@ -1613,10 +1614,19 @@ class Iiwa:
 
     def controlSPDTarget(self, control):
         #directly control self.pose_interpolation_target and assign new self.previousIKResult for use as SPD target
-        #self.previousIKResult =
-        j_ranges = self.skel.position_upper_limit() - self.skel.position_lower_limit()
-        max_pose = self.skel.q[:6] + np.ones(7)*self.pose_interpolation_rate
-        #TODO
+
+        #apply pose control to interpolation target
+        self.pose_interpolation_target += control
+
+        #clamp target to joint ranges
+        self.pose_interpolation_target = np.clip(self.pose_interpolation_target, self.skel.position_lower_limits()[6:], self.skel.position_upper_limits()[6:])
+
+        #clamp target pose to neighborhood of current pose (limit interpolation speed)
+        j_ranges = self.skel.position_upper_limits()[6:] - self.skel.position_lower_limits()[6:]
+        max_pose = self.skel.q[6:] + j_ranges*self.pose_interpolation_rate*self.env.dt*self.env.frame_skip
+        min_pose = self.skel.q[6:] - j_ranges*self.pose_interpolation_rate*self.env.dt*self.env.frame_skip
+
+        self.previousIKResult = np.clip(self.pose_interpolation_target, min_pose, max_pose)
 
     def interpolateIKTarget(self, dt=None):
         #if not dt is given, use the env default timestep
@@ -1682,7 +1692,7 @@ class Iiwa:
             self.controlFrame(control)
             self.interpolateIKTarget()
             self.computeIK()
-        else:
+        elif self.control_mode == 1:
             self.controlSPDTarget(control)
 
     def updateCapacitiveSensor(self):
@@ -1765,7 +1775,7 @@ class DartClothIiwaEnv(gym.Env):
     """Superclass for all Dart, PhysX Cloth, Human/Iiwa interaction environments.
         """
 
-    def __init__(self, human_world_file=None, proxy_human_world_file=None, robot_file=None, pybullet_robot_file=None, experiment_directory=None, dt=0.0025, frame_skip=4, task_horizon=600, simulate_cloth=True, cloth_mesh_file=None, cloth_mesh_state_file=None, cloth_scale= 1.0, cloth_friction=0.25, robot_root_dofs=[], active_compliance=True, dual_policy=True, is_human=True):
+    def __init__(self, human_world_file=None, proxy_human_world_file=None, robot_file=None, pybullet_robot_file=None, experiment_directory=None, dt=0.0025, frame_skip=4, task_horizon=600, simulate_cloth=True, cloth_mesh_file=None, cloth_mesh_state_file=None, cloth_scale= 1.0, cloth_friction=0.25, robot_root_dofs=[], active_compliance=True, dual_policy=True, is_human=True, iiwa_control_mode=0, manual_human_control=False):
         '''
 
         :param human_world_file: filename of human skel and world file for dart in assets folder, default if None
@@ -1798,7 +1808,7 @@ class DartClothIiwaEnv(gym.Env):
         self.passive_robots = False #if true, no motor torques from the robot
         self.active_compliance = active_compliance
         self.manual_robot_control = False
-        self.manual_human_control = False
+        self.manual_human_control = manual_human_control
         self.print_skel_details = False
         self.data_driven_joint_limits = True
         self.screen_size = (720, 720)
@@ -1845,6 +1855,11 @@ class DartClothIiwaEnv(gym.Env):
         #6 dof action space for each robot
         self.robot_action_scale = np.ones(6*len(robot_root_dofs))
         self.robot_control_bounds = np.array([np.ones(6*len(robot_root_dofs)), np.ones(6*len(robot_root_dofs)) * -1])
+
+        if iiwa_control_mode == 1:
+            # 7 dof action space for each robot
+            self.robot_action_scale = np.ones(7*len(robot_root_dofs))*0.06 #TODO: action space scaling elsewhere?
+            self.robot_control_bounds = np.array([np.ones(7*len(robot_root_dofs)), np.ones(7*len(robot_root_dofs)) * -1])
 
         #NOTE: must override this in subclasses once obs space is defined...
         self.observation_space = spaces.Box(np.inf*np.ones(1)*-1.0, np.inf*np.ones(1))
@@ -1991,8 +2006,12 @@ class DartClothIiwaEnv(gym.Env):
             #self.humanSPDController.Kp *= 5.0
 
             if self.dual_policy:
-                self.action_space = spaces.Box(np.ones(22+6*len(robot_root_dofs))* -1.0, np.ones(22+6*len(robot_root_dofs)))
-                self.act_dim = 6 * len(robot_root_dofs) + 22
+                if iiwa_control_mode == 0:
+                    self.action_space = spaces.Box(np.ones(22+6*len(robot_root_dofs))* -1.0, np.ones(22+6*len(robot_root_dofs)))
+                    self.act_dim = 6 * len(robot_root_dofs) + 22
+                elif iiwa_control_mode == 1:
+                    self.action_space = spaces.Box(np.ones(22+7*len(robot_root_dofs))* -1.0, np.ones(22+7*len(robot_root_dofs)))
+                    self.act_dim = 7 * len(robot_root_dofs) + 22
             elif self.is_human:
                 self.action_space = spaces.Box(np.ones(22)* -1.0, np.ones(22))
                 self.act_dim = 22
@@ -2068,12 +2087,17 @@ class DartClothIiwaEnv(gym.Env):
             self.proxy_dart_world.add_skeleton(filename=robot_file)
             self.proxy_iiwa_skels.append(self.proxy_dart_world.skeletons[-1])
 
-            self.iiwas.append(Iiwa(skel=self.dart_world.skeletons[-1], env=self, index=ix, root_dofs=root_dofs, active_compliance=self.active_compliance))
+            self.iiwas.append(Iiwa(skel=self.dart_world.skeletons[-1], env=self, index=ix, root_dofs=root_dofs, active_compliance=self.active_compliance, control_mode=iiwa_control_mode))
             if self.print_skel_details:
                 self.iiwas[-1].printSkelDetails()
             #modify the action scale #TODO: edit this?
-            self.robot_action_scale[6 * ix:6 * ix + 3] = np.ones(3) * 0.01  # position
-            self.robot_action_scale[6 * ix + 3:6 * ix + 6] = np.ones(3) * 0.02  # orientation
+            if iiwa_control_mode == 0:
+                self.robot_action_scale[6 * ix:6 * ix + 3] = np.ones(3) * 0.01  # position
+                self.robot_action_scale[6 * ix + 3:6 * ix + 6] = np.ones(3) * 0.02  # orientation
+            elif iiwa_control_mode == 1:
+                pass #already handled
+            else:
+                print("NO robot_action_scale setup for this control mode")
 
 
         #if there is a robot, set the pybullet model to the correct orientation
@@ -2098,8 +2122,12 @@ class DartClothIiwaEnv(gym.Env):
                 self.iiwa_dof_jr[i] = self.iiwa_dof_ulim[i] - self.iiwa_dof_llim[i]
 
         if not self.dual_policy and not self.is_human:
-            self.action_space = spaces.Box(np.ones(6*len(robot_root_dofs))* -1.0, np.ones(6*len(robot_root_dofs)))
-            self.act_dim = 6*len(robot_root_dofs)
+            if iiwa_control_mode == 0:
+                self.action_space = spaces.Box(np.ones(6*len(robot_root_dofs))* -1.0, np.ones(6*len(robot_root_dofs)))
+                self.act_dim = 6*len(robot_root_dofs)
+            elif iiwa_control_mode == 1:
+                self.action_space = spaces.Box(np.ones(7*len(robot_root_dofs))* -1.0, np.ones(7*len(robot_root_dofs)))
+                self.act_dim = 7*len(robot_root_dofs)
         # ----------------------------
         self._seed()
 
@@ -2218,7 +2246,10 @@ class DartClothIiwaEnv(gym.Env):
 
         #control, interpolate frame and compute new IK target pose for each robot
         for iiwa_ix,iiwa in enumerate(self.iiwas):
-            iiwa.step(robo_action_scaled[iiwa_ix*6:iiwa_ix*6+6])
+            if iiwa.control_mode == 0:
+                iiwa.step(robo_action_scaled[iiwa_ix*6:iiwa_ix*6+6])
+            elif iiwa.control_mode == 1:
+                iiwa.step(robo_action_scaled[iiwa_ix * 7:iiwa_ix * 7 + 7])
 
         #update cloth features
         for feature in self.cloth_features:
@@ -2452,6 +2483,7 @@ class DartClothIiwaEnv(gym.Env):
             dim = c1-c0
             renderUtils.drawBox(cen=cen, dim=dim, fill=False)
             renderUtils.drawSphere(pos=r_pivot,rad=0.7,solid=False)
+            #print(r_pivot)
 
         #render the SPD target for the human
         if True and not self.demo_render:
@@ -2636,6 +2668,14 @@ class DartClothIiwaEnv(gym.Env):
             self.iiwas[0].skel.render()
             self.iiwas[0].skel.set_positions(q)
             self.iiwas[0].skel.set_velocities(dq)
+
+        #render iiwa interp target
+        if False:
+            for iiwa in self.iiwas:
+                q = np.array(iiwa.skel.q)
+                iiwa.skel.set_positions(np.concatenate([iiwa.root_dofs, iiwa.pose_interpolation_target]))
+                iiwa.skel.render()
+                iiwa.skel.set_positions(q)
 
     def _get_viewer(self):
         if self.viewer is None:
@@ -2958,7 +2998,7 @@ class DartClothIiwaEnv(gym.Env):
             result[ix*3:ix*3+3] = f
         return result
 
-    def getValidRandomPose(self, verbose=True, symmetrical=False):
+    def getValidRandomPose(self, verbose=True, symmetrical=False, rest_pose=None, dofs=None, static_able=False, r_pivot=np.array([0.66529218, 0.13997123, -0.33705498])):
         #use joint limits and data driven joint limit function to pick a valid random pose
         upper = self.human_skel.position_upper_limits()
         lower = self.human_skel.position_lower_limits()
@@ -2974,12 +3014,18 @@ class DartClothIiwaEnv(gym.Env):
         init_dq = np.array(self.human_skel.dq)
         while (not valid):
             valid = True
-            new_pose = np.random.uniform(lower, upper)
+            rand_pose = np.random.uniform(lower, upper)
+            new_pose = np.zeros(len(self.human_skel.q))
+            if rest_pose is not None:
+                new_pose = np.array(rest_pose)
+            if dofs is not None:
+                for dof in dofs:
+                    new_pose[dof] = rand_pose[dof]
             #manual constraints
-            new_pose[0] = 0
-            new_pose[1] = 0
-            new_pose[2] = 0
-            new_pose[19:] = np.zeros(3)
+            #new_pose[0] = 0
+            #new_pose[1] = 0
+            #new_pose[2] = 0
+            #new_pose[19:] = np.zeros(3)
             if symmetrical:
                 new_pose[11:19] = new_pose[3:11]
                 new_pose[13] *= -1
@@ -2999,13 +3045,38 @@ class DartClothIiwaEnv(gym.Env):
                 print("constraint query: " + str(constraintQuery))
             if (constraintQuery[0] < 0 or constraintQuery[1] < 0):
                 valid = False
+
+            if static_able:
+                if new_pose[16] > 2.0:
+                    valid = False
+
+                #only allow poses with elbow, wrist and shoulder in range of robot 0's base pivot
+                nodes = [9,10,11,12]
+                #r_pos = self.iiwas[0].skel.bodynodes[3].to_world(np.zeros(3))
+                #print(r_pos)
+                for nix,n in enumerate(nodes):
+                    n_pos = self.human_skel.bodynodes[n].to_world(np.zeros(3))
+                    if nix == 3:
+                        n_pos = self.human_skel.bodynodes[n].to_world(self.fingertip)
+                    n_r_pivot_dist = np.linalg.norm(n_pos-r_pivot)
+                    if n_r_pivot_dist > 0.7 or n_r_pivot_dist < 0.2:
+                        valid = False
+                        break
+
+                    if n_pos[0] > r_pivot[0] - 0.1: #no limb past the robot laterally
+                        valid = False
+                        break
+                    if n_pos[2] > 0:
+                        valid = False
+                        break
+
             if valid:
                 self.collisionResult.update()
                 #check collisions
                 for ix, c in enumerate(self.collisionResult.contacts):
                     if (c.skel_id1 == self.human_skel.id and c.skel_id2 == self.human_skel.id):
                         valid = False
-            if counter%10 == 0:
+            if counter%10 == 0 and verbose:
                 print("tried " + str(counter) + " times...")
             self.dart_world.reset()
             counter += 1
@@ -3015,6 +3086,7 @@ class DartClothIiwaEnv(gym.Env):
         if verbose:
             print("found a valid pose in " + str(counter) + " tries.")
         return new_pose
+
 
     def checkProxyPose(self, skel_ix, pose):
         #starttime = time.time()

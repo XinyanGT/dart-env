@@ -121,7 +121,8 @@ class DartClothExperimentTestingEnv(DartClothIiwaEnv):
         self.reward_manager.addTerm(term=GeodesicContactRewardTerm(sensor_index=12, env=self, separated_mesh=self.separated_meshes[1], dressing_target=self.dressing_targets[1], weight=15))
         self.reward_manager.addTerm(term=GeodesicContactRewardTerm(sensor_index=3, env=self, separated_mesh=self.separated_meshes[2], dressing_target=self.dressing_targets[2], weight=15))
 
-        self.reward_manager.addTerm(term=ClothDeformationRewardTerm(self, weight=25))
+        self.reward_manager.addTerm(term=ClothDeformationRewardTerm(self, weight=4))
+        self.reward_manager.addTerm(term=ClothAvgDeformationRewardTerm(self, weight=5))
         self.reward_manager.addTerm(term=HumanContactRewardTerm(self, weight=5, tanh_params=(2, 0.15, 10)))
 
         self.reward_manager.addTerm(term=BodyDistancePenaltyTerm(self, node1=self.iiwas[0].skel.bodynodes[8], offset1=np.zeros(3), node2=self.iiwas[1].skel.bodynodes[8], offset2=np.zeros(3), target_range=(0,0.4), weight=5))
@@ -254,7 +255,7 @@ class DartClothExperimentTestingEnv(DartClothIiwaEnv):
         self.iiwas[1].computeIK(maxIter=300)
         self.iiwas[0].skel.set_velocities(np.zeros(len(self.iiwas[0].skel.dq)))
         self.iiwas[0].setIKPose() #frame set in here too
-        self.iiwas[1].skel.set_velocities(np.zeros(len(self.iiwas[0].skel.dq)))
+        self.iiwas[1].skel.set_velocities(np.zeros(len(self.iiwas[1].skel.dq)))
         self.iiwas[1].setIKPose() #frame set in here too
 
 
@@ -347,6 +348,9 @@ class DartClothExperimentTestingEnv(DartClothIiwaEnv):
                 feature.fitPlane()
         #self.clothScene.saveObjState(filename="/home/alexander/Documents/dev/dart-env/gym/envs/dart/assets/twoArmTshirtHang")
         #self.clothScene.loadObjState()
+
+        #TODO: load testing
+        #self.loadState()
 
     def _getFile(self):
         return __file__
