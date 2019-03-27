@@ -2257,9 +2257,9 @@ class DartClothIiwaEnv(gym.Env):
         if self.two_bot_mirror and self.iiwas[1].control_mode == 1:
             self.iiwas[1].pose_interpolation_target = np.array(self.iiwas[0].pose_interpolation_target)
 
-            mirror_multiplier = np.ones(len(self.iiwas[1].pose_interpolation_target))
-            mirror_offset = np.zeros(len(self.iiwas[1].pose_interpolation_target))
-            mirror_correspondance = range(len(self.iiwas[1].pose_interpolation_target))
+            mirror_multiplier = np.ones(len(self.iiwas[1].skel.q))
+            mirror_offset = np.zeros(len(mirror_multiplier))
+            mirror_correspondance = range(len(mirror_multiplier))
 
             mirror_multiplier[3] = -1
             mirror_multiplier[6] = -1
@@ -2273,8 +2273,12 @@ class DartClothIiwaEnv(gym.Env):
 
             q_mirror = np.zeros(len(mirror_multiplier))
             for ix, dof in enumerate(mirror_correspondance):
-                q_mirror[ix] = self.iiwas[0].pose_interpolation_target[dof] * mirror_multiplier[ix] + mirror_offset[ix]
-            self.iiwas[1].pose_interpolation_target = np.array(q_mirror)
+                if ix < 6:
+                    continue
+                #q_mirror[ix] = self.iiwas[0].pose_interpolation_target[dof-6] * mirror_multiplier[ix] + mirror_offset[ix]
+                q_mirror[ix] = self.iiwas[0].previousIKResult[dof-6] * mirror_multiplier[ix] + mirror_offset[ix]
+            self.iiwas[1].pose_interpolation_target = np.array(q_mirror[6:])
+            self.iiwas[1].previousIKResult = np.array(self.iiwas[1].pose_interpolation_target)
 
         #update cloth features
         for feature in self.cloth_features:

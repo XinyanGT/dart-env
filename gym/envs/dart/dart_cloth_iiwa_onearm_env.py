@@ -4,7 +4,7 @@ class DartClothIiwaOnearmEnv(DartClothIiwaEnv):
     def __init__(self):
         dual_policy = False
         is_human = False
-        iiwa_control_mode = 0 #0=frame control, 1=pose control
+        iiwa_control_mode = 1 #0=frame control, 1=pose control
         #manual control config
         manual_human_control = True
         self.pose_distribution = True
@@ -110,9 +110,14 @@ class DartClothIiwaOnearmEnv(DartClothIiwaEnv):
         #set manual target to random pose
         if self.manual_human_control:
             if self.pose_distribution:
-                while(len(self.manual_poses) < 100):
-                    self.manual_poses.append(self.getValidRandomPose(verbose=False,symmetrical=False,dofs=[11,12,13,14,15,16,17,18],static_able=True))
-                self.human_manual_target = self.manual_poses[random.randint(0,99)]
+                #while(len(self.manual_poses) < 1000):
+                #    self.manual_poses.append(self.getValidRandomPose(verbose=False,symmetrical=False,dofs=[11,12,13,14,15,16,17,18],static_able=True))
+                #pyutils.saveList(list=self.manual_poses,listoflists=True)
+                if len(self.manual_poses) == 0:
+                    self.manual_poses = pyutils.loadListOfVecs(filename=self.prefix+"/assets/one_arm_poses.txt")
+                self.human_manual_target = np.array(self.manual_poses[random.randint(0,999)])
+                #print(self.human_manual_target)
+
             else:
                 self.human_manual_target = self.getValidRandomPose(verbose=False,symmetrical=False,dofs=[11,12,13,14,15,16,17,18],static_able=True)
             '''        
