@@ -5,6 +5,8 @@ class DartClothIiwaTwoarmTshirtEnv(DartClothIiwaEnv):
         dual_policy = True
         is_human = True
         iiwa_control_mode = 1  # 0=frame control, 1=pose control
+        # manual control config
+        manual_human_control = False
 
         self.limbNodesR = [3, 4, 5, 6, 7]
         self.limbNodesL = [8, 9, 10, 11, 12]
@@ -29,7 +31,7 @@ class DartClothIiwaTwoarmTshirtEnv(DartClothIiwaEnv):
         #cloth_mesh_state_file = "hanginggown.obj"
         #cloth_mesh_state_file = "tshirt_m.obj"
         cloth_mesh_state_file = "twoArmTshirtHang.obj"
-        DartClothIiwaEnv.__init__(self, robot_root_dofs=self.iiwa_root_dofs, active_compliance=False, cloth_mesh_file=cloth_mesh_file, cloth_mesh_state_file=cloth_mesh_state_file, cloth_scale=1.5, dual_policy=dual_policy, is_human=is_human, iiwa_control_mode=iiwa_control_mode)
+        DartClothIiwaEnv.__init__(self, robot_root_dofs=self.iiwa_root_dofs, active_compliance=False, cloth_mesh_file=cloth_mesh_file, cloth_mesh_state_file=cloth_mesh_state_file, cloth_scale=1.5, dual_policy=dual_policy, is_human=is_human, iiwa_control_mode=iiwa_control_mode, manual_human_control=manual_human_control)
 
         #setup features
         self.sleeveRVerts = [2580, 2495, 2508, 2586, 2518, 2560, 2621, 2529, 2559, 2593, 272, 2561, 2658, 2582, 2666, 2575, 2584, 2625, 2616, 2453, 2500, 2598, 2466]

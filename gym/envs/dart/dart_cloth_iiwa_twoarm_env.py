@@ -2,7 +2,7 @@ from gym.envs.dart.dart_cloth_iiwa_env import *
 
 class DartClothIiwaTwoarmEnv(DartClothIiwaEnv):
     def __init__(self):
-        dual_policy = False
+        dual_policy = True
         is_human = True
 
         iiwa_control_mode = 1  # 0=frame control, 1=pose control
@@ -50,8 +50,8 @@ class DartClothIiwaTwoarmEnv(DartClothIiwaEnv):
 
         #manual control target
         #self.iiwas[0].iiwa_frame_controller = IiwaLimbTraversalController(env=self, skel=self.human_skel, iiwa=self.iiwas[0], limb=self.limbNodesL, ef_offset=self.fingertip, offset_dists=[0.1, 0.1, 0.1, 0.15, 0.18, 0.18])
-        self.iiwas[0].iiwa_frame_controller = IiwaApproachHoverProceedAvoidController(self, self.iiwas[0], dressingTargets=self.dressing_targets, target_node=8, node_offset=np.array([0.21, 0.1, 0]), distance=0.4, noise=0.0, control_fraction=0.3, slack=(0.1, 0.075), hold_time=1.0, avoidDist=0.1, end_pursuit=True)
-        self.iiwas[1].iiwa_frame_controller = IiwaApproachHoverProceedAvoidController(self, self.iiwas[1], dressingTargets=self.dressing_targets, target_node=3, node_offset=np.array([-0.21, 0.1, 0]), distance=0.4, noise=0.0, control_fraction=0.3, slack=(0.1, 0.075), hold_time=1.0, avoidDist=0.1, end_pursuit=True)
+        #self.iiwas[0].iiwa_frame_controller = IiwaApproachHoverProceedAvoidController(self, self.iiwas[0], dressingTargets=self.dressing_targets, target_node=8, node_offset=np.array([0.21, 0.1, 0]), distance=0.4, noise=0.0, control_fraction=0.3, slack=(0.1, 0.075), hold_time=1.0, avoidDist=0.1, end_pursuit=True)
+        #self.iiwas[1].iiwa_frame_controller = IiwaApproachHoverProceedAvoidController(self, self.iiwas[1], dressingTargets=self.dressing_targets, target_node=3, node_offset=np.array([-0.21, 0.1, 0]), distance=0.4, noise=0.0, control_fraction=0.3, slack=(0.1, 0.075), hold_time=1.0, avoidDist=0.1, end_pursuit=True)
 
         #setup handle nodes
         self.iiwas[0].addClothHandle(verts=[1552, 2090, 1525, 954, 1800, 663, 1381, 1527, 1858, 1077, 759, 533, 1429, 1131], offset=np.array([0, 0, 0.05]))
