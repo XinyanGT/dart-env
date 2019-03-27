@@ -1803,9 +1803,10 @@ class DartClothIiwaEnv(gym.Env):
         self.proxy_render = False
         self.cloth_render = True
         self.detail_render = False
-        self.demo_render = True #if true, render only the body and robot
+        self.demo_render = False #if true, render only the body and robot
         self.simulating = True #used to allow simulation freezing while rendering continues
         self.passive_robots = False #if true, no motor torques from the robot
+        self.two_bot_mirror = False #if true, set bot 1 to mirror of bot 2 pose
         self.active_compliance = active_compliance
         self.manual_robot_control = False
         self.manual_human_control = manual_human_control
@@ -2251,6 +2252,30 @@ class DartClothIiwaEnv(gym.Env):
             elif iiwa.control_mode == 1:
                 iiwa.step(robo_action_scaled[iiwa_ix * 7:iiwa_ix * 7 + 7])
 
+
+        #pose mirroring
+        if self.two_bot_mirror and self.iiwas[1].control_mode == 1:
+            self.iiwas[1].pose_interpolation_target = np.array(self.iiwas[0].pose_interpolation_target)
+
+            mirror_multiplier = np.ones(len(self.iiwas[1].pose_interpolation_target))
+            mirror_offset = np.zeros(len(self.iiwas[1].pose_interpolation_target))
+            mirror_correspondance = range(len(self.iiwas[1].pose_interpolation_target))
+
+            mirror_multiplier[3] = -1
+            mirror_multiplier[6] = -1
+            mirror_offset[6] = math.pi
+            mirror_multiplier[7] = -1
+
+            mirror_multiplier[8] = -1
+            mirror_multiplier[9] = -1
+            mirror_multiplier[10] = -1
+            mirror_multiplier[11] = -1
+
+            q_mirror = np.zeros(len(mirror_multiplier))
+            for ix, dof in enumerate(mirror_correspondance):
+                q_mirror[ix] = self.iiwas[0].pose_interpolation_target[dof] * mirror_multiplier[ix] + mirror_offset[ix]
+            self.iiwas[1].pose_interpolation_target = np.array(q_mirror)
+
         #update cloth features
         for feature in self.cloth_features:
             feature.fitPlane()
@@ -2651,10 +2676,10 @@ class DartClothIiwaEnv(gym.Env):
             mirror_multiplier[10] = -1
             mirror_multiplier[11] = -1
 
-            q[6:] = np.zeros(len(q)-6)
-            q[0] = -math.pi/2.0
-            q[1] = 0
-            q[2] = 0
+            #q[6:] = np.zeros(len(q)-6)
+            #q[0] = -math.pi/2.0
+            #q[1] = 0
+            #q[2] = 0
 
             #q[0] = self.numSteps*self.dt*self.frame_skip*0.1
 
@@ -3086,7 +3111,6 @@ class DartClothIiwaEnv(gym.Env):
         if verbose:
             print("found a valid pose in " + str(counter) + " tries.")
         return new_pose
-
 
     def checkProxyPose(self, skel_ix, pose):
         #starttime = time.time()

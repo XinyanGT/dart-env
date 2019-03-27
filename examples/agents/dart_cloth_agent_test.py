@@ -56,6 +56,8 @@ def main():
     trial = None
 
     # --- robot TShirt
+    #trial = "experiment_2019_03_26_tshirt_pose"
+    #trial = "experiment_2019_03_22_twoarm_tshirt_cont"
     #trial = "experiment_2019_03_22_twoarm_tshirt"
     #trial = "experiment_2019_03_22_twoarm_tshirt_06cont3_warm_penalties"
     #trial = "experiment_2019_03_20_twoarm_tshirt"
@@ -78,6 +80,10 @@ def main():
     # ---
 
     # -- new env onearm
+    #trial = "experiment_2019_03_26_onearm_robo_statichard_frame"
+    #trial = "experiment_2019_03_26_onearm_robo_statichard_pose"
+    #trial = "experiment_2019_03_26_onearm_robo_staticeasy_frame"
+    #trial = "experiment_2019_03_26_onearm_robo_staticeasy_pose"
     #trial = "experiment_2019_03_11_onearm_weakstrong"
     #trial = "experiment_2019_03_06_onearm_weaker_warm_incConPen"
     #trial = "experiment_2019_03_06_onearm_weaker"
@@ -527,6 +533,9 @@ def main():
     #trial = "experiment_2017_09_11_mode7_nooraclebaseline"
     #trial = "experiment_2017_09_11_mode7_nohapticsbaseline"
 
+    #batch loadSave...
+    trials = None
+
     loadSave = False #now done automatically if policy file not found...
     loadSave_frame = None #if none, use most recent
     #loadSave_frame = 40
@@ -535,7 +544,21 @@ def main():
 
     if loadSave is True:
         import tensorflow as tf
-        if trial is not None:
+        if trials is not None:
+            for b_trial in trials:
+                with tf.Session() as sess:
+                    print("trying to load the params.pkl file")
+                    frame_num = ""
+                    if loadSave_frame is not None:
+                        frame_num = str(loadSave_frame)
+                    params_file = prefix + b_trial + "/params" + frame_num + ".pkl"
+                    data = joblib.load(params_file)
+                    print("loaded the pkl file")
+                    policy = data['policy']
+                    pickle.dump(policy, open(prefix + b_trial + "/policy.pkl", "wb"))
+                    print("saved the policy")
+            exit()
+        elif trial is not None:
             #load the params.pkl file and save a policy.pkl file
             with tf.Session() as sess:
                 print("trying to load the params.pkl file")
@@ -622,9 +645,9 @@ def main():
     #envName = 'DartIiwaGownAssistCoopt-v2'
     #envName = 'DartIiwaGownAssistCoopt_h-v2'
     #envName = 'DartIiwaGownMultibot-v1'
-    #envName = 'DartIiwaOnearmGown-v1'
+    envName = 'DartIiwaOnearmGown-v1'
     #envName = 'DartIiwaTwoarmGown-v1'
-    envName = 'DartIiwaTwoarmTshirt-v1'
+    #envName = 'DartIiwaTwoarmTshirt-v1'
 
     if len(sys.argv) > 1:
         #print(sys.argv[1])

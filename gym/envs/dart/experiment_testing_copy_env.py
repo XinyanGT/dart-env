@@ -4,6 +4,7 @@ class DartClothExperimentTestingEnv(DartClothIiwaEnv):
     def __init__(self):
         dual_policy = True
         is_human = True
+        iiwa_control_mode = 1  # 0=frame control, 1=pose control
 
         self.limbNodesR = [3, 4, 5, 6, 7]
         self.limbNodesL = [8, 9, 10, 11, 12]
@@ -86,7 +87,7 @@ class DartClothExperimentTestingEnv(DartClothIiwaEnv):
         self.human_obs_manager.addObsFeature(feature=OracleObsFeature(env=self,sensor_ix=21,dressing_target=self.dressing_targets[0],sep_mesh=self.separated_meshes[0]))
         self.human_obs_manager.addObsFeature(feature=OracleObsFeature(env=self,sensor_ix=12,dressing_target=self.dressing_targets[1],sep_mesh=self.separated_meshes[1]))
         self.human_obs_manager.addObsFeature(feature=OracleObsFeature(env=self,sensor_ix=3,dressing_target=self.dressing_targets[2],sep_mesh=self.separated_meshes[2]))
-        #TODO: head oracle?
+
         for iiwa in self.iiwas:
             self.human_obs_manager.addObsFeature(feature=JointPositionObsFeature(iiwa.skel, ignored_joints=[1], name="iiwa " + str(iiwa.index) + " joint positions"))
 
@@ -94,7 +95,10 @@ class DartClothExperimentTestingEnv(DartClothIiwaEnv):
         for iiwa in self.iiwas:
             self.robot_obs_manager.addObsFeature(feature=ProprioceptionObsFeature(skel=iiwa.skel, start_dof=6, name="iiwa " + str(iiwa.index) + "proprioception"))
             self.robot_obs_manager.addObsFeature(feature=JointPositionObsFeature(iiwa.skel, ignored_joints=[1], name="iiwa " + str(iiwa.index) + " joint positions"))
-            self.robot_obs_manager.addObsFeature(feature=RobotFramesObsFeature(iiwa, name="iiwa " + str(iiwa.index) + " frame"))
+            if iiwa_control_mode == 0:
+                self.robot_obs_manager.addObsFeature(feature=RobotFramesObsFeature(iiwa, name="iiwa " + str(iiwa.index) + " frame"))
+            else:
+                self.robot_obs_manager.addObsFeature(feature=RobotSPDTargetObsFeature(self, iiwa))
             self.robot_obs_manager.addObsFeature(feature=CapacitiveSensorObsFeature(iiwa, name="iiwa " + str(iiwa.index) + " cap sensor"))
             self.robot_obs_manager.addObsFeature(feature=FTSensorObsFeature(self, iiwa, name="iiwa " + str(iiwa.index) + " FT sensor"))
         #self.robot_obs_manager.addObsFeature(feature=CollisionMPCObsFeature(env=self, is_human=False))
@@ -121,9 +125,9 @@ class DartClothExperimentTestingEnv(DartClothIiwaEnv):
         self.reward_manager.addTerm(term=GeodesicContactRewardTerm(sensor_index=12, env=self, separated_mesh=self.separated_meshes[1], dressing_target=self.dressing_targets[1], weight=15))
         self.reward_manager.addTerm(term=GeodesicContactRewardTerm(sensor_index=3, env=self, separated_mesh=self.separated_meshes[2], dressing_target=self.dressing_targets[2], weight=15))
 
-        self.reward_manager.addTerm(term=ClothDeformationRewardTerm(self, weight=4))
-        self.reward_manager.addTerm(term=ClothAvgDeformationRewardTerm(self, weight=5))
-        self.reward_manager.addTerm(term=HumanContactRewardTerm(self, weight=5, tanh_params=(2, 0.15, 10)))
+        self.reward_manager.addTerm(term=ClothDeformationRewardTerm(self, weight=3))
+        self.reward_manager.addTerm(term=ClothAvgDeformationRewardTerm(self, weight=3))
+        self.reward_manager.addTerm(term=HumanContactRewardTerm(self, weight=4, tanh_params=(2, 0.15, 10)))
 
         self.reward_manager.addTerm(term=BodyDistancePenaltyTerm(self, node1=self.iiwas[0].skel.bodynodes[8], offset1=np.zeros(3), node2=self.iiwas[1].skel.bodynodes[8], offset2=np.zeros(3), target_range=(0,0.4), weight=5))
 

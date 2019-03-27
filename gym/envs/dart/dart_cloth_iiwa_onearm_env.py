@@ -2,11 +2,11 @@ from gym.envs.dart.dart_cloth_iiwa_env import *
 
 class DartClothIiwaOnearmEnv(DartClothIiwaEnv):
     def __init__(self):
-        dual_policy = False
-        is_human = False
-        iiwa_control_mode = 0 #0=frame control, 1=pose control
+        dual_policy = True
+        is_human = True
+        iiwa_control_mode = 1 #0=frame control, 1=pose control
         #manual control config
-        manual_human_control = True
+        manual_human_control = False
 
         self.limbNodesR = [3, 4, 5, 6, 7]
         self.limbNodesL = [8, 9, 10, 11, 12]
@@ -88,7 +88,7 @@ class DartClothIiwaOnearmEnv(DartClothIiwaEnv):
         #rest_pose_weights[3:19] *= 0 #ignore rest pose
         rest_pose_weights[19:] *= 8 #stable head
         self.reward_manager.addTerm(term=RestPoseRewardTerm(self.human_skel, pose=np.zeros(self.human_skel.ndofs), weights=rest_pose_weights))
-        self.reward_manager.addTerm(term=LimbProgressRewardTerm(dressing_target=self.dressing_targets[0], terminal=True, weight=40))
+        self.reward_manager.addTerm(term=LimbProgressRewardTerm(dressing_target=self.dressing_targets[0], terminal=True, success_threshold=0.8, weight=40))
         self.reward_manager.addTerm(term=ClothDeformationRewardTerm(self, weight=5))
         self.reward_manager.addTerm(term=HumanContactRewardTerm(self, weight=5, tanh_params=(2, 0.15, 10))) #saturates at ~10 and ~38
 
@@ -107,12 +107,21 @@ class DartClothIiwaOnearmEnv(DartClothIiwaEnv):
 
         #set manual target to random pose
         if self.manual_human_control:
+            self.human_manual_target = self.getValidRandomPose(verbose=False,symmetrical=False,dofs=[11,12,13,14,15,16,17,18],static_able=True)
+            '''        
+            while(False):
+                try:
+                    self.human_manual_target = self.getValidRandomPose(verbose=False,symmetrical=False,dofs=[11,12,13,14,15,16,17,18],static_able=True)
+                    break
+                except:
+                    pass
+            '''
             #self.human_manual_target = self.getValidRandomPose(verbose=False,symmetrical=False,dofs=[11,12,13,14,15,16,17,18],static_able=True)
             #self.human_manual_target = np.array([0.0, 0.0, 0.0, -0.09486478804170062, 0.16919563098552753, -0.4913244737893412, -1.371164742525659, -0.1465004046206566, 0.3062212857520513, 0.18862771696450964, 0.4970038523987025, -0.09486478804170062, 0.16919563098552753, 0.4913244737893412, -1.371164742525659, 0.1465004046206566, 0.3062212857520513, 0.18862771696450964, 0.4970038523987025, 0.48155552859527917, -0.13660824713013747, 0.6881130165905589])
             #easy pose
             #self.human_manual_target = np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, -0.060695429912757115, -0.1166434684398091, 1.6455526352595298, -1.0340351849542877, -0.1808887017727232, 0.6099234608345806, -0.0401376005833739, -0.19003591622638777, 0.0, 0.0, 0.0])
             #hard pose
-            self.human_manual_target = np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, -0.07188445325524462, -0.017434267372890777, 2.038177401843531, -0.27950772568071347, -0.4580547232797969, 1.3666855610334707, 0.14061578293258337, 0.37383092667304096, 0.0, 0.0, 0.0])
+            #self.human_manual_target = np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, -0.07188445325524462, -0.017434267372890777, 2.038177401843531, -0.27950772568071347, -0.4580547232797969, 1.3666855610334707, 0.14061578293258337, 0.37383092667304096, 0.0, 0.0, 0.0])
             #print("chose manual target = " + str(self.human_manual_target.tolist()))
             for iiwa in self.iiwas:
                 iiwa.setRestPose()
