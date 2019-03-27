@@ -2,8 +2,8 @@ from gym.envs.dart.dart_cloth_iiwa_env import *
 
 class DartClothIiwaTwoarmTshirtEnv(DartClothIiwaEnv):
     def __init__(self):
-        dual_policy = False
-        is_human = False
+        dual_policy = True
+        is_human = True
         iiwa_control_mode = 1  # 0=frame control, 1=pose control
 
         self.limbNodesR = [3, 4, 5, 6, 7]
