@@ -5,6 +5,10 @@ class DartClothIiwaTwoarmEnv(DartClothIiwaEnv):
         dual_policy = False
         is_human = True
 
+        iiwa_control_mode = 1  # 0=frame control, 1=pose control
+        # manual control config
+        manual_human_control = False
+
         self.limbNodesR = [3, 4, 5, 6, 7]
         self.limbNodesL = [8, 9, 10, 11, 12]
 
@@ -26,7 +30,7 @@ class DartClothIiwaTwoarmEnv(DartClothIiwaEnv):
         cloth_mesh_file = "fullgown1.obj"
         #cloth_mesh_state_file = "hanginggown.obj"
         cloth_mesh_state_file = "fullgown1.obj"
-        DartClothIiwaEnv.__init__(self, robot_root_dofs=self.iiwa_root_dofs, active_compliance=False, cloth_mesh_file=cloth_mesh_file, cloth_mesh_state_file=cloth_mesh_state_file, cloth_scale=1.3, dual_policy=dual_policy, is_human=is_human)
+        DartClothIiwaEnv.__init__(self, robot_root_dofs=self.iiwa_root_dofs, active_compliance=False, cloth_mesh_file=cloth_mesh_file, cloth_mesh_state_file=cloth_mesh_state_file, cloth_scale=1.3, dual_policy=dual_policy, is_human=is_human, iiwa_control_mode=iiwa_control_mode, manual_human_control=manual_human_control)
 
         #setup features
         self.sleeveRVerts = [532, 451, 251, 252, 253, 1334, 1320, 1184, 945, 985, 1062, 1607, 1037, 484, 1389, 679, 1230, 736, 1401, 1155, 486, 1410]
@@ -71,7 +75,10 @@ class DartClothIiwaTwoarmEnv(DartClothIiwaEnv):
         for iiwa in self.iiwas:
             self.robot_obs_manager.addObsFeature(feature=ProprioceptionObsFeature(skel=iiwa.skel, start_dof=6, name="iiwa " + str(iiwa.index) + "proprioception"))
             self.robot_obs_manager.addObsFeature(feature=JointPositionObsFeature(iiwa.skel, ignored_joints=[1], name="iiwa " + str(iiwa.index) + " joint positions"))
-            self.robot_obs_manager.addObsFeature(feature=RobotFramesObsFeature(iiwa, name="iiwa " + str(iiwa.index) + " frame"))
+            if iiwa_control_mode == 0:
+                self.robot_obs_manager.addObsFeature(feature=RobotFramesObsFeature(iiwa, name="iiwa " + str(iiwa.index) + " frame"))
+            else:
+                self.robot_obs_manager.addObsFeature(feature=RobotSPDTargetObsFeature(self, iiwa))
             self.robot_obs_manager.addObsFeature(feature=CapacitiveSensorObsFeature(iiwa, name="iiwa " + str(iiwa.index) + " cap sensor"))
             self.robot_obs_manager.addObsFeature(feature=FTSensorObsFeature(self, iiwa, name="iiwa " + str(iiwa.index) + " FT sensor"))
         #self.robot_obs_manager.addObsFeature(feature=CollisionMPCObsFeature(env=self, is_human=False))
@@ -106,14 +113,17 @@ class DartClothIiwaTwoarmEnv(DartClothIiwaEnv):
 
         #set manual target to random pose
         if self.manual_human_control:
-            self.human_manual_target = self.getValidRandomPose(verbose=False)
-            self.human_manual_target = np.array([0.0, 0.0, 0.0, -0.09486478804170062, 0.16919563098552753, -0.4913244737893412, -1.371164742525659, -0.1465004046206566, 0.3062212857520513, 0.18862771696450964, 0.4970038523987025, -0.09486478804170062, 0.16919563098552753, 0.4913244737893412, -1.371164742525659, 0.1465004046206566, 0.3062212857520513, 0.18862771696450964, 0.4970038523987025, 0.48155552859527917, -0.13660824713013747, 0.6881130165905589])
+            #self.human_manual_target = self.getValidRandomPose(verbose=False)
+            #self.human_manual_target = np.array([0.0, 0.0, 0.0, -0.09486478804170062, 0.16919563098552753, -0.4913244737893412, -1.371164742525659, -0.1465004046206566, 0.3062212857520513, 0.18862771696450964, 0.4970038523987025, -0.09486478804170062, 0.16919563098552753, 0.4913244737893412, -1.371164742525659, 0.1465004046206566, 0.3062212857520513, 0.18862771696450964, 0.4970038523987025, 0.48155552859527917, -0.13660824713013747, 0.6881130165905589])
+            self.human_manual_target = np.array([0.0, 0.0, 0.0, 0.2014567442644234, 0.12976885838990154, 0.07445680418190292, 3.95336417358366, -0.9002739292338819, 0.29925007698275996, 0.4400513472819564, 0.0051886712832222015, 0.2014567442644234, 0.12976885838990154, -0.07445680418190292, 3.95336417358366, 0.9002739292338819, 0.29925007698275996, 0.4400513472819564, 0.0051886712832222015, 0.0, 0.0, 0.0])
 
-            print("chose manual target = " + str(self.human_manual_target.tolist()))
+
+            #print("chose manual target = " + str(self.human_manual_target.tolist()))
             for iiwa in self.iiwas:
                 iiwa.setRestPose()
 
             #TODO: remove after testing
+            self.human_skel.set_positions([0.0, 0.0, 0.0, 0.2014567442644234, 0.12976885838990154, 0.07445680418190292, 3.95336417358366, -0.9002739292338819, 0.29925007698275996, 0.4400513472819564, 0.0051886712832222015, 0.2014567442644234, 0.12976885838990154, -0.07445680418190292, 3.95336417358366, 0.9002739292338819, 0.29925007698275996, 0.4400513472819564, 0.0051886712832222015, 0.0, 0.0, 0.0])
             #self.human_skel.set_positions([0.0, 0.0, 0.0, -0.21890184289240233, 0.1618533105311784, -0.03417282760690066, 0.670498809614021, -0.16780524349209935, 1.8045016700105585, -0.3012597961534294, 0.4064480138415224, -0.21890184289240233, 0.1618533105311784, 0.03417282760690066, 0.670498809614021, 0.16780524349209935, 1.8045016700105585, -0.3012597961534294, 0.4064480138415224, 0.2530563478930248, -0.5648952906859239, 0.9915228996786887])
             #self.human_skel.set_positions([0.0, 0.0, 0.0, -0.09486478804170062, 0.16919563098552753, -0.4913244737893412, -1.371164742525659, -0.1465004046206566, 0.3062212857520513, 0.18862771696450964, 0.4970038523987025, -0.09486478804170062, 0.16919563098552753, 0.4913244737893412, -1.371164742525659, 0.1465004046206566, 0.3062212857520513, 0.18862771696450964, 0.4970038523987025, 0.48155552859527917, -0.13660824713013747, 0.6881130165905589])
             #self.humanSPDIntperolationTarget = np.array(self.human_skel.q)
@@ -196,6 +206,10 @@ class DartClothIiwaTwoarmEnv(DartClothIiwaEnv):
         self.iiwas[0].setIKPose() #frame set in here too
         self.iiwas[1].skel.set_velocities(np.zeros(len(self.iiwas[0].skel.dq)))
         self.iiwas[1].setIKPose() #frame set in here too
+
+        # set the interpolation pose
+        self.iiwas[0].pose_interpolation_target = np.array(self.iiwas[0].skel.q[6:])
+        self.iiwas[1].pose_interpolation_target = np.array(self.iiwas[1].skel.q[6:])
 
         #initialize the garment location
         for iiwa in self.iiwas:

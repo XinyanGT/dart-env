@@ -262,6 +262,10 @@ class DartClothIiwaTwoarmTshirtEnv(DartClothIiwaEnv):
         self.iiwas[1].skel.set_velocities(np.zeros(len(self.iiwas[1].skel.dq)))
         self.iiwas[1].setIKPose() #frame set in here too
 
+        # set the interpolation pose
+        self.iiwas[0].pose_interpolation_target = np.array(self.iiwas[0].skel.q[6:])
+        self.iiwas[1].pose_interpolation_target = np.array(self.iiwas[1].skel.q[6:])
+
 
         #initialize the garment location
         #self.clothScene.translateCloth(0, np.array([0, 0, 1.0]))
