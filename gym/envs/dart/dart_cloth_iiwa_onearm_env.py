@@ -2,11 +2,13 @@ from gym.envs.dart.dart_cloth_iiwa_env import *
 
 class DartClothIiwaOnearmEnv(DartClothIiwaEnv):
     def __init__(self):
-        dual_policy = True
-        is_human = True
+        dual_policy = False
+        is_human = False
         iiwa_control_mode = 1 #0=frame control, 1=pose control
         #manual control config
-        manual_human_control = False
+        manual_human_control = True
+        self.pose_distribution = True
+        self.manual_poses = []
 
         self.limbNodesR = [3, 4, 5, 6, 7]
         self.limbNodesL = [8, 9, 10, 11, 12]
@@ -61,7 +63,7 @@ class DartClothIiwaOnearmEnv(DartClothIiwaEnv):
         self.human_obs_manager.addObsFeature(feature=SPDTargetObsFeature(self))
         #self.human_obs_manager.addObsFeature(feature=DataDrivenJointLimitsObsFeature(self))
         #self.human_obs_manager.addObsFeature(feature=CollisionMPCObsFeature(env=self,is_human=True))
-        self.human_obs_manager.addObsFeature(feature=WeaknessScaleObsFeature(self,self.limbDofs[1],scale_range=(0.1,0.6)))
+        #self.human_obs_manager.addObsFeature(feature=WeaknessScaleObsFeature(self,self.limbDofs[1],scale_range=(0.1,0.6)))
         self.human_obs_manager.addObsFeature(feature=OracleObsFeature(env=self,sensor_ix=21,dressing_target=self.dressing_targets[-1],sep_mesh=self.separated_meshes[-1]))
         for iiwa in self.iiwas:
             self.human_obs_manager.addObsFeature(feature=JointPositionObsFeature(iiwa.skel, ignored_joints=[1], name="iiwa " + str(iiwa.index) + " joint positions"))
@@ -107,7 +109,12 @@ class DartClothIiwaOnearmEnv(DartClothIiwaEnv):
 
         #set manual target to random pose
         if self.manual_human_control:
-            self.human_manual_target = self.getValidRandomPose(verbose=False,symmetrical=False,dofs=[11,12,13,14,15,16,17,18],static_able=True)
+            if self.pose_distribution:
+                while(len(self.manual_poses) < 100):
+                    self.manual_poses.append(self.getValidRandomPose(verbose=False,symmetrical=False,dofs=[11,12,13,14,15,16,17,18],static_able=True))
+                self.human_manual_target = self.manual_poses[random.randint(0,99)]
+            else:
+                self.human_manual_target = self.getValidRandomPose(verbose=False,symmetrical=False,dofs=[11,12,13,14,15,16,17,18],static_able=True)
             '''        
             while(False):
                 try:

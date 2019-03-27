@@ -645,8 +645,8 @@ def main():
     #envName = 'DartIiwaGownAssistCoopt-v2'
     #envName = 'DartIiwaGownAssistCoopt_h-v2'
     #envName = 'DartIiwaGownMultibot-v1'
-    #envName = 'DartIiwaOnearmGown-v1'
-    envName = 'DartIiwaTwoarmGown-v1'
+    envName = 'DartIiwaOnearmGown-v1'
+    #envName = 'DartIiwaTwoarmGown-v1'
     #envName = 'DartIiwaTwoarmTshirt-v1'
 
     if len(sys.argv) > 1:

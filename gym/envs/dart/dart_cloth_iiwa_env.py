@@ -3077,23 +3077,28 @@ class DartClothIiwaEnv(gym.Env):
 
                 #only allow poses with elbow, wrist and shoulder in range of robot 0's base pivot
                 nodes = [9,10,11,12]
+                n_positions = []
                 #r_pos = self.iiwas[0].skel.bodynodes[3].to_world(np.zeros(3))
                 #print(r_pos)
                 for nix,n in enumerate(nodes):
                     n_pos = self.human_skel.bodynodes[n].to_world(np.zeros(3))
                     if nix == 3:
                         n_pos = self.human_skel.bodynodes[n].to_world(self.fingertip)
+                    n_positions.append(n_pos)
                     n_r_pivot_dist = np.linalg.norm(n_pos-r_pivot)
                     if n_r_pivot_dist > 0.7 or n_r_pivot_dist < 0.2:
                         valid = False
                         break
 
-                    if n_pos[0] > r_pivot[0] - 0.1: #no limb past the robot laterally
+                    if n_pos[0] > r_pivot[0] - 0.25: #no limb past the robot laterally
                         valid = False
                         break
                     if n_pos[2] > 0:
                         valid = False
                         break
+                if valid:
+                    if n_positions[3][2] > n_positions[1][2] - 0.15:
+                        valid = False
 
             if valid:
                 self.collisionResult.update()
