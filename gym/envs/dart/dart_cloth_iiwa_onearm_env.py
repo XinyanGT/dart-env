@@ -2,12 +2,12 @@ from gym.envs.dart.dart_cloth_iiwa_env import *
 
 class DartClothIiwaOnearmEnv(DartClothIiwaEnv):
     def __init__(self):
-        dual_policy = False
-        is_human = False
-        iiwa_control_mode = 0 #0=frame control, 1=pose control
+        dual_policy = True
+        is_human = True
+        iiwa_control_mode = 1 #0=frame control, 1=pose control
         #manual control config
-        manual_human_control = True
-        self.pose_distribution = True
+        manual_human_control = False
+        self.pose_distribution = False
         self.manual_poses = []
 
         self.limbNodesR = [3, 4, 5, 6, 7]
@@ -62,8 +62,12 @@ class DartClothIiwaOnearmEnv(DartClothIiwaEnv):
         self.human_obs_manager.addObsFeature(feature=JointPositionObsFeature(self.human_skel, name="human joint positions"))
         self.human_obs_manager.addObsFeature(feature=SPDTargetObsFeature(self))
         #self.human_obs_manager.addObsFeature(feature=DataDrivenJointLimitsObsFeature(self))
+
         #self.human_obs_manager.addObsFeature(feature=CollisionMPCObsFeature(env=self,is_human=True))
         #self.human_obs_manager.addObsFeature(feature=WeaknessScaleObsFeature(self,self.limbDofs[1],scale_range=(0.1,0.6)))
+        #self.human_obs_manager.addObsFeature(feature=ActionTremorObsFeature(self,self.limbDofs[1],scale_ranges=np.ones(len(self.limbDofs[1]))*0.15))
+        self.human_obs_manager.addObsFeature(feature=JointConstraintObsFeature(self,dof=16,u_constraint_range=(0.5,2.85),l_constraint_range=(0.21,2.0), mode=0))
+
         self.human_obs_manager.addObsFeature(feature=OracleObsFeature(env=self,sensor_ix=21,dressing_target=self.dressing_targets[-1],sep_mesh=self.separated_meshes[-1]))
         for iiwa in self.iiwas:
             self.human_obs_manager.addObsFeature(feature=JointPositionObsFeature(iiwa.skel, ignored_joints=[1], name="iiwa " + str(iiwa.index) + " joint positions"))

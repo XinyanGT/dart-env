@@ -70,6 +70,8 @@ def main():
     # ---
 
     # --- new multiarm
+    #trial = "experiment_2019_03_27_twoarm_gown_robopose"
+    #trial = "experiment_2019_03_27_twoarm_gown_robo_static_pose"
     #trial = "experiment_2019_03_06_twoarm_human_hoverbot_pursuit_reducedpen"
     #trial = "experiment_2019_03_05_twoarm_human_strongpenalties_hoverbot"
     #trial = "experiment_2019_03_04_twoarm_human_strongpenalties_hoverbot"
@@ -80,6 +82,10 @@ def main():
     # ---
 
     # -- new env onearm
+    #trial = "experiment_2019_03_27_onearm_robopose"
+    #trial = "experiment_2019_03_27_onearm_weakstrong_robopose"
+    #trial = "experiment_2019_03_26_onearm_robo_staticrand_frame"
+    #trial = "experiment_2019_03_26_onearm_robo_staticrand_pose"
     #trial = "experiment_2019_03_26_onearm_robo_statichard_frame"
     #trial = "experiment_2019_03_26_onearm_robo_statichard_pose"
     #trial = "experiment_2019_03_26_onearm_robo_staticeasy_frame"
@@ -825,7 +831,7 @@ def main():
         #print(envFilename)
         env.render()
         #time.sleep(0.5)
-        rolloutHorizon = 10000
+        rolloutHorizon = 100000
         rolloutHorizon = 600
         #rolloutHorizon = 1200
         #rolloutHorizon = 200

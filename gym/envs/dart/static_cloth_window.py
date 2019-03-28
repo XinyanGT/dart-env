@@ -1472,6 +1472,7 @@ class Frame6DInteractor(BaseInteractor):
         self.selectedHandle = None
         self.skelix = 1 #change this if the skel file changes
         self.mirror = False #if true, assume another iiwa with same frame mirrored in x
+        self.selected_dof = 0
 
     def key_down(self):
         #check for all function key_down booleans
@@ -1486,6 +1487,8 @@ class Frame6DInteractor(BaseInteractor):
         if self.z_down is True:
             return True
         if self.q_down is True:
+            return True
+        if self.viewer.key_down[104]: #'h'
             return True
         return False
 
@@ -1502,6 +1505,14 @@ class Frame6DInteractor(BaseInteractor):
             self.mirror = not self.mirror
             print("frame control mirror: " + str(self.mirror))
             return
+
+        if keycode == 68: #'D'
+            self.selected_dof = min(self.selected_dof+1, 21)
+            print("selected dof: " + str(self.selected_dof))
+        if keycode == 100: #'d'
+            self.selected_dof = max(self.selected_dof-1, 0)
+            print("selected dof: " + str(self.selected_dof))
+
         if keycode == 102:  # 'f'
             self.f_down = True
         if keycode == 112:  # 'p'
@@ -1517,7 +1528,8 @@ class Frame6DInteractor(BaseInteractor):
             print("rotation toggle: " + str(self.rotationToggle))
 
         if keycode == 104:  # 'h' hand
-            self.viewer.env.frameInterpolator["target_pos"] = self.viewer.env.robot_skeleton.bodynodes[11].to_world(np.zeros(3))
+            #self.viewer.env.frameInterpolator["target_pos"] = self.viewer.env.robot_skeleton.bodynodes[11].to_world(np.zeros(3))
+            pass
 
         if keycode == 101:  # 'e' elbow
             self.viewer.env.frameInterpolator["target_pos"] = self.viewer.env.robot_skeleton.bodynodes[10].to_world(np.zeros(3))
@@ -1600,6 +1612,14 @@ class Frame6DInteractor(BaseInteractor):
                 except:
                     self.viewer.env.iiwas[0].frameInterpolator["eulers"][2] += dx * 0.001
                 #self.viewer.env.frameEulerState[2] += dx * 0.001
+        elif (self.viewer.key_down[104]): #'h'
+            #q = np.array(self.viewer.env.human_skel.q)
+            q = np.array(self.viewer.env.humanSPDIntperolationTarget)
+            q[self.selected_dof] += dx*0.001
+            self.viewer.env.humanSPDIntperolationTarget = np.array(q)
+            if self.viewer.env.manual_human_control:
+                self.viewer.env.human_manual_target = np.array(q)
+            #self.viewer.env.human_skel.set_positions(q)
 
         if (self.x_down or self.y_down or self.z_down) and self.mirror:
             self.viewer.env.iiwas[1].frameInterpolator["target_pos"] = np.array(self.viewer.env.iiwas[0].frameInterpolator["target_pos"])

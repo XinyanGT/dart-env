@@ -29,7 +29,7 @@ class DartClothExperimentTestingEnv(DartClothIiwaEnv):
         #cloth_mesh_state_file = "hanginggown.obj"
         #cloth_mesh_state_file = "tshirt_m.obj"
         cloth_mesh_state_file = "twoArmTshirtHang.obj"
-        DartClothIiwaEnv.__init__(self, robot_root_dofs=self.iiwa_root_dofs, active_compliance=False, cloth_mesh_file=cloth_mesh_file, cloth_mesh_state_file=cloth_mesh_state_file, cloth_scale=1.5, dual_policy=dual_policy, is_human=is_human)
+        DartClothIiwaEnv.__init__(self, robot_root_dofs=self.iiwa_root_dofs, active_compliance=False, cloth_mesh_file=cloth_mesh_file, cloth_mesh_state_file=cloth_mesh_state_file, cloth_scale=1.5, dual_policy=dual_policy, is_human=is_human, iiwa_control_mode=iiwa_control_mode)
 
         #setup features
         self.sleeveRVerts = [2580, 2495, 2508, 2586, 2518, 2560, 2621, 2529, 2559, 2593, 272, 2561, 2658, 2582, 2666, 2575, 2584, 2625, 2616, 2453, 2500, 2598, 2466]
@@ -261,6 +261,10 @@ class DartClothExperimentTestingEnv(DartClothIiwaEnv):
         self.iiwas[0].setIKPose() #frame set in here too
         self.iiwas[1].skel.set_velocities(np.zeros(len(self.iiwas[1].skel.dq)))
         self.iiwas[1].setIKPose() #frame set in here too
+
+        # set the interpolation pose
+        self.iiwas[0].pose_interpolation_target = np.array(self.iiwas[0].skel.q[6:])
+        self.iiwas[1].pose_interpolation_target = np.array(self.iiwas[1].skel.q[6:])
 
 
         #initialize the garment location

@@ -593,6 +593,31 @@ class WeaknessScaleObsFeature(ObservationFeature):
     def draw(self):
         self.env.text_queue.append("Weakness Scale: %0.3f -> %0.3f" % (self.currentScale, LERP(self.scale_range[0], self.scale_range[1], self.currentScale)))
 
+class ActionTremorObsFeature(ObservationFeature):
+    #Action Tremor: noise added to SPD target corresponding to desired pose
+    def __init__(self, env, dofs, scale_ranges, name="Action Tremor Obs", render=True):
+        self.env = env
+        self.dofs = dofs
+        self.env.human_SPD_target_noise_dofs = self.dofs
+        self.scale_ranges = scale_ranges
+        ObservationFeature.__init__(self, name=name, dim=1, render=render)
+        self.current_scale = 1.0
+
+    def getObs(self):
+        obs = np.array([self.current_scale])
+        return obs
+
+    def reset(self):
+        #draw a new scale value
+        self.current_scale = np.random.uniform(0,1.0)
+
+        #update the human's capability
+        self.env.human_SPD_target_noise = self.scale_ranges*self.current_scale
+
+    def draw(self):
+        self.env.text_queue.append("Action Tremor Scale: %0.3f" % (self.current_scale))
+
+#TODO:
 class IntentionTremorObsFeature(ObservationFeature):
     #Intention Tremor: broad, coarse, low frequency (5Hz) tremor.
     #   Amplitude increases as an extremity approaches the endpoint of deliberate and visually guided movement.
@@ -627,6 +652,70 @@ class IntentionTremorObsFeature(ObservationFeature):
 
     def draw(self):
         self.env.text_queue.append("Intention Tremor Scale: %0.3f -> %0.3f" % (self.currentScale, LERP(self.scale_range[0], self.scale_range[1], self.currentScale)))
+
+class JointConstraintObsFeature(ObservationFeature):
+    #observation of the constraint variant of a the elbow
+    def __init__(self, env, dof, u_constraint_range=(0.1,1.0), l_constraint_range=(0.0,0.9), mode=0, name="Dof Constraint Obs", render=True):
+        self.env = env
+        self.dof = dof
+        self.u_constraint_range = u_constraint_range
+        self.l_constraint_range = l_constraint_range
+        self.mode = mode #0->both upper and lower, -1->lower, 1->upper
+        dim = 1
+        if mode == 0:
+            dim = 2
+        ObservationFeature.__init__(self, name=name, dim=dim, render=render)
+        self.current_u_constraint = 1.0 #normalized
+        self.current_l_constraint = 1.0 #normalized
+        self.j_range = self.env.human_skel.position_upper_limits()[dof] - self.env.human_skel.position_lower_limits()[dof]
+        if not math.isfinite(self.j_range):
+            print("WARNING: joint limit obs range is NOT finite...")
+        self.initial_limits = [self.env.human_skel.position_lower_limits()[dof],self.env.human_skel.position_upper_limits()[dof]]
+        print("initial joint limits: " + str(self.initial_limits))
+
+    def getObs(self):
+        obs = np.array([self.current_l_constraint])
+        if self.mode == 1: #replace s.t. dim 1
+            obs = np.array([self.current_u_constraint])
+        elif self.mode == 0: #dim 2
+            obs = np.concatenate([obs, np.array([self.current_u_constraint])])
+        return obs
+
+    def reset(self):
+        dof_u_limit = 0
+        dof_l_limit = 0
+        valid = False
+        while(not valid):
+            valid = True
+            self.current_u_constraint = random.uniform(0.0,1.0)
+            self.current_l_constraint = random.uniform(0.0,1.0)
+            dof_u_limit = LERP(self.u_constraint_range[0], self.u_constraint_range[1], self.current_u_constraint)
+            dof_l_limit = LERP(self.l_constraint_range[0], self.l_constraint_range[1], self.current_l_constraint)
+
+            if self.mode == 0:
+                #then we actually need to rejection sample inverted samples
+                if dof_u_limit <= dof_l_limit: #inversion of limits
+                    valid = False
+
+        #update the human's capability
+        if self.mode == 1 or self.mode == 0:
+            self.env.human_skel.dof(self.dof).set_position_upper_limit(dof_u_limit)
+        if self.mode == -1 or self.mode == 0:
+            self.env.human_skel.dof(self.dof).set_position_lower_limit(dof_l_limit)
+
+        #now reset the pose if necessary (note an invalid pose via collision could still result here...)
+        if self.env.human_skel.q[self.dof] > dof_u_limit:
+            self.env.human_skel.dof(self.dof).set_position(dof_u_limit)
+        if self.env.human_skel.q[self.dof] < dof_l_limit:
+            self.env.human_skel.dof(self.dof).set_position(dof_l_limit)
+
+    def draw(self):
+        if self.mode == -1:
+            self.env.text_queue.append("Dof ("+str(self.dof)+") Lower Constraint: %0.3f -> %0.3f" % (self.current_l_constraint, LERP(self.l_constraint_range[0], self.l_constraint_range[1], self.current_l_constraint)))
+        elif self.mode == 1:
+            self.env.text_queue.append("Dof ("+str(self.dof)+") Upper Constraint: %0.3f -> %0.3f" % (self.current_u_constraint, LERP(self.u_constraint_range[0], self.u_constraint_range[1], self.current_u_constraint)))
+        elif self.mode == 0:
+            self.env.text_queue.append("Dof ("+str(self.dof)+") Constraints: [%0.3f, %0.3f] -> [%0.3f, %0.3f]" % (self.current_l_constraint, self.current_u_constraint, LERP(self.l_constraint_range[0], self.l_constraint_range[1], self.current_l_constraint), LERP(self.u_constraint_range[0], self.u_constraint_range[1], self.current_u_constraint)))
 
 class OracleObsFeature(ObservationFeature):
     #observation of an oracle vector pointing from a skel sensor to a dressing target or contact geodesic gradient
@@ -1803,7 +1892,7 @@ class DartClothIiwaEnv(gym.Env):
         self.proxy_render = False
         self.cloth_render = True
         self.detail_render = False
-        self.demo_render = False #if true, render only the body and robot
+        self.demo_render = True #if true, render only the body and robot
         self.simulating = True #used to allow simulation freezing while rendering continues
         self.passive_robots = False #if true, no motor torques from the robot
         self.two_bot_mirror = False #if true, set bot 1 to mirror of bot 2 pose
@@ -1895,6 +1984,8 @@ class DartClothIiwaEnv(gym.Env):
         self.humanSPDController = SPDController(self, self.human_skel, timestep=self.frame_skip * self.dt, startDof=0, ckp=30.0, ckd=0.1)
         self.humanSPDIntperolationTarget = np.zeros(self.human_skel.ndofs)
         self.humanSPDInterpolationRate = 1.0 #defines the maximum joint range percentage change per second of simulation
+        self.human_SPD_target_noise = [] #magnitude of noise in SPD target pose for each noise dof
+        self.human_SPD_target_noise_dofs = [] #dofs to apply target noise to
         self.human_manual_target = np.zeros(self.human_skel.ndofs) #if manual control, set interpolation target here every frame
         self.human_collision_warning = 1.0 #[0,1] seconds since last collision warning
 
@@ -2255,6 +2346,9 @@ class DartClothIiwaEnv(gym.Env):
 
         #pose mirroring
         if self.two_bot_mirror and self.iiwas[1].control_mode == 1:
+            self.iiwas[0].interpolateIKTarget()
+            self.iiwas[0].computeIK()
+
             self.iiwas[1].pose_interpolation_target = np.array(self.iiwas[0].pose_interpolation_target)
 
             mirror_multiplier = np.ones(len(self.iiwas[1].skel.q))
@@ -2279,6 +2373,7 @@ class DartClothIiwaEnv(gym.Env):
                 q_mirror[ix] = self.iiwas[0].previousIKResult[dof-6] * mirror_multiplier[ix] + mirror_offset[ix]
             self.iiwas[1].pose_interpolation_target = np.array(q_mirror[6:])
             self.iiwas[1].previousIKResult = np.array(self.iiwas[1].pose_interpolation_target)
+            self.iiwas[1].skel.set_positions(np.concatenate([self.iiwas[1].root_dofs, self.iiwas[1].previousIKResult]))
 
         #update cloth features
         for feature in self.cloth_features:
@@ -2951,6 +3046,10 @@ class DartClothIiwaEnv(gym.Env):
             #self.humanSPDController.target = np.array(self.human_skel.q)
             self.human_collision_warning = 0.0
             self.text_queue.append("MPC COLLISION_HUMAN_WARNING")
+
+        #inject noise for tremor obs
+        for ix,dof in enumerate(self.human_SPD_target_noise_dofs):
+            self.humanSPDController.target[dof] += np.random.uniform(-self.human_SPD_target_noise[ix], self.human_SPD_target_noise[ix])
 
         human_control = self.humanSPDController.query(None)
 
