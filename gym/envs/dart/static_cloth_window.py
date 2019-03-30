@@ -47,6 +47,8 @@ class StaticClothGLUTWindow(StaticGLUTWindow):
         #self.captureDirectory = "/home/alexander/Documents/frame_capture_output/variations/elbow_data/0"
         #self.captureDirectory = "/home/alexander/Documents/dev/saved_render_states/siggraph_asia_finals/tshirt_failures/frames"
         self.capturing = False
+        self.states_saved = 1 #incremented on each state save 's'
+        self.state_save_dir = "/home/alexander/Documents/dev/dart-env/gym/envs/dart/assets/state_distributions/assisted_tshirt/"
         self.key_down = []
         for i in range(256):
             self.key_down.append(False)
@@ -273,9 +275,15 @@ class StaticClothGLUTWindow(StaticGLUTWindow):
         if keycode == 108: #'l'
             try:
                 print("trying to load state")
-                self.env.loadState()
-                print("...successfully loaded state")
+                self.env.loadState(directory=self.state_save_dir, state_number=self.states_saved-1)
+                print("step")
+                self.env._step(a=np.zeros(14))
+                self.env.loadState(directory=self.state_save_dir, state_number=self.states_saved-1)
+                self.states_saved += 1
+                print("...successfully loaded state " )
+
             except:
+                self.states_saved = 1
                 print("...could not load the state")
             return
 
@@ -300,8 +308,9 @@ class StaticClothGLUTWindow(StaticGLUTWindow):
                 '''
 
                 #new code using full state saver
-                self.env.saveState()
-                print("...successfully saved state")
+                self.env.saveState(directory=self.state_save_dir, state_number=self.states_saved)
+                print("...successfully saved state "+ str(self.states_saved))
+                self.states_saved += 1
             except:
                 print("...could not save the state")
             return
@@ -1472,6 +1481,7 @@ class Frame6DInteractor(BaseInteractor):
         self.selectedHandle = None
         self.skelix = 1 #change this if the skel file changes
         self.mirror = False #if true, assume another iiwa with same frame mirrored in x
+        self.human_mirror = False
         self.selected_dof = 0
 
     def key_down(self):
@@ -1527,9 +1537,12 @@ class Frame6DInteractor(BaseInteractor):
             self.rotationToggle = not self.rotationToggle
             print("rotation toggle: " + str(self.rotationToggle))
 
-        if keycode == 104:  # 'h' hand
+        if keycode == 104:  # 'h' human control in drag
             #self.viewer.env.frameInterpolator["target_pos"] = self.viewer.env.robot_skeleton.bodynodes[11].to_world(np.zeros(3))
             pass
+        if keycode == 72:  # 'H' human symmetry flag
+            self.human_mirror = not self.human_mirror
+            print("Human mirror: " + str(self.human_mirror))
 
         if keycode == 101:  # 'e' elbow
             self.viewer.env.frameInterpolator["target_pos"] = self.viewer.env.robot_skeleton.bodynodes[10].to_world(np.zeros(3))
@@ -1616,6 +1629,15 @@ class Frame6DInteractor(BaseInteractor):
             #q = np.array(self.viewer.env.human_skel.q)
             q = np.array(self.viewer.env.humanSPDIntperolationTarget)
             q[self.selected_dof] += dx*0.001
+            if self.human_mirror:
+                if self.selected_dof > 2 and self.selected_dof < 11:
+                    q[self.selected_dof+8] = q[self.selected_dof]
+                    if self.selected_dof == 5 or self.selected_dof == 7:
+                        q[self.selected_dof + 8] *= -1
+                if self.selected_dof > 10 and self.selected_dof < 19:
+                    q[self.selected_dof-8] = q[self.selected_dof]
+                    if self.selected_dof == 13 or self.selected_dof == 15:
+                        q[self.selected_dof - 8] *= -1
             self.viewer.env.humanSPDIntperolationTarget = np.array(q)
             if self.viewer.env.manual_human_control:
                 self.viewer.env.human_manual_target = np.array(q)
@@ -1664,5 +1686,7 @@ class Frame6DInteractor(BaseInteractor):
 
     def contextRender(self):
         # place any extra rendering for this context here
-
+        if self.selected_dof > 0:
+            j_pos = self.viewer.env.human_skel.dof(self.selected_dof).joint.position_in_world_frame()
+            renderUtils.drawArrow(p0=j_pos+np.array([0.5,0.5,0.5]), p1=j_pos)
         a = 0

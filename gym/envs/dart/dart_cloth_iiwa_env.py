@@ -1938,7 +1938,7 @@ class DartClothIiwaEnv(gym.Env):
         self.dart_render = True
         self.proxy_render = False
         self.cloth_render = True
-        self.detail_render = True
+        self.detail_render = False
         self.demo_render = False #if true, render only the body and robot
         self.simulating = True #used to allow simulation freezing while rendering continues
         self.passive_robots = False #if true, no motor torques from the robot
@@ -2336,6 +2336,7 @@ class DartClothIiwaEnv(gym.Env):
             self.demo_text_queue = [] #drawn even in demo render mode
 
     def _step(self, a):
+
         if not self.rendering:
             #clear the text queue to free memory if not actually rendering
             self.text_queue = []
@@ -2413,6 +2414,8 @@ class DartClothIiwaEnv(gym.Env):
             mirror_multiplier[9] = -1
             mirror_multiplier[10] = -1
             mirror_multiplier[11] = -1
+            mirror_multiplier[12] = -1
+            #print(str(self.iiwas[0].skel.q[12]) + " | " + str(self.iiwas[1].skel.q[12]))
 
             q_mirror = np.zeros(len(mirror_multiplier))
             for ix, dof in enumerate(mirror_correspondance):
@@ -2758,7 +2761,7 @@ class DartClothIiwaEnv(gym.Env):
 
         #draw cloth features
         for feature in self.cloth_features:
-            feature.drawProjectionPoly(renderNormal=False, renderBasis=False, fill=False)
+            feature.drawProjectionPoly(renderNormal=True, renderBasis=False, fill=False)
 
         # render geodesic
         if False:
@@ -3333,9 +3336,11 @@ class DartClothIiwaEnv(gym.Env):
         #called to reset frame targets, SPD targets, etc... to current state
         self.humanSPDController.target = np.array(self.human_skel.q)
         self.humanSPDIntperolationTarget = np.array(self.human_skel.q)
+        self.human_manual_target = np.array(self.human_skel.q)
         for iiwa in self.iiwas:
             #reset SPD target
             iiwa.SPDController.target = np.array(iiwa.skel.q[6:])
+            iiwa.pose_interpolation_target = np.array(iiwa.skel.q[6:])
 
             #reset body and frames
             iiwa.previousIKResult = np.array(iiwa.skel.q[6:])

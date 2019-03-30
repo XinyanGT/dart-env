@@ -56,7 +56,7 @@ def main():
     trial = None
 
     # --- robot TShirt
-    trial = "experiment_2019_03_26_tshirt_pose" #TODO: still training
+    #trial = "experiment_2019_03_26_tshirt_pose" #TODO: still training
     #trial = "experiment_2019_03_22_twoarm_tshirt_cont"
     #trial = "experiment_2019_03_22_twoarm_tshirt"
     #trial = "experiment_2019_03_22_twoarm_tshirt_06cont3_warm_penalties"
@@ -834,7 +834,7 @@ def main():
         env.render()
         #time.sleep(0.5)
         rolloutHorizon = 100000
-        rolloutHorizon = 600
+        #rolloutHorizon = 600
         #rolloutHorizon = 1200
         #rolloutHorizon = 200
         #rolloutHorizon = 900
