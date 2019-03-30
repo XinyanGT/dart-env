@@ -2,11 +2,11 @@ from gym.envs.dart.dart_cloth_iiwa_env import *
 
 class DartClothIiwaTwoarmTshirtEnv(DartClothIiwaEnv):
     def __init__(self):
-        dual_policy = False
-        is_human = False
+        dual_policy = True
+        is_human = True
         iiwa_control_mode = 1  # 0=frame control, 1=pose control
         # manual control config
-        manual_human_control = True
+        manual_human_control = False
 
         self.limbNodesR = [3, 4, 5, 6, 7]
         self.limbNodesL = [8, 9, 10, 11, 12]
@@ -131,7 +131,36 @@ class DartClothIiwaTwoarmTshirtEnv(DartClothIiwaEnv):
         self.reward_manager.addTerm(term=ClothAvgDeformationRewardTerm(self, weight=3))
         self.reward_manager.addTerm(term=HumanContactRewardTerm(self, weight=4, tanh_params=(2, 0.15, 10)))
 
-        self.reward_manager.addTerm(term=BodyDistancePenaltyTerm(self, node1=self.iiwas[0].skel.bodynodes[8], offset1=np.zeros(3), node2=self.iiwas[1].skel.bodynodes[8], offset2=np.zeros(3), target_range=(0,0.4), weight=5))
+        self.reward_manager.addTerm(term=BodyDistancePenaltyTerm(self, node1=self.iiwas[0].skel.bodynodes[8], offset1=np.zeros(3), node2=self.iiwas[1].skel.bodynodes[8], offset2=np.zeros(3), target_range=(0,0.4), weight=10))
+
+        #setup robot symmetry reward
+        if True:
+            mask = np.ones(len(self.iiwas[0].skel.q))
+            mask[:6] *= 0
+            correspondance = range(len(self.iiwas[0].skel.q))
+            multiplier = np.ones(len(self.iiwas[0].skel.q))
+            multiplier[3] = -1
+            multiplier[6] = -1
+            multiplier[7] = -1
+            multiplier[8] = -1
+            multiplier[9] = -1
+            multiplier[10] = -1
+            multiplier[11] = -1
+            offset = np.zeros(len(self.iiwas[0].skel.q))
+            offset[6] = math.pi
+            self.reward_manager.addTerm(term=SkelSymmetryRewardTerm(self, self.iiwas[0].skel, self.iiwas[1].skel, mask=mask, correspondance=correspondance, multiplier=multiplier, offset=offset, weight=20.0))
+
+        #setup human symmetry reward
+        if True:
+            mask = np.zeros(len(self.human_skel.q))
+            mask[3:11] = np.ones(8)
+            correspondance = np.arange(len(self.human_skel.q))
+            correspondance[3:11] = correspondance[11:19]
+            multiplier = np.ones(len(self.human_skel.q))
+            multiplier[5] = -1
+            multiplier[7] = -1
+            offset = np.zeros(len(self.human_skel.q))
+            self.reward_manager.addTerm(term=SkelSymmetryRewardTerm(self, self.human_skel, self.human_skel, mask=mask, correspondance=correspondance, multiplier=multiplier, offset=offset, weight=20.0))
 
 
         #set the observation space

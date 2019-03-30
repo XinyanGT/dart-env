@@ -290,7 +290,45 @@ class BodyDistancePenaltyTerm(RewardTerm):
 
         self.previous_evaluation = np.linalg.norm(wp1-wp2)
         closest_range_point = max(min(self.previous_evaluation, self.target_range[1]), self.target_range[0])
-        self.previous_evaluation = -abs(self.previous_evaluation - closest_range_point)
+        self.previous_evaluation = -abs(self.previous_evaluation - closest_range_point)*self.weight
+        return self.previous_evaluation
+
+class SkelSymmetryRewardTerm(RewardTerm):
+    #reward symmetric poses (of the robot)
+    def __init__(self, env, s1, s2, mask, correspondance, multiplier, offset, name="symmetry penalty", weight=1.0):
+        self.env = env
+        self.s1=s1
+        self.s2=s2
+        self.mask = mask #s1 mask: which dofs do we compare (and a relative weighting)
+        self.correspondance = correspondance #for s1 dof indices, which index in s2 do we compare to
+
+        #for s1->2 dof correspondance, s2[c[d]] should be: m*s1[d]+o[d]
+        self.multiplier = multiplier
+        self.offset = offset
+
+        self.min_possible = 0
+        j_range = self.s1.position_upper_limits()-self.s1.position_lower_limits()
+        for d in range(len(self.s1.q)):
+            if self.mask[d] > 0:
+                if math.isfinite(j_range[d]):
+                    self.min_possible -= j_range[d] * self.mask[d]
+                else:
+                    self.min_possible -= 4.0 * self.mask[d]
+
+        RewardTerm.__init__(self, name=name, weight=weight, min=-1, max=0)
+
+    def evaluateReward(self):
+        self.previous_evaluation = 0
+
+        for d in range(len(self.s1.q)):
+            if self.mask[d] > 0:
+                d1 = self.s1.q[d]
+                d2 = self.s2.q[self.correspondance[d]]*self.multiplier[d] + self.offset[d]
+                self.previous_evaluation += abs(d2-d1)*self.mask[d]
+
+        self.previous_evaluation/=self.min_possible #also negates the summation
+        self.previous_evaluation*=self.weight
+
         return self.previous_evaluation
 
 class ObservationManager:
@@ -315,6 +353,11 @@ class ObservationManager:
             if feature.render:
                 feature.draw()
 
+    def demo_draw(self):
+        for feature in self.obs_features:
+            if feature.render:
+                feature.demo_draw()
+
     def reset(self):
         for feature in self.obs_features:
             feature.reset()
@@ -331,6 +374,9 @@ class ObservationFeature:
         return np.zeros(0)
 
     def draw(self):
+        pass
+
+    def demo_draw(self):
         pass
 
     def reset(self):
@@ -590,8 +636,9 @@ class WeaknessScaleObsFeature(ObservationFeature):
         for d in self.dofs:
             self.env.human_action_scale[d] = LERP(self.env.initial_human_action_scale[d]*self.scale_range[0], self.env.initial_human_action_scale[d]*self.scale_range[1], self.currentScale)
 
-    def draw(self):
-        self.env.text_queue.append("Weakness Scale: %0.3f -> %0.3f" % (self.currentScale, LERP(self.scale_range[0], self.scale_range[1], self.currentScale)))
+    def demo_draw(self):
+        self.env.demo_text_queue.append("Weakness Scale: %0.3f -> %0.3f" % (self.currentScale, LERP(self.scale_range[0], self.scale_range[1], self.currentScale)))
+
 
 class ActionTremorObsFeature(ObservationFeature):
     #Action Tremor: noise added to SPD target corresponding to desired pose
@@ -614,8 +661,8 @@ class ActionTremorObsFeature(ObservationFeature):
         #update the human's capability
         self.env.human_SPD_target_noise = self.scale_ranges*self.current_scale
 
-    def draw(self):
-        self.env.text_queue.append("Action Tremor Scale: %0.3f" % (self.current_scale))
+    def demo_draw(self):
+        self.env.demo_text_queue.append("Action Tremor Scale: %0.3f" % (self.current_scale))
 
 #TODO:
 class IntentionTremorObsFeature(ObservationFeature):
@@ -650,8 +697,8 @@ class IntentionTremorObsFeature(ObservationFeature):
         for d in self.dofs:
             self.env.human_action_scale[d] = LERP(self.env.initial_human_action_scale[d]*self.scale_range[0], self.env.initial_human_action_scale[d]*self.scale_range[1], self.currentScale)
 
-    def draw(self):
-        self.env.text_queue.append("Intention Tremor Scale: %0.3f -> %0.3f" % (self.currentScale, LERP(self.scale_range[0], self.scale_range[1], self.currentScale)))
+    def demo_draw(self):
+        self.env.demo_text_queue.append("Intention Tremor Scale: %0.3f -> %0.3f" % (self.currentScale, LERP(self.scale_range[0], self.scale_range[1], self.currentScale)))
 
 class JointConstraintObsFeature(ObservationFeature):
     #observation of the constraint variant of a the elbow
@@ -709,13 +756,13 @@ class JointConstraintObsFeature(ObservationFeature):
         if self.env.human_skel.q[self.dof] < dof_l_limit:
             self.env.human_skel.dof(self.dof).set_position(dof_l_limit)
 
-    def draw(self):
+    def demo_draw(self):
         if self.mode == -1:
-            self.env.text_queue.append("Dof ("+str(self.dof)+") Lower Constraint: %0.3f -> %0.3f" % (self.current_l_constraint, LERP(self.l_constraint_range[0], self.l_constraint_range[1], self.current_l_constraint)))
+            self.env.demo_text_queue.append("Dof ("+str(self.dof)+") Lower Constraint: %0.3f -> %0.3f" % (self.current_l_constraint, LERP(self.l_constraint_range[0], self.l_constraint_range[1], self.current_l_constraint)))
         elif self.mode == 1:
-            self.env.text_queue.append("Dof ("+str(self.dof)+") Upper Constraint: %0.3f -> %0.3f" % (self.current_u_constraint, LERP(self.u_constraint_range[0], self.u_constraint_range[1], self.current_u_constraint)))
+            self.env.demo_text_queue.append("Dof ("+str(self.dof)+") Upper Constraint: %0.3f -> %0.3f" % (self.current_u_constraint, LERP(self.u_constraint_range[0], self.u_constraint_range[1], self.current_u_constraint)))
         elif self.mode == 0:
-            self.env.text_queue.append("Dof ("+str(self.dof)+") Constraints: [%0.3f, %0.3f] -> [%0.3f, %0.3f]" % (self.current_l_constraint, self.current_u_constraint, LERP(self.l_constraint_range[0], self.l_constraint_range[1], self.current_l_constraint), LERP(self.u_constraint_range[0], self.u_constraint_range[1], self.current_u_constraint)))
+            self.env.demo_text_queue.append("Dof ("+str(self.dof)+") Constraints: [%0.3f, %0.3f] -> [%0.3f, %0.3f]" % (self.current_l_constraint, self.current_u_constraint, LERP(self.l_constraint_range[0], self.l_constraint_range[1], self.current_l_constraint), LERP(self.u_constraint_range[0], self.u_constraint_range[1], self.current_u_constraint)))
 
 class OracleObsFeature(ObservationFeature):
     #observation of an oracle vector pointing from a skel sensor to a dressing target or contact geodesic gradient
@@ -1891,8 +1938,8 @@ class DartClothIiwaEnv(gym.Env):
         self.dart_render = True
         self.proxy_render = False
         self.cloth_render = True
-        self.detail_render = False
-        self.demo_render = True #if true, render only the body and robot
+        self.detail_render = True
+        self.demo_render = False #if true, render only the body and robot
         self.simulating = True #used to allow simulation freezing while rendering continues
         self.passive_robots = False #if true, no motor torques from the robot
         self.two_bot_mirror = False #if true, set bot 1 to mirror of bot 2 pose
@@ -2286,11 +2333,13 @@ class DartClothIiwaEnv(gym.Env):
 
             #emptied, filled, sequentially drawn each render step
             self.text_queue = []
+            self.demo_text_queue = [] #drawn even in demo render mode
 
     def _step(self, a):
         if not self.rendering:
             #clear the text queue to free memory if not actually rendering
             self.text_queue = []
+            self.demo_text_queue = []
 
         if not self.simulating:
             if self.dual_policy:
@@ -2699,6 +2748,8 @@ class DartClothIiwaEnv(gym.Env):
             self.human_obs_manager.draw()
             self.robot_obs_manager.draw()
             self.reward_manager.draw()
+        self.human_obs_manager.demo_draw()
+        self.robot_obs_manager.demo_draw()
 
         #inner bicep indicator strips
         renderUtils.setColor([0,0,0])
@@ -2733,13 +2784,18 @@ class DartClothIiwaEnv(gym.Env):
         textHeight = 15
         textLines = 2
         renderUtils.setColor(color=[0., 0, 0])
+        for text in self.demo_text_queue:
+            self.clothScene.drawText(x=15., y=textLines * textHeight, text=text, color=(0., 0, 0))
+            textLines += 1
         if not self.demo_render:
             for text in self.text_queue:
                 self.clothScene.drawText(x=15., y=textLines*textHeight, text=text, color=(0., 0, 0))
                 textLines += 1
 
+
         #empty the queue
         self.text_queue = []
+        self.demo_text_queue = []
 
         if self.detail_render:
             #draw forces

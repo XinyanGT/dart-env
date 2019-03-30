@@ -56,7 +56,7 @@ def main():
     trial = None
 
     # --- robot TShirt
-    #trial = "experiment_2019_03_26_tshirt_pose"
+    trial = "experiment_2019_03_26_tshirt_pose" #TODO: still training
     #trial = "experiment_2019_03_22_twoarm_tshirt_cont"
     #trial = "experiment_2019_03_22_twoarm_tshirt"
     #trial = "experiment_2019_03_22_twoarm_tshirt_06cont3_warm_penalties"
@@ -82,6 +82,8 @@ def main():
     # ---
 
     # -- new env onearm
+    #trial = "experiment_2019_03_28_onearm_gown_tremor"
+    #trial = "experiment_2019_03_28_onearm_gown_elbowconstraint"
     #trial = "experiment_2019_03_27_onearm_robopose"
     #trial = "experiment_2019_03_27_onearm_weakstrong_robopose"
     #trial = "experiment_2019_03_26_onearm_robo_staticrand_frame"
@@ -651,9 +653,9 @@ def main():
     #envName = 'DartIiwaGownAssistCoopt-v2'
     #envName = 'DartIiwaGownAssistCoopt_h-v2'
     #envName = 'DartIiwaGownMultibot-v1'
-    envName = 'DartIiwaOnearmGown-v1'
+    #envName = 'DartIiwaOnearmGown-v1'
     #envName = 'DartIiwaTwoarmGown-v1'
-    #envName = 'DartIiwaTwoarmTshirt-v1'
+    envName = 'DartIiwaTwoarmTshirt-v1'
 
     if len(sys.argv) > 1:
         #print(sys.argv[1])
