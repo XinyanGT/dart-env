@@ -138,7 +138,7 @@ class DartClothIiwaTwoarmTshirtEnv(DartClothIiwaEnv):
         self.reward_manager.addTerm(term=BodyDistancePenaltyTerm(self, node1=self.iiwas[0].skel.bodynodes[8], offset1=np.zeros(3), node2=self.iiwas[1].skel.bodynodes[8], offset2=np.zeros(3), target_range=(0,0.4), weight=8))
 
         #setup robot symmetry reward
-        if False:
+        if True:
             mask = np.ones(len(self.iiwas[0].skel.q))
             mask[:6] *= 0
             correspondance = range(len(self.iiwas[0].skel.q))
@@ -156,7 +156,7 @@ class DartClothIiwaTwoarmTshirtEnv(DartClothIiwaEnv):
             self.reward_manager.addTerm(term=SkelSymmetryRewardTerm(self, self.iiwas[0].skel, self.iiwas[1].skel, mask=mask, correspondance=correspondance, multiplier=multiplier, offset=offset, weight=20.0))
 
         #setup human symmetry reward
-        if False:
+        if True:
             mask = np.zeros(len(self.human_skel.q))
             mask[3:11] = np.ones(8)
             correspondance = np.arange(len(self.human_skel.q))
