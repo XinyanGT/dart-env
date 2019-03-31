@@ -11,6 +11,7 @@ class DartClothIiwaTwoarmTshirtEnv(DartClothIiwaEnv):
         self.initialize_from_distribution = True
         self.initial_distribution_directory = "/assets/state_distributions/assisted_tshirt/"
         self.initial_distribution_size = 8
+        self.state_distribution = []
 
         self.limbNodesR = [3, 4, 5, 6, 7]
         self.limbNodesL = [8, 9, 10, 11, 12]
@@ -397,8 +398,15 @@ class DartClothIiwaTwoarmTshirtEnv(DartClothIiwaEnv):
         #TODO: load testing
         #self.loadState()
         if self.initialize_from_distribution:
+
+            if len(self.state_distribution) == 0:
+                for i in range(self.initial_distribution_size):
+                    self.loadState(directory=self.prefix+self.initial_distribution_directory, state_number=i)
+                    self.state_distribution.append(SimState(self, make=True))
+
             rand_state_index = random.randint(0,self.initial_distribution_size-1)
-            self.loadState(directory=self.prefix+self.initial_distribution_directory, state_number=rand_state_index)
+            #self.loadState(directory=self.prefix+self.initial_distribution_directory, state_number=rand_state_index)
+            self.state_distribution[rand_state_index].setState()
 
             # ensure feature normal directions
             cloth_centroid = self.clothScene.getVertexCentroid(cid=0)

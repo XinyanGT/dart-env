@@ -47,6 +47,41 @@ from pyPhysX.colors import *
 def LERP(p0, p1, t):
     return p0 + (p1 - p0) * t
 
+class SimState:
+    def __init__(self, env, make=True):
+        self.env = env
+        self.robot_state = None
+        self.human_state = None
+        self.cloth_state = None
+        if make:
+            self.human_state = [np.array(self.env.human_skel.q), np.array(self.env.human_skel.dq)]
+            self.robot_state = [[],[]]
+            for iiwa in self.env.iiwas:
+                self.robot_state[0].append(iiwa.skel.q)
+                self.robot_state[1].append(iiwa.skel.dq)
+            self.cloth_state = [[],[]]
+            for i in range(self.env.clothScene.getNumVertices()):
+                self.cloth_state[0].append(self.env.clothScene.getVertexPos(vid=i))
+                self.cloth_state[1].append(self.env.clothScene.getPrevVertexPos(vid=i))
+
+    def setState(self):
+        self.env.human_skel.set_positions(self.human_state[0])
+        self.env.human_skel.set_velocities(self.human_state[1])
+        for ix,iiwa in enumerate(self.env.iiwas):
+            iiwa.skel.set_positions(self.robot_state[0][ix])
+            iiwa.skel.set_velocities(self.robot_state[1][ix])
+        for v in range(len(self.cloth_state[0])):
+            self.env.clothScene.setVertexPos(cid=0, vid= v, pos=self.cloth_state[0][v], refresh=False)
+            self.env.clothScene.setPrevVertexPos(cid=0, vid= v, pos=self.cloth_state[0][v])
+        #self.env.clothScene.refreshMotionConstraints()
+        self.env.clothScene.refreshCloth()
+        self.env.resetControl()
+
+    def loadState(self, directory=None, state_number=0):
+        #TODO
+        pass
+
+
 class RewardManager:
     def __init__(self, env):
         self.env = env
@@ -3384,7 +3419,7 @@ class DartClothIiwaEnv(gym.Env):
             f.write(str(dof))
         f.close()
 
-    def loadSkelState(self, skel, filename=None):
+    def loadSkelState(self, skel, filename=None, set_state=True):
         openFile = "skelState"
         if filename is not None:
             openFile = filename
