@@ -8,7 +8,7 @@ class DartClothIiwaTwoarmTshirtEnv(DartClothIiwaEnv):
         # manual control config
         manual_human_control = False
         #demonstration learning
-        self.initialize_from_distribution = True
+        self.initialize_from_distribution = False
         self.initial_distribution_directory = "/assets/state_distributions/assisted_tshirt/"
         self.initial_distribution_size = 8
         self.state_distribution = []
@@ -407,10 +407,21 @@ class DartClothIiwaTwoarmTshirtEnv(DartClothIiwaEnv):
         #self.clothScene.saveObjState(filename="/home/alexander/Documents/dev/dart-env/gym/envs/dart/assets/twoArmTshirtHang")
         #self.clothScene.loadObjState()
 
-        #TODO: load testing
+        #set rewards to final state
+        if len(self.state_distribution) == 0:
+            for i in range(self.initial_distribution_size):
+                self.loadState(directory=self.prefix + self.initial_distribution_directory, state_number=i)
+                self.state_distribution.append(SimState(self, make=True))
+            if self.connectivity_reward:
+                nix = len(self.state_distribution) - 1
+                n_state = self.state_distribution[nix]
+                self.rest_state_reward_terms[0].rest_pose = np.array(n_state.human_state[0])
+                for ix, iiwa in enumerate(self.iiwas):
+                    self.rest_state_reward_terms[ix + 1].rest_pose = np.array(n_state.robot_state[0][ix])
+                print("WARNING: setting rest poses explicitly from final loaded state")
+
         #self.loadState()
         if self.initialize_from_distribution:
-
             if len(self.state_distribution) == 0:
                 for i in range(self.initial_distribution_size):
                     self.loadState(directory=self.prefix+self.initial_distribution_directory, state_number=i)
