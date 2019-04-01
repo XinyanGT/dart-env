@@ -5,6 +5,13 @@ class DartClothExperimentTestingEnv(DartClothIiwaEnv):
         dual_policy = True
         is_human = True
         iiwa_control_mode = 1  # 0=frame control, 1=pose control
+        # manual control config
+        manual_human_control = False
+        #demonstration learning
+        self.initialize_from_distribution = True
+        self.initial_distribution_directory = "/assets/state_distributions/assisted_tshirt/"
+        self.initial_distribution_size = 8
+        self.state_distribution = []
 
         self.limbNodesR = [3, 4, 5, 6, 7]
         self.limbNodesL = [8, 9, 10, 11, 12]
@@ -29,7 +36,7 @@ class DartClothExperimentTestingEnv(DartClothIiwaEnv):
         #cloth_mesh_state_file = "hanginggown.obj"
         #cloth_mesh_state_file = "tshirt_m.obj"
         cloth_mesh_state_file = "twoArmTshirtHang.obj"
-        DartClothIiwaEnv.__init__(self, robot_root_dofs=self.iiwa_root_dofs, active_compliance=False, cloth_mesh_file=cloth_mesh_file, cloth_mesh_state_file=cloth_mesh_state_file, cloth_scale=1.5, dual_policy=dual_policy, is_human=is_human, iiwa_control_mode=iiwa_control_mode)
+        DartClothIiwaEnv.__init__(self, robot_root_dofs=self.iiwa_root_dofs, active_compliance=False, cloth_mesh_file=cloth_mesh_file, cloth_mesh_state_file=cloth_mesh_state_file, cloth_scale=1.5, dual_policy=dual_policy, is_human=is_human, iiwa_control_mode=iiwa_control_mode, manual_human_control=manual_human_control)
 
         #setup features
         self.sleeveRVerts = [2580, 2495, 2508, 2586, 2518, 2560, 2621, 2529, 2559, 2593, 272, 2561, 2658, 2582, 2666, 2575, 2584, 2625, 2616, 2453, 2500, 2598, 2466]
@@ -129,7 +136,37 @@ class DartClothExperimentTestingEnv(DartClothIiwaEnv):
         self.reward_manager.addTerm(term=ClothAvgDeformationRewardTerm(self, weight=3))
         self.reward_manager.addTerm(term=HumanContactRewardTerm(self, weight=4, tanh_params=(2, 0.15, 10)))
 
-        self.reward_manager.addTerm(term=BodyDistancePenaltyTerm(self, node1=self.iiwas[0].skel.bodynodes[8], offset1=np.zeros(3), node2=self.iiwas[1].skel.bodynodes[8], offset2=np.zeros(3), target_range=(0,0.4), weight=5))
+        self.reward_manager.addTerm(term=BodyDistancePenaltyTerm(self, node1=self.iiwas[0].skel.bodynodes[8], offset1=np.zeros(3), node2=self.iiwas[1].skel.bodynodes[8], offset2=np.zeros(3), target_range=(0,0.4), weight=8))
+
+        #setup robot symmetry reward
+        if True:
+            mask = np.ones(len(self.iiwas[0].skel.q))
+            mask[:6] *= 0
+            correspondance = range(len(self.iiwas[0].skel.q))
+            multiplier = np.ones(len(self.iiwas[0].skel.q))
+            multiplier[3] = -1
+            multiplier[6] = -1
+            multiplier[7] = -1
+            multiplier[8] = -1
+            multiplier[9] = -1
+            multiplier[10] = -1
+            multiplier[11] = -1
+            multiplier[12] = -1
+            offset = np.zeros(len(self.iiwas[0].skel.q))
+            offset[6] = math.pi
+            self.reward_manager.addTerm(term=SkelSymmetryRewardTerm(self, self.iiwas[0].skel, self.iiwas[1].skel, mask=mask, correspondance=correspondance, multiplier=multiplier, offset=offset, weight=20.0))
+
+        #setup human symmetry reward
+        if True:
+            mask = np.zeros(len(self.human_skel.q))
+            mask[3:11] = np.ones(8)
+            correspondance = np.arange(len(self.human_skel.q))
+            correspondance[3:11] = correspondance[11:19]
+            multiplier = np.ones(len(self.human_skel.q))
+            multiplier[5] = -1
+            multiplier[7] = -1
+            offset = np.zeros(len(self.human_skel.q))
+            self.reward_manager.addTerm(term=SkelSymmetryRewardTerm(self, self.human_skel, self.human_skel, mask=mask, correspondance=correspondance, multiplier=multiplier, offset=offset, weight=20.0))
 
 
         #set the observation space
@@ -154,12 +191,12 @@ class DartClothExperimentTestingEnv(DartClothIiwaEnv):
         # setting the orientation of the pyBulletIiwa, other settings are unnecessary as we give rest poses for IK
 
         #set manual target to random pose
-        if self.manual_human_control:
-            self.human_manual_target = self.getValidRandomPose(verbose=False,symmetrical=True)
+        if self.manual_human_control and False:
+            #self.human_manual_target = self.getValidRandomPose(verbose=False,symmetrical=True)
             self. human_manual_target = np.array([0.0, 0.0, 0.0, 0.2014567442644234, 0.12976885838990154, 0.07445680418190292, 3.95336417358366, -0.9002739292338819, 0.29925007698275996, 0.4400513472819564, 0.0051886712832222015, 0.2014567442644234, 0.12976885838990154, -0.07445680418190292, 3.95336417358366, 0.9002739292338819, 0.29925007698275996, 0.4400513472819564, 0.0051886712832222015, 0.0, 0.0, 0.0])
             #self.human_manual_target = np.array([0.0, 0.0, 0.0, -0.09486478804170062, 0.16919563098552753, -0.4913244737893412, -1.371164742525659, -0.1465004046206566, 0.3062212857520513, 0.18862771696450964, 0.4970038523987025, -0.09486478804170062, 0.16919563098552753, 0.4913244737893412, -1.371164742525659, 0.1465004046206566, 0.3062212857520513, 0.18862771696450964, 0.4970038523987025, 0.48155552859527917, -0.13660824713013747, 0.6881130165905589])
             self.human_skel.set_positions(self.human_manual_target)
-            print("chose manual target = " + str(self.human_manual_target.tolist()))
+            #print("chose manual target = " + str(self.human_manual_target.tolist()))
             for iiwa in self.iiwas:
                 iiwa.setRestPose()
 
@@ -167,12 +204,13 @@ class DartClothExperimentTestingEnv(DartClothIiwaEnv):
             #self.human_skel.set_positions([0.0, 0.0, 0.0, -0.21890184289240233, 0.1618533105311784, -0.03417282760690066, 0.670498809614021, -0.16780524349209935, 1.8045016700105585, -0.3012597961534294, 0.4064480138415224, -0.21890184289240233, 0.1618533105311784, 0.03417282760690066, 0.670498809614021, 0.16780524349209935, 1.8045016700105585, -0.3012597961534294, 0.4064480138415224, 0.2530563478930248, -0.5648952906859239, 0.9915228996786887])
             #self.human_skel.set_positions([0.0, 0.0, 0.0, -0.09486478804170062, 0.16919563098552753, -0.4913244737893412, -1.371164742525659, -0.1465004046206566, 0.3062212857520513, 0.18862771696450964, 0.4970038523987025, -0.09486478804170062, 0.16919563098552753, 0.4913244737893412, -1.371164742525659, 0.1465004046206566, 0.3062212857520513, 0.18862771696450964, 0.4970038523987025, 0.48155552859527917, -0.13660824713013747, 0.6881130165905589])
             #self.humanSPDIntperolationTarget = np.array(self.human_skel.q)
-
-        human_pose = np.array(self.human_skel.q)
-        human_pose[8] = 2.4
-        human_pose[16] = 2.4
-        self.human_skel.set_positions(human_pose)
-        self.humanSPDIntperolationTarget = human_pose
+        else:
+            human_pose = np.array(self.human_skel.q)
+            human_pose[8] = 2.4
+            human_pose[16] = 2.4
+            self.human_skel.set_positions(human_pose)
+            self.humanSPDIntperolationTarget = human_pose
+            self.human_manual_target = np.array(human_pose)
 
         if self.manual_robot_control:
             for iiwa in self.iiwas:
@@ -359,6 +397,39 @@ class DartClothExperimentTestingEnv(DartClothIiwaEnv):
 
         #TODO: load testing
         #self.loadState()
+        if self.initialize_from_distribution:
+
+            if len(self.state_distribution) == 0:
+                for i in range(self.initial_distribution_size):
+                    self.loadState(directory=self.prefix+self.initial_distribution_directory, state_number=i)
+                    self.state_distribution.append(SimState(self, make=True))
+
+            rand_state_index = random.randint(0,self.initial_distribution_size-1)
+            #self.loadState(directory=self.prefix+self.initial_distribution_directory, state_number=rand_state_index)
+            self.state_distribution[rand_state_index].setState()
+
+            # ensure feature normal directions
+            cloth_centroid = self.clothScene.getVertexCentroid(cid=0)
+            self.sleeveLSeamFeature.fitPlane()
+            from_centroid = self.sleeveLSeamFeature.plane.org - cloth_centroid
+            from_centroid = from_centroid / np.linalg.norm(from_centroid)
+            self.sleeveLSeamFeature.fitPlane(normhint=from_centroid)
+
+            self.sleeveRSeamFeature.fitPlane()
+            from_centroid = self.sleeveRSeamFeature.plane.org - cloth_centroid
+            from_centroid = from_centroid / np.linalg.norm(from_centroid)
+            self.sleeveRSeamFeature.fitPlane(normhint=from_centroid)
+
+            self.collarFeature.fitPlane()
+            from_centroid = self.collarFeature.plane.org - cloth_centroid
+            from_centroid = from_centroid / np.linalg.norm(from_centroid)
+            self.collarFeature.fitPlane(normhint=from_centroid)
+
+            self.waistFeature.fitPlane()
+            from_centroid = self.waistFeature.plane.org - cloth_centroid
+            from_centroid = from_centroid / np.linalg.norm(from_centroid)
+            self.waistFeature.fitPlane(normhint=-from_centroid)
+
 
     def _getFile(self):
         return __file__

@@ -56,7 +56,10 @@ def main():
     trial = None
 
     # --- robot TShirt
-    #trial = "experiment_2019_03_26_tshirt_pose" #TODO: still training
+    trial = "experiment_2019_03_30_twoarm_tshirt_demonstration_sym" #TODO: still training
+    #trial = "experiment_2019_03_30_twoarm_tshirt_demonstration" #TODO: still training
+    #trial = "experiment_2019_03_30_tshirt_sym" #TODO: still training
+    #trial = "experiment_2019_03_26_tshirt_pose"
     #trial = "experiment_2019_03_22_twoarm_tshirt_cont"
     #trial = "experiment_2019_03_22_twoarm_tshirt"
     #trial = "experiment_2019_03_22_twoarm_tshirt_06cont3_warm_penalties"

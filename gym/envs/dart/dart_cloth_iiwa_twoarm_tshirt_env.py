@@ -12,6 +12,9 @@ class DartClothIiwaTwoarmTshirtEnv(DartClothIiwaEnv):
         self.initial_distribution_directory = "/assets/state_distributions/assisted_tshirt/"
         self.initial_distribution_size = 8
         self.state_distribution = []
+        self.connectivity_reward = True
+        self.rest_state_reward_terms = []
+        self.connectivity_reward_weight = 30
 
         self.limbNodesR = [3, 4, 5, 6, 7]
         self.limbNodesL = [8, 9, 10, 11, 12]
@@ -111,6 +114,8 @@ class DartClothIiwaTwoarmTshirtEnv(DartClothIiwaEnv):
         #self.robot_obs_manager.addObsFeature(feature=CollisionMPCObsFeature(env=self, is_human=False))
         self.robot_obs_manager.addObsFeature(feature=JointPositionObsFeature(self.human_skel, name="human joint positions"))
 
+
+
         #setup rewards
         #pose: arms outreached above head
         rest_pose = np.array([0.0, 0.0, 0.0, 0.2014567442644234, 0.12976885838990154, 0.07445680418190292, 3.95336417358366, -0.9002739292338819, 0.29925007698275996, 0.4400513472819564, 0.0051886712832222015, 0.2014567442644234, 0.12976885838990154, -0.07445680418190292, 3.95336417358366, 0.9002739292338819, 0.29925007698275996, 0.4400513472819564, 0.0051886712832222015, 0.0, 0.0, 0.0])
@@ -137,6 +142,13 @@ class DartClothIiwaTwoarmTshirtEnv(DartClothIiwaEnv):
         self.reward_manager.addTerm(term=HumanContactRewardTerm(self, weight=4, tanh_params=(2, 0.15, 10)))
 
         self.reward_manager.addTerm(term=BodyDistancePenaltyTerm(self, node1=self.iiwas[0].skel.bodynodes[8], offset1=np.zeros(3), node2=self.iiwas[1].skel.bodynodes[8], offset2=np.zeros(3), target_range=(0,0.4), weight=8))
+
+        if self.connectivity_reward:
+            self.rest_state_reward_terms.append(RestPoseRewardTerm(self.human_skel, pose=np.zeros(len(self.human_skel.q)), weights=np.ones(len(self.human_skel.q))*self.connectivity_reward_weight))
+            self.reward_manager.addTerm(self.rest_state_reward_terms[-1])
+            for iiwa in self.iiwas:
+                self.rest_state_reward_terms.append(RestPoseRewardTerm(iiwa.skel, pose=np.zeros(len(iiwa.skel.q)), weights=np.ones(len(iiwa.skel.q))*self.connectivity_reward_weight))
+                self.reward_manager.addTerm(self.rest_state_reward_terms[-1])
 
         #setup robot symmetry reward
         if False:
@@ -407,6 +419,12 @@ class DartClothIiwaTwoarmTshirtEnv(DartClothIiwaEnv):
             rand_state_index = random.randint(0,self.initial_distribution_size-1)
             #self.loadState(directory=self.prefix+self.initial_distribution_directory, state_number=rand_state_index)
             self.state_distribution[rand_state_index].setState()
+            if self.connectivity_reward:
+                nix = min(len(self.state_distribution)-1, rand_state_index+1)
+                n_state = self.state_distribution[nix]
+                self.rest_state_reward_terms[0].rest_pose = np.array(n_state.human_state[0])
+                for ix, iiwa in enumerate(self.iiwas):
+                    self.rest_state_reward_terms[ix+1].rest_pose = np.array(n_state.robot_state[0][ix])
 
             # ensure feature normal directions
             cloth_centroid = self.clothScene.getVertexCentroid(cid=0)

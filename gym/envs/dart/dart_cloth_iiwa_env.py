@@ -164,6 +164,7 @@ class RestPoseRewardTerm(RewardTerm):
 
     def evaluateReward(self):
         self.previous_evaluation = -np.sum(np.absolute(self.rest_pose-self.skel.q)*self.rest_pose_weights)
+        #print(self.rest_pose)
         return self.previous_evaluation
 
 class LimbProgressRewardTerm(RewardTerm):
@@ -1974,7 +1975,7 @@ class DartClothIiwaEnv(gym.Env):
         self.proxy_render = False
         self.cloth_render = True
         self.detail_render = False
-        self.demo_render = False #if true, render only the body and robot
+        self.demo_render = True #if true, render only the body and robot
         self.simulating = True #used to allow simulation freezing while rendering continues
         self.passive_robots = False #if true, no motor torques from the robot
         self.two_bot_mirror = False #if true, set bot 1 to mirror of bot 2 pose
