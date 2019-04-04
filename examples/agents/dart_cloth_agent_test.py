@@ -56,7 +56,9 @@ def main():
     trial = None
 
     # --- robot TShirt
-    trial = "experiment_2019_03_30_twoarm_tshirt_demonstration_sym" #TODO: still training
+    #trial = "experiment_2019_04_01_twoarm_tshirt_demonstration_connect" #TODO: still training
+    #trial = "experiment_2019_04_01_twoarm_tshirt_demonstration2full" #Garbage
+    #trial = "experiment_2019_03_30_twoarm_tshirt_demonstration_sym" #TODO: still training
     #trial = "experiment_2019_03_30_twoarm_tshirt_demonstration" #TODO: still training
     #trial = "experiment_2019_03_30_tshirt_sym" #TODO: still training
     #trial = "experiment_2019_03_26_tshirt_pose"
@@ -87,7 +89,7 @@ def main():
     # -- new env onearm
     #trial = "experiment_2019_03_28_onearm_gown_tremor"
     #trial = "experiment_2019_03_28_onearm_gown_elbowconstraint"
-    #trial = "experiment_2019_03_27_onearm_robopose"
+    trial = "experiment_2019_03_27_onearm_robopose"
     #trial = "experiment_2019_03_27_onearm_weakstrong_robopose"
     #trial = "experiment_2019_03_26_onearm_robo_staticrand_frame"
     #trial = "experiment_2019_03_26_onearm_robo_staticrand_pose"
@@ -547,6 +549,7 @@ def main():
     #batch loadSave...
     trials = None
 
+
     loadSave = False #now done automatically if policy file not found...
     loadSave_frame = None #if none, use most recent
     #loadSave_frame = 40
@@ -656,9 +659,9 @@ def main():
     #envName = 'DartIiwaGownAssistCoopt-v2'
     #envName = 'DartIiwaGownAssistCoopt_h-v2'
     #envName = 'DartIiwaGownMultibot-v1'
-    #envName = 'DartIiwaOnearmGown-v1'
+    envName = 'DartIiwaOnearmGown-v1'
     #envName = 'DartIiwaTwoarmGown-v1'
-    envName = 'DartIiwaTwoarmTshirt-v1'
+    #envName = 'DartIiwaTwoarmTshirt-v1'
 
     if len(sys.argv) > 1:
         #print(sys.argv[1])
@@ -825,7 +828,7 @@ def main():
     #o = env.reset()
     #useMeanPolicy = False
 
-    for i in range(16):
+    for i in range(21):
         print("-----------------------------------")
         print("  Starting rollout " + str(i))
         print("-----------------------------------")
@@ -837,7 +840,7 @@ def main():
         env.render()
         #time.sleep(0.5)
         rolloutHorizon = 100000
-        #rolloutHorizon = 600
+        rolloutHorizon = 600
         #rolloutHorizon = 1200
         #rolloutHorizon = 200
         #rolloutHorizon = 900

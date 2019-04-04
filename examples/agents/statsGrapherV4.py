@@ -14,18 +14,31 @@ import pyPhysX.renderUtils as renderutils
 if __name__ == '__main__':
 
     #1. set variables
+    filemode = False
     legend = False
     graphStats = False #if true, graph mean/variance instead of data
     singleFrame = False #if true, graph everything on the same graph
     graph0 = True #if true, put a black line through 0 y
-    ymax = 100.0
+    ymax = None
+    #ymax = 100.0
     #ymax = 200
-    ymin = None
+
+    #limb progress
+    ymax = 1.0
+    ymin = -2.0
+
+    #forces
+    ymax = 200.0
+    ymin = 0
+
     unifyScale = True #if true and no limits provided, compute from data min and max
     graphTitle = "Limb Progress"
+    #graphTitle = "Forces"
 
     #2. set closest common directory
-    prefix = "/home/alexander/Documents/frame_capture_output/variations/elbow_data/"
+    #prefix = "/home/alexander/Documents/frame_capture_output/variations/elbow_data/"
+    #prefix = "/home/alexander/Documents/dev/"
+    prefix = "/home/alexander/Documents/dev/data_recording_dir/elbow_constraint/"
 
     #define the matrix structure with remaining directory info:
     #folders = [
@@ -47,25 +60,60 @@ if __name__ == '__main__':
     ]
     #folders = [['baseline']]
 
+    folders = [[""]]
+    titles = [[""]]
+
     #filename = "limbProgressGraphData"
-    filename = "deformationGraphData"
+    #filename = "deformationGraphData"
+    filename = "progress_history.txt"
+
+    '''
+    filenames = [
+        ["max_cloth_contact", "total_cloth_contact"],
+        ["max_rigid_contact", "total_rigid_contact"],
+        ["max_contact", "total_contact"]
+    ]
+
+    titles = [
+        ["max_cloth_contact", "total_cloth_contact"],
+        ["max_rigid_contact", "total_rigid_contact"],
+        ["max_contact", "total_contact"]
+    ]
+    '''
 
     inprefixs = []
-    for f_row in folders:
-        inprefixs.append([])
-        for f in f_row:
-            inprefixs[-1].append(prefix+f+"/")
+
+    if filemode:
+        #file based method
+        for f_row in filenames:
+            inprefixs.append([])
+            for f in f_row:
+                inprefixs[-1].append(prefix + f)
+    else:
+        #folder based method
+
+        for f_row in folders:
+            inprefixs.append([])
+            for f in f_row:
+                inprefixs[-1].append(prefix+f+"/")
+
     outprefix = prefix
 
     print("loading data")
 
-    labels = ["Linear", "RL Policy"]
+    #labels = ["Linear", "RL Policy"]
+    labels = ["label"]
 
     data = []
     for p_row in inprefixs:
         data.append([])
         for p in p_row:
-            data[-1].append(pyutils.loadData2D(filename=p+filename))
+            if filemode:
+                print(p)
+                data[-1].append(pyutils.loadData2D(filename=p))
+            else:
+                print(p + filename)
+                data[-1].append(pyutils.loadData2D(filename=p+filename))
 
     #average over each timestep
     avgs = []

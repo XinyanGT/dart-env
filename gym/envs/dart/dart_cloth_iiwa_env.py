@@ -306,6 +306,43 @@ class HumanContactRewardTerm(RewardTerm):
     def reset(self):
         self.true_max_avg_force = 0
 
+class HumanContactLinearRewardTerm(RewardTerm):
+    #penalty for max avg force percieved by a single human sensor
+    def __init__(self, env, linear_scale=100.0, name="linear human force penalty", weight=1.0, min=-2.0, max=0.0):
+        self.env = env
+        self.linear_scale = linear_scale
+        RewardTerm.__init__(self, name=name, weight=weight, min=min, max=max)
+        self.max_avg_force = 0
+        self.true_max_avg_force = 0
+
+    def evaluateReward(self):
+        cumulative_readings = np.zeros(self.env.haptic_sensor_data["num_sensors"]*3)
+        if self.env.haptic_sensor_data["cloth_steps"] > 0:
+            #average contact forces over the cloth readings
+            cumulative_readings += self.env.haptic_sensor_data["cloth_data"]/self.env.haptic_sensor_data["cloth_steps"]
+        if self.env.haptic_sensor_data["rigid_steps"] > 0:
+            #average contact forces over the rigid readings
+            cumulative_readings += self.env.haptic_sensor_data["rigid_data"] / self.env.haptic_sensor_data["rigid_steps"]
+
+        max_avg_force = 0
+        for s in range(self.env.haptic_sensor_data["num_sensors"]):
+            f = cumulative_readings[s*3:s*3+3]
+            f_mag = np.linalg.norm(f)
+            max_avg_force = max(f_mag, max_avg_force)
+
+        # note, this tanh will return [0,-2], so divide by 2 to get min = -weight
+        self.previous_evaluation = (max_avg_force/self.linear_scale) * self.weight
+        self.max_avg_force = max_avg_force
+        self.true_max_avg_force = max(self.true_max_avg_force, self.max_avg_force)
+        return self.previous_evaluation
+
+    def draw(self):
+        self.env.text_queue.append("max_avg_force: " + str(self.max_avg_force) + " -> reward: " + str(self.previous_evaluation))
+        self.env.text_queue.append("true_max_avg_force: " + str(self.true_max_avg_force))
+
+    def reset(self):
+        self.true_max_avg_force = 0
+
 class BodyDistancePenaltyTerm(RewardTerm):
     #penalty for distance between two bodynode offset points outside a range
     def __init__(self, env, node1=None, offset1=np.zeros(3), node2=None, offset2=np.zeros(3), target_range=(0,1.0), name="body distance penalty", weight=1.0, min=-1.0, max=0.0):
@@ -474,6 +511,7 @@ class HumanHapticObsFeature(ObservationFeature):
         self.prev_obs = np.zeros(dim)
         self.mag_scale = mag_scale
 
+
     def getObs(self):
         cloth_data = np.zeros(self.env.haptic_sensor_data["num_sensors"]*3)
         rigid_data = np.zeros(self.env.haptic_sensor_data["num_sensors"]*3)
@@ -491,15 +529,36 @@ class HumanHapticObsFeature(ObservationFeature):
         #normalize the readings to max 30N
         max_cloth_force = 0
         max_rigid_force = 0
+        total_cloth_force = 0
+        total_rigid_force = 0
+        max_force = 0
+        total_force = 0
         for s in range(self.env.haptic_sensor_data["num_sensors"]):
             f = obs[s*3:s*3+3]
+            f_true_mag = np.linalg.norm(obs[s*3:s*3+3])
             f /= self.mag_scale
             f_mag = np.linalg.norm(f)
             if(f_mag > 1.0):
                f /= f_mag
             obs[s*3:s*3+3] = f
-            max_cloth_force = max(max_cloth_force, np.linalg.norm(cloth_data[s*3:s*3+3]))
-            max_rigid_force = max(max_rigid_force, np.linalg.norm(rigid_data[s*3:s*3+3]))
+            cloth_f_mag = np.linalg.norm(cloth_data[s*3:s*3+3])
+            rigid_f_mag = np.linalg.norm(rigid_data[s*3:s*3+3])
+            max_cloth_force = max(max_cloth_force, cloth_f_mag)
+            max_rigid_force = max(max_rigid_force, rigid_f_mag)
+            max_force = max(max_force, f_true_mag)
+            total_cloth_force += cloth_f_mag
+            total_rigid_force += rigid_f_mag
+            total_force += f_true_mag
+
+        #fill in the datastructure
+        if self.env.recording_contact and len(self.env.contact_record["max_cloth_contact"]) > 0:
+            if len(self.env.contact_record["max_cloth_contact"][-1]) > 0:
+                self.env.contact_record["max_cloth_contact"][-1][-1] = max_cloth_force
+                self.env.contact_record["total_cloth_contact"][-1][-1] = total_cloth_force
+                self.env.contact_record["max_rigid_contact"][-1][-1] = max_rigid_force
+                self.env.contact_record["total_rigid_contact"][-1][-1] = total_rigid_force
+                self.env.contact_record["max_contact"][-1][-1] = max_force
+                self.env.contact_record["total_contact"][-1][-1] = total_force
 
         self.env.text_queue.append("max_cloth_force = " + str(max_cloth_force))
         self.env.text_queue.append("max_rigid_force = " + str(max_rigid_force))
@@ -1938,10 +1997,27 @@ class DressingTarget:
         self.limb_sequence = limb_sequence
         self.distal_offset = distal_offset
         self.previous_evaluation = 0
+        self.history = [] #list of episodes
+        self.previous_recording = -1
+        self.progress_graph = None
+        self.index = len(self.env.dressing_targets)
 
     def getLimbProgress(self):
         self.previous_evaluation = pyutils.limbFeatureProgress(limb=pyutils.limbFromNodeSequence(self.skel, nodes=self.limb_sequence, offset=self.distal_offset), feature=self.feature)
+        if len(self.history) > 0:
+            if self.previous_recording is not self.env.numSteps:
+                self.previous_recording = self.env.numSteps
+                self.history[-1].append(self.previous_evaluation)
         return self.previous_evaluation
+
+    def reset(self):
+        if len(self.history) > 0 and self.env.recording_progress:
+            self.save_history(filename=self.env.recording_directory+"/progress_history"+str(self.index)+".txt")
+        self.history.append([])
+        self.previous_recording = -1
+
+    def save_history(self, filename):
+        pyutils.saveList(list=self.history,filename=filename,listoflists=True)
 
 class DartClothIiwaEnv(gym.Env):
     """Superclass for all Dart, PhysX Cloth, Human/Iiwa interaction environments.
@@ -1966,11 +2042,17 @@ class DartClothIiwaEnv(gym.Env):
         :param robot_root_dofs: list of 6 root dof value lists, one entry per robot to be initialized
         '''
 
+        #recording flags
+        self.recording_progress = False
+        self.recording_contact = False
+        self.contact_record = {"max_cloth_contact":[], "total_cloth_contact":[], "max_rigid_contact":[], "total_rigid_contact":[], "max_contact":[], "total_contact":[]} #each list contains a list per episode
+        self.recording_directory = "data_recording_dir/tremor"
+
         #setup some flags
         self.dual_policy = dual_policy #if true, expect an action space concatenation of human/robot(s)
         self.dualPolicy = dual_policy
         self.is_human = is_human #(ignore if dualPolicy is True) if true, human action space is active, otherwise robot action space is active.
-        self.rendering = False
+        self.rendering = True
         self.dart_render = True
         self.proxy_render = False
         self.cloth_render = True
@@ -2373,6 +2455,14 @@ class DartClothIiwaEnv(gym.Env):
 
     def _step(self, a):
 
+        # add new contact record
+        if self.recording_contact:
+            #print(self.contact_record)
+            for key,val in self.contact_record.items():
+                #print(key)
+                #print(val)
+                val[-1].append(0)
+
         if not self.rendering:
             #clear the text queue to free memory if not actually rendering
             self.text_queue = []
@@ -2615,6 +2705,24 @@ class DartClothIiwaEnv(gym.Env):
         self.human_obs_manager.reset()
         self.robot_obs_manager.reset()
         self.reward_manager.reset()
+
+        if self.recording_contact or self.recording_progress:
+            if not os.path.isdir(self.recording_directory):
+                os.makedirs(self.recording_directory)
+
+        #just increments the history one episode (and saves)
+        for d_tar in self.dressing_targets:
+            d_tar.reset()
+
+        #increment history and save
+        if self.recording_contact:
+            #print("HERE!!!!!!!!!!!!!")
+            #print(self.contact_record)
+            for key,val in self.contact_record.items():
+                if len(val) > 0:
+                    pyutils.saveList(list=val, filename=self.recording_directory+"/"+key, listoflists=True)
+                val.append([])
+            #print(self.contact_record)
 
         #reset the MPC collision structures
         self.human_collision_warning = 1.0
