@@ -14,31 +14,32 @@ import pyPhysX.renderUtils as renderutils
 if __name__ == '__main__':
 
     #1. set variables
-    filemode = False
+    filemode = True
     legend = False
     graphStats = False #if true, graph mean/variance instead of data
     singleFrame = False #if true, graph everything on the same graph
     graph0 = True #if true, put a black line through 0 y
     ymax = None
+    ymin = None
     #ymax = 100.0
     #ymax = 200
 
     #limb progress
-    ymax = 1.0
-    ymin = -2.0
+    #ymax = 1.0
+    #ymin = -2.0
 
     #forces
-    ymax = 200.0
-    ymin = 0
+    #ymax = 500.0
+    #ymin = 0
 
     unifyScale = True #if true and no limits provided, compute from data min and max
-    graphTitle = "Limb Progress"
-    #graphTitle = "Forces"
+    #graphTitle = "Limb Progress"
+    graphTitle = "Forces"
 
     #2. set closest common directory
     #prefix = "/home/alexander/Documents/frame_capture_output/variations/elbow_data/"
     #prefix = "/home/alexander/Documents/dev/"
-    prefix = "/home/alexander/Documents/dev/data_recording_dir/elbow_constraint/"
+    prefix = "/home/alexander/Documents/dev/data_recording_dir/curr_expandedtanh/"
 
     #define the matrix structure with remaining directory info:
     #folders = [
@@ -67,7 +68,7 @@ if __name__ == '__main__':
     #filename = "deformationGraphData"
     filename = "progress_history.txt"
 
-    '''
+    ''''''
     filenames = [
         ["max_cloth_contact", "total_cloth_contact"],
         ["max_rigid_contact", "total_rigid_contact"],
@@ -79,7 +80,7 @@ if __name__ == '__main__':
         ["max_rigid_contact", "total_rigid_contact"],
         ["max_contact", "total_contact"]
     ]
-    '''
+    ''''''
 
     inprefixs = []
 

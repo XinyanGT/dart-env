@@ -87,9 +87,13 @@ def main():
     # ---
 
     # -- new env onearm
+
+    trial = "experiment_2019_04_04_onearm_typical_curr_expandedtanhcontactscale"
+    #trial = "experiment_2019_04_04_onearm_typical_curr_+tanhcontactscale"
+    #trial = "experiment_2019_04_04_onearm_typical_curr_linearcontactscale"
     #trial = "experiment_2019_03_28_onearm_gown_tremor"
     #trial = "experiment_2019_03_28_onearm_gown_elbowconstraint"
-    trial = "experiment_2019_03_27_onearm_robopose"
+    #trial = "experiment_2019_03_27_onearm_robopose"
     #trial = "experiment_2019_03_27_onearm_weakstrong_robopose"
     #trial = "experiment_2019_03_26_onearm_robo_staticrand_frame"
     #trial = "experiment_2019_03_26_onearm_robo_staticrand_pose"
@@ -548,7 +552,6 @@ def main():
 
     #batch loadSave...
     trials = None
-
 
     loadSave = False #now done automatically if policy file not found...
     loadSave_frame = None #if none, use most recent

@@ -9,6 +9,8 @@ class DartClothIiwaOnearmEnv(DartClothIiwaEnv):
         manual_human_control = False
         self.pose_distribution = False
         self.manual_poses = []
+        self.robo_vel_limit = 3.0
+        #self.robo_vel_limit = 0.25
 
         self.limbNodesR = [3, 4, 5, 6, 7]
         self.limbNodesL = [8, 9, 10, 11, 12]
@@ -96,9 +98,9 @@ class DartClothIiwaOnearmEnv(DartClothIiwaEnv):
         self.reward_manager.addTerm(term=RestPoseRewardTerm(self.human_skel, pose=np.zeros(self.human_skel.ndofs), weights=rest_pose_weights))
         self.reward_manager.addTerm(term=LimbProgressRewardTerm(dressing_target=self.dressing_targets[0], terminal=True, success_threshold=0.8, weight=40))
         self.reward_manager.addTerm(term=ClothDeformationRewardTerm(self, weight=5))
-        self.reward_manager.addTerm(term=HumanContactRewardTerm(self, weight=5, tanh_params=(2, 0.15, 10))) #saturates at ~10 and ~38
-        self.reward_manager.addTerm(term=HumanContactRewardTerm(self, weight=25, tanh_params=(3, 0.05, 0))) #saturates at ~20 and ~100
-        #self.reward_manager.addTerm(term=HumanContactLinearRewardTerm(self, weight=25, linear_scale=100.0))
+        #self.reward_manager.addTerm(term=HumanContactRewardTerm(self, weight=5, tanh_params=(2, 0.15, 10))) #saturates at ~10 and ~38
+        #self.reward_manager.addTerm(term=HumanContactRewardTerm(self, weight=25, tanh_params=(3, 0.05, 0))) #saturates at ~20 and ~100
+        self.reward_manager.addTerm(term=HumanContactLinearRewardTerm(self, weight=25, linear_scale=100.0))
 
         #set the observation space
         self.obs_dim = self.human_obs_manager.obs_size
@@ -112,6 +114,12 @@ class DartClothIiwaOnearmEnv(DartClothIiwaEnv):
 
     def additionalResets(self):
         # setting the orientation of the pyBulletIiwa, other settings are unnecessary as we give rest poses for IK
+
+        if self.robo_vel_limit is not None:
+            for iiwa in self.iiwas:
+                for dof in iiwa.skel.dofs:
+                    dof.set_velocity_upper_limit(self.robo_vel_limit)
+                    dof.set_velocity_lower_limit(-self.robo_vel_limit)
 
         #set manual target to random pose
         if self.manual_human_control:

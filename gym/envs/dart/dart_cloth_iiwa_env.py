@@ -330,8 +330,7 @@ class HumanContactLinearRewardTerm(RewardTerm):
             f_mag = np.linalg.norm(f)
             max_avg_force = max(f_mag, max_avg_force)
 
-        # note, this tanh will return [0,-2], so divide by 2 to get min = -weight
-        self.previous_evaluation = (max_avg_force/self.linear_scale) * self.weight
+        self.previous_evaluation = -(max_avg_force/self.linear_scale) * self.weight
         self.max_avg_force = max_avg_force
         self.true_max_avg_force = max(self.true_max_avg_force, self.max_avg_force)
         return self.previous_evaluation
@@ -1734,7 +1733,8 @@ class Iiwa:
         print(" Dofs: ")
         for ix, dof in enumerate(self.skel.dofs):
             print("     " + str(ix) + " : " + dof.name)
-            print("         llim: " + str(dof.position_lower_limit()) + ", ulim: " + str(dof.position_upper_limit()))
+            print("         t_llim: " + str(dof.position_lower_limit()) + ", t_ulim: " + str(dof.position_upper_limit()))
+            print("         v_llim: " + str(dof.velocity_lower_limit()) + ", v_ulim: " + str(dof.velocity_upper_limit()))
 
     def computeIK(self, maxIter=10):
         #compute IK from current ikTarget frame
@@ -1817,6 +1817,17 @@ class Iiwa:
                         tau[t] = 0
 
         return tau
+
+    def limitVelocity(self):
+        # limit velocity...
+        dq = self.skel.dq
+        u_vel_lims = np.zeros(len(self.skel.dq))
+        l_vel_lims = np.zeros(len(self.skel.dq))
+        for ix, dof in enumerate(self.skel.dofs):
+            u_vel_lims[ix] = dof.velocity_upper_limit()
+            l_vel_lims[ix] = dof.velocity_lower_limit()
+        dq = np.clip(dq, l_vel_lims, u_vel_lims)
+        self.skel.set_velocities(dq)
 
     def controlFrame(self, control):
         #update the interpolation frame from a control signal (6 dof position and angle update)
@@ -2046,13 +2057,13 @@ class DartClothIiwaEnv(gym.Env):
         self.recording_progress = False
         self.recording_contact = False
         self.contact_record = {"max_cloth_contact":[], "total_cloth_contact":[], "max_rigid_contact":[], "total_rigid_contact":[], "max_contact":[], "total_contact":[]} #each list contains a list per episode
-        self.recording_directory = "data_recording_dir/tremor"
+        self.recording_directory = "data_recording_dir/curr_expandedtanh"
 
         #setup some flags
         self.dual_policy = dual_policy #if true, expect an action space concatenation of human/robot(s)
         self.dualPolicy = dual_policy
         self.is_human = is_human #(ignore if dualPolicy is True) if true, human action space is active, otherwise robot action space is active.
-        self.rendering = True
+        self.rendering = False
         self.dart_render = True
         self.proxy_render = False
         self.cloth_render = True
@@ -2064,7 +2075,7 @@ class DartClothIiwaEnv(gym.Env):
         self.active_compliance = active_compliance
         self.manual_robot_control = False
         self.manual_human_control = manual_human_control
-        self.print_skel_details = False
+        self.print_skel_details = True
         self.data_driven_joint_limits = True
         self.screen_size = (720, 720)
         if self.detail_render:
@@ -2455,6 +2466,9 @@ class DartClothIiwaEnv(gym.Env):
 
     def _step(self, a):
 
+        #max_vel = np.amax(np.abs(self.iiwas[0].skel.dq))
+        #print("max velocity: " + str(max_vel))
+
         # add new contact record
         if self.recording_contact:
             #print(self.contact_record)
@@ -2623,6 +2637,9 @@ class DartClothIiwaEnv(gym.Env):
                     iiwa.skel.set_forces(iiwa.computeTorque())
 
             self.dart_world.step()
+
+            for iiwa in self.iiwas:
+                iiwa.limitVelocity()
 
             if self.checkInvalidDynamics():
                 #we have found simulator instability, cancel simulation and prepare for termination
