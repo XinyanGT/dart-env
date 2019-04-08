@@ -90,7 +90,7 @@ def main():
 
     #trial = "experiment_2019_04_05_onearm_typical_curr_linearcontactscale"
     #trial = "experiment_2019_04_05_onearm_typical_curr_robovel025"
-    #trial = "experiment_2019_04_05_onearm_typical_robovel025"
+    trial = "experiment_2019_04_05_onearm_typical_robovel025"
     #trial = "experiment_2019_04_04_onearm_typical_curr_expandedtanhcontactscale"
     #trial = "experiment_2019_04_04_onearm_typical_curr_+tanhcontactscale"
     #trial = "experiment_2019_04_04_onearm_typical_curr_linearcontactscale"
