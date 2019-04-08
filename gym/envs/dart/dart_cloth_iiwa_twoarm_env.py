@@ -2,12 +2,12 @@ from gym.envs.dart.dart_cloth_iiwa_env import *
 
 class DartClothIiwaTwoarmEnv(DartClothIiwaEnv):
     def __init__(self):
-        dual_policy = False
-        is_human = False
+        dual_policy = True
+        is_human = True
 
         iiwa_control_mode = 1  # 0=frame control, 1=pose control
         # manual control config
-        manual_human_control = True
+        manual_human_control = False
 
         self.limbNodesR = [3, 4, 5, 6, 7]
         self.limbNodesL = [8, 9, 10, 11, 12]
@@ -90,13 +90,14 @@ class DartClothIiwaTwoarmEnv(DartClothIiwaEnv):
         rest_pose_weights[2] *= 5 #spine
         #rest_pose_weights[3:11] *= 0 #ignore active arm
         #rest_pose_weights[11:19] *= 2 #passive arm
-        rest_pose_weights[3:19] *= 0 #ignore rest pose
+        rest_pose_weights[3:19] *= 0.25 #rest pose for arms
         rest_pose_weights[19:] *= 4 #stable head
         self.reward_manager.addTerm(term=RestPoseRewardTerm(self.human_skel, pose=np.zeros(self.human_skel.ndofs), weights=rest_pose_weights))
-        self.reward_manager.addTerm(term=LimbProgressRewardTerm(dressing_target=self.dressing_targets[0], terminal=True, weight=40))
-        self.reward_manager.addTerm(term=LimbProgressRewardTerm(dressing_target=self.dressing_targets[1], terminal=True, weight=40))
+        self.reward_manager.addTerm(term=LimbProgressRewardTerm(dressing_target=self.dressing_targets[0], terminal=True, success_threshold=0.8, weight=40))
+        self.reward_manager.addTerm(term=LimbProgressRewardTerm(dressing_target=self.dressing_targets[1], terminal=True, success_threshold=0.8, weight=40))
         self.reward_manager.addTerm(term=ClothDeformationRewardTerm(self, weight=5))
         self.reward_manager.addTerm(term=HumanContactRewardTerm(self, weight=5, tanh_params=(2, 0.15, 10)))
+        self.reward_manager.addTerm(term=HumanContactLinearRewardTerm(self, weight=25, linear_scale=100.0))
 
         #set the observation space
         self.obs_dim = self.human_obs_manager.obs_size
