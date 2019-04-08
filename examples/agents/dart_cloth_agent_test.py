@@ -88,7 +88,10 @@ def main():
 
     # -- new env onearm
 
-    trial = "experiment_2019_04_04_onearm_typical_curr_expandedtanhcontactscale"
+    #trial = "experiment_2019_04_05_onearm_typical_curr_linearcontactscale"
+    #trial = "experiment_2019_04_05_onearm_typical_curr_robovel025"
+    #trial = "experiment_2019_04_05_onearm_typical_robovel025"
+    #trial = "experiment_2019_04_04_onearm_typical_curr_expandedtanhcontactscale"
     #trial = "experiment_2019_04_04_onearm_typical_curr_+tanhcontactscale"
     #trial = "experiment_2019_04_04_onearm_typical_curr_linearcontactscale"
     #trial = "experiment_2019_03_28_onearm_gown_tremor"
@@ -555,7 +558,7 @@ def main():
 
     loadSave = False #now done automatically if policy file not found...
     loadSave_frame = None #if none, use most recent
-    #loadSave_frame = 40
+    #loadSave_frame = 20
     graphOnly = False #if true, exit() after graphing
     demoSave = False #if true, create an exp named demo folder and render into it
 
@@ -570,7 +573,7 @@ def main():
                         frame_num = str(loadSave_frame)
                     params_file = prefix + b_trial + "/params" + frame_num + ".pkl"
                     data = joblib.load(params_file)
-                    print("loaded the pkl file")
+                    print("loaded the pkl file: " + str(params_file))
                     policy = data['policy']
                     pickle.dump(policy, open(prefix + b_trial + "/policy.pkl", "wb"))
                     print("saved the policy")
@@ -584,7 +587,7 @@ def main():
                     frame_num = str(loadSave_frame)
                 params_file = prefix+trial+"/params"+frame_num+".pkl"
                 data = joblib.load(params_file)
-                print("loaded the pkl file")
+                print("loaded the pkl file: " + str(params_file))
                 policy = data['policy']
                 pickle.dump(policy, open(prefix+trial+"/policy.pkl", "wb"))
                 print("saved the policy")
