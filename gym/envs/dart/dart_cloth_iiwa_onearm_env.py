@@ -12,7 +12,7 @@ class DartClothIiwaOnearmEnv(DartClothIiwaEnv):
         self.robo_vel_limit = 3.0
         self.human_vel_limit = 3.0
         self.robo_vel_limit = 0.25 #slow robot
-        self.human_vel_limit = 0.65 #slow human
+        #self.human_vel_limit = 0.65 #slow human
 
         self.limbNodesR = [3, 4, 5, 6, 7]
         self.limbNodesL = [8, 9, 10, 11, 12]
