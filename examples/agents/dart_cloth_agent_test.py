@@ -89,7 +89,7 @@ def main():
 
     # -- new env onearm
     #trial = "experiment_2019_04_08_onearm_curr_weak_linearpen"
-    #trial = "experiment_2019_04_08_onearm_curr_slowrobo_linearpen"
+    trial = "experiment_2019_04_08_onearm_curr_slowrobo_linearpen"
     #trial = "experiment_2019_04_08_onearm_curr_tremor_linearpen"
     #trial = "experiment_2019_04_08_onearm_curr_elbowconstraint_linearpen"
     #trial = "experiment_2019_04_08_onearm_fresh_typical_linearpen"
@@ -671,8 +671,8 @@ def main():
     #envName = 'DartIiwaGownAssistCoopt-v2'
     #envName = 'DartIiwaGownAssistCoopt_h-v2'
     #envName = 'DartIiwaGownMultibot-v1'
-    #envName = 'DartIiwaOnearmGown-v1'
-    envName = 'DartIiwaTwoarmGown-v1'
+    envName = 'DartIiwaOnearmGown-v1'
+    #envName = 'DartIiwaTwoarmGown-v1'
     #envName = 'DartIiwaTwoarmTshirt-v1'
 
     if len(sys.argv) > 1:

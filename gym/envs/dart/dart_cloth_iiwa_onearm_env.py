@@ -10,7 +10,9 @@ class DartClothIiwaOnearmEnv(DartClothIiwaEnv):
         self.pose_distribution = False
         self.manual_poses = []
         self.robo_vel_limit = 3.0
-        #self.robo_vel_limit = 0.25 #slow robot
+        self.human_vel_limit = 3.0
+        self.robo_vel_limit = 0.25 #slow robot
+        self.human_vel_limit = 0.65 #slow human
 
         self.limbNodesR = [3, 4, 5, 6, 7]
         self.limbNodesL = [8, 9, 10, 11, 12]
@@ -68,7 +70,7 @@ class DartClothIiwaOnearmEnv(DartClothIiwaEnv):
         #self.human_obs_manager.addObsFeature(feature=CollisionMPCObsFeature(env=self,is_human=True))
         #self.human_obs_manager.addObsFeature(feature=WeaknessScaleObsFeature(self,self.limbDofs[1],scale_range=(0.1,0.6)))
         #self.human_obs_manager.addObsFeature(feature=ActionTremorObsFeature(self,self.limbDofs[1],scale_ranges=np.ones(len(self.limbDofs[1]))*0.15))
-        self.human_obs_manager.addObsFeature(feature=JointConstraintObsFeature(self,dof=16,u_constraint_range=(0.5,2.85),l_constraint_range=(0.21,2.0), mode=0))
+        #self.human_obs_manager.addObsFeature(feature=JointConstraintObsFeature(self,dof=16,u_constraint_range=(0.5,2.85),l_constraint_range=(0.21,2.0), mode=0))
 
         self.human_obs_manager.addObsFeature(feature=OracleObsFeature(env=self,sensor_ix=21,dressing_target=self.dressing_targets[-1],sep_mesh=self.separated_meshes[-1]))
         for iiwa in self.iiwas:
@@ -120,6 +122,11 @@ class DartClothIiwaOnearmEnv(DartClothIiwaEnv):
                 for dof in iiwa.skel.dofs:
                     dof.set_velocity_upper_limit(self.robo_vel_limit)
                     dof.set_velocity_lower_limit(-self.robo_vel_limit)
+
+        if self.human_vel_limit is not None:
+            for dof in self.human_skel.dofs:
+                dof.set_velocity_upper_limit(self.human_vel_limit)
+                dof.set_velocity_lower_limit(-self.human_vel_limit)
 
         #set manual target to random pose
         if self.manual_human_control:

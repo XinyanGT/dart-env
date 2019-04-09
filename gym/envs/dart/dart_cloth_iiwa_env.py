@@ -2647,8 +2647,11 @@ class DartClothIiwaEnv(gym.Env):
 
             self.dart_world.step()
 
+            #limit velocities as necessary
             for iiwa in self.iiwas:
-                iiwa.limitVelocity()
+                self.limitVelocity(iiwa.skel)
+
+            self.limitVelocity(self.human_skel)
 
             if self.checkInvalidDynamics():
                 #we have found simulator instability, cancel simulation and prepare for termination
@@ -3619,3 +3622,14 @@ class DartClothIiwaEnv(gym.Env):
             for iiwa in self.iiwas:
                 shutil.copy2( directory + "iiwa"+str(iiwa.index)+"_%05d" % 0, directory + "iiwa"+str(iiwa.index)+"_%05d" % s)
             shutil.copy2( directory+"cloth_%05d" % 0, directory+"cloth_%05d" % s)
+
+    def limitVelocity(self, skel):
+        # limit velocity...
+        dq = skel.dq
+        u_vel_lims = np.zeros(len(skel.dq))
+        l_vel_lims = np.zeros(len(skel.dq))
+        for ix, dof in enumerate(skel.dofs):
+            u_vel_lims[ix] = dof.velocity_upper_limit()
+            l_vel_lims[ix] = dof.velocity_lower_limit()
+        dq = np.clip(dq, l_vel_lims, u_vel_lims)
+        skel.set_velocities(dq)
