@@ -10,8 +10,8 @@ class DartClothIiwaOnearmEnv(DartClothIiwaEnv):
         self.pose_distribution = False
         self.manual_poses = []
         self.robo_vel_limit = 3.0
-        self.human_vel_limit = 3.0
-        self.robo_vel_limit = 0.25 #slow robot
+        self.human_vel_limit = 5.0
+        #self.robo_vel_limit = 0.25 #slow robot
         #self.human_vel_limit = 0.65 #slow human
 
         self.limbNodesR = [3, 4, 5, 6, 7]
@@ -102,7 +102,7 @@ class DartClothIiwaOnearmEnv(DartClothIiwaEnv):
         self.reward_manager.addTerm(term=ClothDeformationRewardTerm(self, weight=5))
         self.reward_manager.addTerm(term=HumanContactRewardTerm(self, weight=5, tanh_params=(2, 0.15, 10))) #saturates at ~10 and ~38
         #self.reward_manager.addTerm(term=HumanContactRewardTerm(self, weight=25, tanh_params=(3, 0.05, 0))) #saturates at ~20 and ~100
-        self.reward_manager.addTerm(term=HumanContactLinearRewardTerm(self, weight=25, linear_scale=100.0))
+        self.reward_manager.addTerm(term=HumanContactLinearRewardTerm(self, weight=25, linear_scale=10.0))
 
         #set the observation space
         self.obs_dim = self.human_obs_manager.obs_size
