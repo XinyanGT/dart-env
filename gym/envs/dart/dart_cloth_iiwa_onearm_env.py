@@ -68,7 +68,7 @@ class DartClothIiwaOnearmEnv(DartClothIiwaEnv):
         #self.human_obs_manager.addObsFeature(feature=DataDrivenJointLimitsObsFeature(self))
 
         #self.human_obs_manager.addObsFeature(feature=CollisionMPCObsFeature(env=self,is_human=True))
-        #self.human_obs_manager.addObsFeature(feature=WeaknessScaleObsFeature(self,self.limbDofs[1],scale_range=(0.1,0.6)))
+        self.human_obs_manager.addObsFeature(feature=WeaknessScaleObsFeature(self,self.limbDofs[1],scale_range=(0.1,0.6)))
         #self.human_obs_manager.addObsFeature(feature=ActionTremorObsFeature(self,self.limbDofs[1],scale_ranges=np.ones(len(self.limbDofs[1]))*0.15))
         #self.human_obs_manager.addObsFeature(feature=JointConstraintObsFeature(self,dof=16,u_constraint_range=(0.5,2.85),l_constraint_range=(0.21,2.0), mode=0))
 
@@ -102,7 +102,7 @@ class DartClothIiwaOnearmEnv(DartClothIiwaEnv):
         self.reward_manager.addTerm(term=ClothDeformationRewardTerm(self, weight=5))
         self.reward_manager.addTerm(term=HumanContactRewardTerm(self, weight=5, tanh_params=(2, 0.15, 10))) #saturates at ~10 and ~38
         #self.reward_manager.addTerm(term=HumanContactRewardTerm(self, weight=25, tanh_params=(3, 0.05, 0))) #saturates at ~20 and ~100
-        self.reward_manager.addTerm(term=HumanContactLinearRewardTerm(self, weight=25, linear_scale=10.0))
+        self.reward_manager.addTerm(term=HumanContactLinearRewardTerm(self, weight=25, linear_scale=100.0))
 
         #set the observation space
         self.obs_dim = self.human_obs_manager.obs_size
