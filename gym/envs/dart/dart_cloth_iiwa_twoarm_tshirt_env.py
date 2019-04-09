@@ -119,6 +119,7 @@ class DartClothIiwaTwoarmTshirtEnv(DartClothIiwaEnv):
         #setup rewards
         #pose: arms outreached above head
         rest_pose = np.array([0.0, 0.0, 0.0, 0.2014567442644234, 0.12976885838990154, 0.07445680418190292, 3.95336417358366, -0.9002739292338819, 0.29925007698275996, 0.4400513472819564, 0.0051886712832222015, 0.2014567442644234, 0.12976885838990154, -0.07445680418190292, 3.95336417358366, 0.9002739292338819, 0.29925007698275996, 0.4400513472819564, 0.0051886712832222015, 0.0, 0.0, 0.0])
+
         rest_pose_weights = np.ones(self.human_skel.ndofs)
         rest_pose_weights[:2] *= 40 #stable torso
         rest_pose_weights[2] *= 5 #spine

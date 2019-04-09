@@ -14,7 +14,7 @@ import pyPhysX.renderUtils as renderutils
 if __name__ == '__main__':
 
     #1. set variables
-    filemode = True
+    filemode = False
     legend = False
     graphStats = True #if true, graph mean/variance instead of data
     singleFrame = False #if true, graph everything on the same graph
@@ -25,11 +25,11 @@ if __name__ == '__main__':
     #ymax = 200
 
     #limb progress
-    #ymax = 1.0
-    #ymin = -2.0
+    ymax = 1.0
+    ymin = -2.0
 
     #forces
-    ymax = 500.0
+    #ymax = 500.0
     #ymin = 0
 
     unifyScale = True #if true and no limits provided, compute from data min and max
@@ -41,17 +41,47 @@ if __name__ == '__main__':
     #prefix = "/home/alexander/Documents/dev/"
     prefix = "/home/alexander/Documents/dev/data_recording_dir/curr_expandedtanh/"
     prefixes = [prefix]
-    prefixes = [
-        "/home/alexander/Documents/dev/data_recording_dir/typical/",
-        "/home/alexander/Documents/dev/data_recording_dir/tremor/",
+
+    #typical trials
+
+    prefixes_typical = [
         "/home/alexander/Documents/dev/data_recording_dir/elbow_constraint/",
+        "/home/alexander/Documents/dev/data_recording_dir/tremor/",
         "/home/alexander/Documents/dev/data_recording_dir/weakness/",
-        "/home/alexander/Documents/dev/data_recording_dir/twoarm_gown/",
+        "/home/alexander/Documents/dev/data_recording_dir/typical/",
+        "/home/alexander/Documents/dev/data_recording_dir/vel025/",
+    ]
+
+
+    #curriculum trials
+    prefixes_curr = [
         "/home/alexander/Documents/dev/data_recording_dir/curr_expandedtanh/",
         "/home/alexander/Documents/dev/data_recording_dir/curr_+tanh/",
-        "/home/alexander/Documents/dev/data_recording_dir/curr_linear/",
-        "/home/alexander/Documents/dev/data_recording_dir/vel025/"
+        "/home/alexander/Documents/dev/data_recording_dir/curr_typical_shortH/",
+        "/home/alexander/Documents/dev/data_recording_dir/curr_weak_linearconpen/",
+        "/home/alexander/Documents/dev/data_recording_dir/curr_tremor_linearconpen/",
+        "/home/alexander/Documents/dev/data_recording_dir/curr_slowrobo_linearconpen/",
+        "/home/alexander/Documents/dev/data_recording_dir/curr_elbowcon_linearconpen/"
     ]
+
+    #fresh linear contact pen trials
+
+    prefixes_fresh = [
+        "/home/alexander/Documents/dev/data_recording_dir/fresh_typical_linearconpen/",
+        #TODO
+    ]
+
+
+    #two arm trials
+
+    prefixes_twoarm = [
+        "/home/alexander/Documents/dev/data_recording_dir/curr_twoarm_linearconpen/",
+        "/home/alexander/Documents/dev/data_recording_dir/twoarm_gown/"
+    ]
+
+    prefixes = prefixes_fresh
+
+
     for prefix in prefixes:
         #define the matrix structure with remaining directory info:
         #folders = [
@@ -78,9 +108,13 @@ if __name__ == '__main__':
 
         #filename = "limbProgressGraphData"
         #filename = "deformationGraphData"
-        filename = "progress_history.txt"
+        filename = "progress_history0.txt"
 
-        ''''''
+        #filenames = [[ "progress_history0.txt", "progress_history1.txt"]]
+
+        #titles = [[ "limb 0 progress", "limb 1 progress"]]
+
+        '''
         filenames = [
             ["max_cloth_contact", "total_cloth_contact"],
             ["max_rigid_contact", "total_rigid_contact"],
@@ -92,7 +126,7 @@ if __name__ == '__main__':
             ["max_rigid_contact", "total_rigid_contact"],
             ["max_contact", "total_contact"]
         ]
-        ''''''
+        '''
 
         inprefixs = []
 

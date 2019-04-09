@@ -86,13 +86,15 @@ class DartClothIiwaTwoarmEnv(DartClothIiwaEnv):
 
         #setup rewards
         rest_pose_weights = np.ones(self.human_skel.ndofs)
+        #arms outstretched
+        rest_pose = np.array([0.0, 0.0, 0.0, -0.09486478804170062, 0.16919563098552753, -0.4913244737893412, -1.371164742525659, -0.1465004046206566, 0.3062212857520513, 0.18862771696450964, 0.4970038523987025, -0.09486478804170062, 0.16919563098552753, 0.4913244737893412, -1.371164742525659, 0.1465004046206566, 0.3062212857520513, 0.18862771696450964, 0.4970038523987025, 0.0, 0.0, 0.0])
         rest_pose_weights[:2] *= 40 #stable torso
         rest_pose_weights[2] *= 5 #spine
         #rest_pose_weights[3:11] *= 0 #ignore active arm
         #rest_pose_weights[11:19] *= 2 #passive arm
         rest_pose_weights[3:19] *= 0.25 #rest pose for arms
         rest_pose_weights[19:] *= 4 #stable head
-        self.reward_manager.addTerm(term=RestPoseRewardTerm(self.human_skel, pose=np.zeros(self.human_skel.ndofs), weights=rest_pose_weights))
+        self.reward_manager.addTerm(term=RestPoseRewardTerm(self.human_skel, pose=rest_pose, weights=rest_pose_weights))
         self.reward_manager.addTerm(term=LimbProgressRewardTerm(dressing_target=self.dressing_targets[0], terminal=True, success_threshold=0.8, weight=40))
         self.reward_manager.addTerm(term=LimbProgressRewardTerm(dressing_target=self.dressing_targets[1], terminal=True, success_threshold=0.8, weight=40))
         self.reward_manager.addTerm(term=ClothDeformationRewardTerm(self, weight=5))

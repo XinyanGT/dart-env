@@ -56,11 +56,11 @@ def main():
     trial = None
 
     # --- robot TShirt
-    #trial = "experiment_2019_04_01_twoarm_tshirt_demonstration_connect" #TODO: still training
+    #trial = "experiment_2019_04_01_twoarm_tshirt_demonstration_connect"
     #trial = "experiment_2019_04_01_twoarm_tshirt_demonstration2full" #Garbage
-    #trial = "experiment_2019_03_30_twoarm_tshirt_demonstration_sym" #TODO: still training
-    #trial = "experiment_2019_03_30_twoarm_tshirt_demonstration" #TODO: still training
-    #trial = "experiment_2019_03_30_tshirt_sym" #TODO: still training
+    #trial = "experiment_2019_03_30_twoarm_tshirt_demonstration_sym"
+    #trial = "experiment_2019_03_30_twoarm_tshirt_demonstration"
+    #trial = "experiment_2019_03_30_tshirt_sym"
     #trial = "experiment_2019_03_26_tshirt_pose"
     #trial = "experiment_2019_03_22_twoarm_tshirt_cont"
     #trial = "experiment_2019_03_22_twoarm_tshirt"
@@ -75,7 +75,8 @@ def main():
     # ---
 
     # --- new multiarm
-    trial = "experiment_2019_03_27_twoarm_gown_robopose"
+    #trial = "experiment_2019_04_08_twoarmgown_curr_linearpen"
+    #trial = "experiment_2019_03_27_twoarm_gown_robopose"
     #trial = "experiment_2019_03_27_twoarm_gown_robo_static_pose"
     #trial = "experiment_2019_03_06_twoarm_human_hoverbot_pursuit_reducedpen"
     #trial = "experiment_2019_03_05_twoarm_human_strongpenalties_hoverbot"
@@ -87,7 +88,12 @@ def main():
     # ---
 
     # -- new env onearm
-
+    #trial = "experiment_2019_04_08_onearm_curr_weak_linearpen"
+    #trial = "experiment_2019_04_08_onearm_curr_slowrobo_linearpen"
+    #trial = "experiment_2019_04_08_onearm_curr_tremor_linearpen"
+    #trial = "experiment_2019_04_08_onearm_curr_elbowconstraint_linearpen"
+    #trial = "experiment_2019_04_08_onearm_fresh_typical_linearpen"
+    #trial = "experiment_2019_04_08_onearm_typical_curr_linearpen_shortH"
     #trial = "experiment_2019_04_05_onearm_typical_curr_linearcontactscale"
     #trial = "experiment_2019_04_05_onearm_typical_curr_robovel025"
     #trial = "experiment_2019_04_05_onearm_typical_robovel025"
@@ -747,6 +753,7 @@ def main():
             print(policy)
             useMeanPolicy = True #always use mean if we loaded the policy
             renderGraph(filename=prefix+trial+"/progress.csv")
+            renderGraph(filename=prefix+trial+"/progress.csv", targetField="AverageReturn")
             if graphOnly:
                 exit(1)
         except:
