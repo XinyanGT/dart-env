@@ -16,9 +16,9 @@ class DartWalker3dEnv(dart_env.DartEnv, utils.EzPickle):
         obs_dim = 41
 
         self.t = 0
-        self.target_vel = 1.0
+        self.target_vel = 2.0
         self.init_tv = 0.0
-        self.final_tv = 1.0
+        self.final_tv = 2.0
         self.tv_endtime = 0.5
         self.smooth_tv_change = True
         self.rand_target_vel = False
@@ -68,7 +68,7 @@ class DartWalker3dEnv(dart_env.DartEnv, utils.EzPickle):
 
         self.curriculum_id = 0
         self.spd_kp_candidates = None
-        self.param_manager = walker3dManager(self)
+        #self.param_manager = walker3dManager(self)
 
         if self.treadmill:
             dart_env.DartEnv.__init__(self, 'walker3d_treadmill.skel', 15, obs_dim, self.control_bounds, disableViewer=True)
@@ -86,8 +86,6 @@ class DartWalker3dEnv(dart_env.DartEnv, utils.EzPickle):
             self.dart_world.skeletons[0].bodynodes[i].set_friction_coeff(5)
         for i in range(0, len(self.dart_world.skeletons[1].bodynodes)):
             self.dart_world.skeletons[1].bodynodes[i].set_friction_coeff(5)
-
-        self.sim_dt = self.dt / self.frame_skip
 
         for bn in self.robot_skeleton.bodynodes:
             if len(bn.shapenodes) > 0:
@@ -156,7 +154,7 @@ class DartWalker3dEnv(dart_env.DartEnv, utils.EzPickle):
                 self.robot_skeleton.dq = current_dq
         self.do_simulation(tau, self.frame_skip)
 
-    def _step(self, a):
+    def step(self, a):
         if self.smooth_tv_change:
             self.target_vel = (np.min([self.t, self.tv_endtime]) / self.tv_endtime) * (self.final_tv - self.init_tv) + self.init_tv
             self.treadmill_vel = (np.min([self.t, self.treadmill_tv_endtime]) / self.treadmill_tv_endtime) * (

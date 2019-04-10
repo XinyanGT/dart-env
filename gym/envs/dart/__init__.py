@@ -87,6 +87,8 @@ from gym.envs.dart.darwin import DartDarwinEnv
 from gym.envs.dart.darwin_squat import DartDarwinSquatEnv
 from gym.envs.dart.darwin_newfoot import DartDarwinNewFootEnv
 
+from gym.envs.dart.robotis_op3 import DartOP3Env
+
 from gym.envs.dart.halfcheetah import DartHalfCheetahEnv
 
 from gym.envs.dart.hopper_soft import DartHopperSoftEnv

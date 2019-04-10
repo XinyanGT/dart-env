@@ -54,8 +54,21 @@ class DartEnv(gym.Env):
 
         if full_paths[0][-5:] == '.skel':
             self.dart_worlds = []
-            for i in range(len(model_paths)):
-                self.dart_worlds.append(DartWorld(dt, full_paths[i]))
+            curid = 0
+            while True:
+                self.dart_worlds.append(DartWorld(dt, full_paths[curid]))
+                curid += 1
+                if curid >= len(model_paths):
+                    break
+                for i in range(len(model_paths)):
+                    if full_paths[curid][-5:] == '.skel':
+                        break
+                    self.dart_worlds[-1].add_skeleton(full_paths[curid])
+                    curid += 1
+                    if curid >= len(model_paths):
+                        break
+                if curid >= len(model_paths):
+                    break
             self.dart_world = self.dart_worlds[0]
         else:
             self.dart_worlds = []

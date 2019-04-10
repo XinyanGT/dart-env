@@ -1133,7 +1133,7 @@ class darwinParamManager:
 
 
     def set_simulator_parameters(self, x):
-        assert (len(x) == np.sum(self.MU_DIMS[self.controllable_param]))
+        assert (len(x) == np.sum(self.MU_DIMS[self.controllable_param])), str(len(x))+' '+str(np.sum(self.MU_DIMS[self.controllable_param]))
 
         self.MU_UNSCALED = self.UnNormalizeMu(x)
 
@@ -1285,6 +1285,5 @@ class darwinParamManager:
                     break
                 else:
                     x = np.random.uniform(-0.05, 1.05, np.sum(self.MU_DIMS[self.controllable_param]))
-        x = np.array([0.9] * 14)
-        x[5:10] -= 0.7
+
         self.set_simulator_parameters(x)

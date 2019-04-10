@@ -1,0 +1,156 @@
+<?xml version="1.0"?>
+<robot name="ground_skeleton">
+    <link name="world" />
+    <link name="ground_link">
+        <inertial>
+            <mass value="1.0" />
+            <origin xyz="2.5 0 -1.368" rpy="0 0 0"/>
+            <inertia ixx="1.0" ixy="0" ixz="0" iyy="1.0" iyz="0" izz="1.0" />
+        </inertial>
+        <visual>
+            <origin xyz="0 0 -1.368" rpy="0 0 0" />
+            <geometry>
+                <box size="125 25 2.05" />
+            </geometry>
+            <material name="Carpet">
+                <color rgba ="1.0 0.6 0.01 0.7"/>
+            </material>
+        </visual>
+        <collision group="default">
+            <origin xyz="0 0 -1.368"  rpy="0 0 0"/>
+            <geometry>
+                <box size="125 25 2.05" />
+            </geometry>
+        </collision>
+    </link>
+    <joint name="ground_joint" type="fixed">
+        <origin xyz="0 0 0" rpy="0 0 0" />
+        <parent link="world" />
+        <child link="ground_link" />
+    </joint>
+
+    <link name="ground_link2">
+        <inertial>
+            <mass value="1.0" />
+            <origin xyz="0 0 -1.368" rpy="0 0 0"/>
+            <inertia ixx="1.0" ixy="0" ixz="0" iyy="1.0" iyz="0" izz="1.0" />
+        </inertial>
+        <visual>
+            <origin xyz="0.7 0 -1.343" rpy="0 0 0" />
+            <geometry>
+                <box size="0.4 25 2.05" />
+            </geometry>
+            <material name="G">
+                <color rgba ="0.0 1.0 1.0 1.0"/>
+            </material>
+        </visual>
+        <collision group="default">
+            <origin xyz="0.7 0 -1.343"  rpy="0 0 0"/>
+            <geometry>
+                <box size="0.4 25 2.05" />
+            </geometry>
+        </collision>
+    </link>
+    <joint name="ground_joint2" type="fixed">
+        <origin xyz="0 0 0" rpy="0 0 0" />
+        <parent link="ground_link" />
+        <child link="ground_link2" />
+    </joint>
+
+    <link name="wall">
+        <inertial>
+            <mass value="1.0" />
+            <origin xyz="0 0 -1.368" rpy="0 0 0"/>
+            <inertia ixx="1.0" ixy="0" ixz="0" iyy="1.0" iyz="0" izz="1.0" />
+        </inertial>
+        <visual>
+            <origin xyz="0 0.5 0" rpy="1.57 0 0" />
+            <geometry>
+                <box size="125 25 0.1" />
+            </geometry>
+            <material name="Grey">
+                <color rgba ="0.9 0.9 0.47 1.0"/>
+            </material>
+        </visual>
+        <!--<collision group="default">
+            <origin xyz="0 0.5 0" rpy="1.57 0 0" />
+            <geometry>
+                <box size="125 25 0.1" />
+            </geometry>
+        </collision>-->
+    </link>
+    <joint name="ground_joint_wall" type="fixed">
+        <origin xyz="0 0 0" rpy="0 0 0" />
+        <parent link="ground_link" />
+        <child link="wall" />
+    </joint>
+
+
+    <link name="pillar1">
+        <inertial>
+            <mass value="1.0" />
+            <origin xyz="0 0 0.368" rpy="0 0 0"/>
+            <inertia ixx="1.0" ixy="0" ixz="0" iyy="1.0" iyz="0" izz="1.0" />
+        </inertial>
+        <visual>
+            <origin xyz="0.7 0.47 0.368" rpy="0 0 0" />
+            <geometry>
+                <box size="0.1 0.1 10.0" />
+            </geometry>
+            <material name="pillar">
+                <color rgba ="0.9 0.9 0.47 1.0"/>
+            </material>
+        </visual>
+    </link>
+    <joint name="pillar1joint" type="fixed">
+        <origin xyz="0 0 0" rpy="0 0 0" />
+        <parent link="ground_link" />
+        <child link="pillar1" />
+    </joint>
+
+    <link name="pillar2">
+        <inertial>
+            <mass value="1.0" />
+            <origin xyz="0 0 -0.368" rpy="0 0 0"/>
+            <inertia ixx="1.0" ixy="0" ixz="0" iyy="1.0" iyz="0" izz="1.0" />
+        </inertial>
+        <visual>
+            <origin xyz="0.0 0.47 -0.368" rpy="0 0 0" />
+            <geometry>
+                <box size="0.1 0.1 10.0" />
+            </geometry>
+            <material name="pillar">
+                <color rgba ="0.9 0.9 0.47 1.0"/>
+            </material>
+        </visual>
+    </link>
+    <joint name="pillar2joint" type="fixed">
+        <origin xyz="0 0 0" rpy="0 0 0" />
+        <parent link="ground_link" />
+        <child link="pillar2" />
+    </joint>
+
+
+    <link name="pillar3">
+        <inertial>
+            <mass value="1.0" />
+            <origin xyz="0 0 -0.368" rpy="0 0 0"/>
+            <inertia ixx="1.0" ixy="0" ixz="0" iyy="1.0" iyz="0" izz="1.0" />
+        </inertial>
+        <visual>
+            <origin xyz="1.4 0.47 -0.368" rpy="0 0 0" />
+            <geometry>
+                <box size="0.1 0.1 10.0" />
+            </geometry>
+            <material name="pillar">
+                <color rgba ="0.9 0.9 0.47 1.0"/>
+            </material>
+        </visual>
+    </link>
+    <joint name="pillar3joint" type="fixed">
+        <origin xyz="0 0 0" rpy="0 0 0" />
+        <parent link="ground_link" />
+        <child link="pillar3" />
+    </joint>
+
+</robot>
