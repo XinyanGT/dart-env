@@ -75,6 +75,7 @@ def main():
     # ---
 
     # --- new multiarm
+    #trial = "experiment_2019_04_08_twoarmgown_fresh_linearpen"
     #trial = "experiment_2019_04_08_twoarmgown_curr_linearpen"
     #trial = "experiment_2019_03_27_twoarm_gown_robopose"
     #trial = "experiment_2019_03_27_twoarm_gown_robo_static_pose"
@@ -88,8 +89,15 @@ def main():
     # ---
 
     # -- new env onearm
+
+    #trial = "experiment_2019_04_09_onearm_fresh_elbowconstraint_linearpen"
+    #trial = "experiment_2019_04_09_onearm_fresh_tremor_linearpen"
+    #trial = "experiment_2019_04_09_onearm_fresh_weak_linearpen"
+    #trial = "experiment_2019_04_08_onearm_slowhr_linearpen"
+    #trial = "experiment_2019_04_09_onearm_slowrobo_fresh_linearpen"
+    #trial = "experiment_2019_04_09_onearm_fresh_linearpenx10" #TODO
     #trial = "experiment_2019_04_08_onearm_curr_weak_linearpen"
-    trial = "experiment_2019_04_08_onearm_curr_slowrobo_linearpen"
+    #trial = "experiment_2019_04_08_onearm_curr_slowrobo_linearpen"
     #trial = "experiment_2019_04_08_onearm_curr_tremor_linearpen"
     #trial = "experiment_2019_04_08_onearm_curr_elbowconstraint_linearpen"
     #trial = "experiment_2019_04_08_onearm_fresh_typical_linearpen"
