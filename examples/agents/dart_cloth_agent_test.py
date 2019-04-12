@@ -62,7 +62,7 @@ def main():
     #trial = "experiment_2019_03_30_twoarm_tshirt_demonstration"
     #trial = "experiment_2019_03_30_tshirt_sym"
     #trial = "experiment_2019_03_26_tshirt_pose"
-    #trial = "experiment_2019_03_22_twoarm_tshirt_cont"
+    trial = "experiment_2019_03_22_twoarm_tshirt_cont"
     #trial = "experiment_2019_03_22_twoarm_tshirt"
     #trial = "experiment_2019_03_22_twoarm_tshirt_06cont3_warm_penalties"
     #trial = "experiment_2019_03_20_twoarm_tshirt"
@@ -90,12 +90,13 @@ def main():
 
     # -- new env onearm
 
+    #trial = "experiment_2019_04_10_onearm_curr_typical_linearpenx10"
     #trial = "experiment_2019_04_09_onearm_fresh_elbowconstraint_linearpen"
     #trial = "experiment_2019_04_09_onearm_fresh_tremor_linearpen"
     #trial = "experiment_2019_04_09_onearm_fresh_weak_linearpen"
     #trial = "experiment_2019_04_08_onearm_slowhr_linearpen"
     #trial = "experiment_2019_04_09_onearm_slowrobo_fresh_linearpen"
-    #trial = "experiment_2019_04_09_onearm_fresh_linearpenx10" #TODO
+    #trial = "experiment_2019_04_09_onearm_fresh_linearpenx10"
     #trial = "experiment_2019_04_08_onearm_curr_weak_linearpen"
     #trial = "experiment_2019_04_08_onearm_curr_slowrobo_linearpen"
     #trial = "experiment_2019_04_08_onearm_curr_tremor_linearpen"
@@ -679,9 +680,9 @@ def main():
     #envName = 'DartIiwaGownAssistCoopt-v2'
     #envName = 'DartIiwaGownAssistCoopt_h-v2'
     #envName = 'DartIiwaGownMultibot-v1'
-    envName = 'DartIiwaOnearmGown-v1'
+    #envName = 'DartIiwaOnearmGown-v1'
     #envName = 'DartIiwaTwoarmGown-v1'
-    #envName = 'DartIiwaTwoarmTshirt-v1'
+    envName = 'DartIiwaTwoarmTshirt-v1'
 
     if len(sys.argv) > 1:
         #print(sys.argv[1])

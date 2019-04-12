@@ -12,7 +12,7 @@ class DartClothIiwaTwoarmTshirtEnv(DartClothIiwaEnv):
         self.initial_distribution_directory = "/assets/state_distributions/assisted_tshirt/"
         self.initial_distribution_size = 8
         self.state_distribution = []
-        self.connectivity_reward = True
+        self.connectivity_reward = False
         self.rest_state_reward_terms = []
         self.connectivity_reward_weight = 30
 

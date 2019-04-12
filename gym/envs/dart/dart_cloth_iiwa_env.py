@@ -2026,6 +2026,7 @@ class DressingTarget:
             self.save_history(filename=self.env.recording_directory+"/progress_history"+str(self.index)+".txt")
         self.history.append([])
         self.previous_recording = -1
+        self.previous_evaluation = 0
 
     def save_history(self, filename):
         pyutils.saveList(list=self.history,filename=filename,listoflists=True)
@@ -2054,7 +2055,7 @@ class DartClothIiwaEnv(gym.Env):
         '''
 
         #scripted cloth release
-        #self.letgo = True
+        self.letgo = False
 
         #recording flags
         self.recording_progress = False
@@ -2470,10 +2471,15 @@ class DartClothIiwaEnv(gym.Env):
     def _step(self, a):
 
         #print(self.dressing_targets[2].previous_evaluation)
-        #if self.dressing_targets[2].previous_evaluation > 0.6:
-        #    #print("DONE")
-        #    for iiwa in self.iiwas:
-        #        iiwa.handle_node.clearHandles()
+        if self.dressing_targets[2].previous_evaluation > 0.6 and self.letgo:
+            #print("DONE")
+            for iiwa in self.iiwas:
+                iiwa.handle_node.clearHandles()
+                iiwa.pose_interpolation_target = np.zeros(7)
+                iiwa.control_mode = 2 #skip control and track manual target
+            self.humanSPDIntperolationTarget = np.zeros(len(self.human_skel.q))
+            self.humanSPDIntperolationTarget[8] = 2.4
+            self.humanSPDIntperolationTarget[16] = 2.4
 
         #max_vel = np.amax(np.abs(self.iiwas[0].skel.dq))
         #print("max velocity: " + str(max_vel))
@@ -2541,7 +2547,8 @@ class DartClothIiwaEnv(gym.Env):
                 iiwa.step(robo_action_scaled[iiwa_ix*6:iiwa_ix*6+6])
             elif iiwa.control_mode == 1:
                 iiwa.step(robo_action_scaled[iiwa_ix * 7:iiwa_ix * 7 + 7])
-
+            else:
+                iiwa.controlSPDTarget(control=np.zeros(7))
 
         #pose mirroring
         if self.two_bot_mirror and self.iiwas[1].control_mode == 1:
@@ -2934,7 +2941,7 @@ class DartClothIiwaEnv(gym.Env):
 
         #draw cloth features
         for feature in self.cloth_features:
-            feature.drawProjectionPoly(renderNormal=True, renderBasis=False, fill=False)
+            feature.drawProjectionPoly(renderNormal=False, renderBasis=False, fill=False)
 
         # render geodesic
         if False:
