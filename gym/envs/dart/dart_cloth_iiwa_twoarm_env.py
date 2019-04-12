@@ -99,7 +99,7 @@ class DartClothIiwaTwoarmEnv(DartClothIiwaEnv):
         self.reward_manager.addTerm(term=LimbProgressRewardTerm(dressing_target=self.dressing_targets[1], terminal=True, success_threshold=0.8, weight=40))
         self.reward_manager.addTerm(term=ClothDeformationRewardTerm(self, weight=5))
         self.reward_manager.addTerm(term=HumanContactRewardTerm(self, weight=5, tanh_params=(2, 0.15, 10)))
-        self.reward_manager.addTerm(term=HumanContactLinearRewardTerm(self, weight=25, linear_scale=100.0))
+        self.reward_manager.addTerm(term=HumanContactLinearRewardTerm(self, weight=25, linear_scale=10.0))
 
         #set the observation space
         self.obs_dim = self.human_obs_manager.obs_size
