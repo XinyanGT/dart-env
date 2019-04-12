@@ -82,7 +82,7 @@ class DartClothIiwaOnearmEnv(DartClothIiwaEnv):
             self.robot_obs_manager.addObsFeature(feature=JointPositionObsFeature(iiwa.skel, ignored_joints=[1], name="iiwa " + str(iiwa.index) + " joint positions"))
             if iiwa_control_mode == 0:
                 self.robot_obs_manager.addObsFeature(feature=RobotFramesObsFeature(iiwa, name="iiwa " + str(iiwa.index) + " frame"))
-            self.robot_obs_manager.addObsFeature(feature=CapacitiveSensorObsFeature(iiwa, name="iiwa " + str(iiwa.index) + " cap sensor"))
+            #self.robot_obs_manager.addObsFeature(feature=CapacitiveSensorObsFeature(iiwa, name="iiwa " + str(iiwa.index) + " cap sensor"))
             self.robot_obs_manager.addObsFeature(feature=FTSensorObsFeature(self, iiwa, name="iiwa " + str(iiwa.index) + " FT sensor"))
             if iiwa_control_mode == 1:
                 self.robot_obs_manager.addObsFeature(feature=RobotSPDTargetObsFeature(self, iiwa, name="iiwa " + str(iiwa.index) + " interp target"))
@@ -102,7 +102,7 @@ class DartClothIiwaOnearmEnv(DartClothIiwaEnv):
         self.reward_manager.addTerm(term=ClothDeformationRewardTerm(self, weight=5))
         self.reward_manager.addTerm(term=HumanContactRewardTerm(self, weight=5, tanh_params=(2, 0.15, 10))) #saturates at ~10 and ~38
         #self.reward_manager.addTerm(term=HumanContactRewardTerm(self, weight=25, tanh_params=(3, 0.05, 0))) #saturates at ~20 and ~100
-        self.reward_manager.addTerm(term=HumanContactLinearRewardTerm(self, weight=25, linear_scale=10.0))
+        #self.reward_manager.addTerm(term=HumanContactLinearRewardTerm(self, weight=25, linear_scale=10.0))
 
         #set the observation space
         self.obs_dim = self.human_obs_manager.obs_size
