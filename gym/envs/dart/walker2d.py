@@ -20,7 +20,7 @@ class DartWalker2dEnv(dart_env.DartEnv, utils.EzPickle):
         self.param_manager = walker2dParamManager(self)
 
         self.vibrating_ground = True
-        self.ground_vib_params = [0.15, 2.0] # magnitude, frequency
+        self.ground_vib_params = [0.4875, 0.5] # magnitude, frequency
 
         self.action_filtering = 0  # window size of filtering, 0 means no filtering
         self.action_filter_cache = []

@@ -24,6 +24,8 @@ class DartHopperEnv(dart_env.DartEnv, utils.EzPickle):
 
         obs_dim = 11
 
+        self.vibrating_ground = True
+        self.ground_vib_params = [0.4875, 0.5]  # magnitude, frequency
 
         self.velrew_weight = 1.0
         self.UP_noise_level = 0.0
@@ -74,6 +76,9 @@ class DartHopperEnv(dart_env.DartEnv, utils.EzPickle):
         self.action_buffer = []
         self.obs_delay = 0
         self.act_delay = 0
+
+        self.cycle_times = []  # gait cycle times
+        self.previous_contact = None
 
         self.param_manager.set_simulator_parameters(self.current_param)
 
@@ -168,6 +173,9 @@ class DartHopperEnv(dart_env.DartEnv, utils.EzPickle):
 
         self.action_buffer.append(np.copy(a))
 
+        if self.vibrating_ground:
+            self.dart_world.skeletons[0].joints[0].set_rest_position(0, self.ground_vib_params[0] * np.sin(2*np.pi*self.ground_vib_params[1] * self.cur_step * self.dt))
+
         if self.action_bound_model is not None:
             pred_bound = self.action_bound_model.predict(self._get_obs(False))[0]
             in_a = np.copy(a)
@@ -190,6 +198,24 @@ class DartHopperEnv(dart_env.DartEnv, utils.EzPickle):
         self.cur_step += 1
 
         envinfo = {}
+
+        contacts = self.dart_world.collision_result.contacts
+        for contact in contacts:
+            if contact.skel_id1 != self.robot_skeleton.id and contact.skel_id2 != self.robot_skeleton.id:
+                continue
+            if self.robot_skeleton.bodynode('h_foot') in [contact.bodynode1, contact.bodynode2] \
+                    and \
+                    self.dart_world.skeletons[0].bodynodes[0] in [contact.bodynode1, contact.bodynode2]:
+                if self.previous_contact is None:
+                    self.previous_contact = self.cur_step * self.dt
+                else:
+                    self.cycle_times.append(self.cur_step * self.dt - self.previous_contact)
+                    self.previous_contact = self.cur_step * self.dt
+        gait_freq = 0
+        if len(self.cycle_times) > 0:
+            gait_freq = 1.0 / (np.mean(self.cycle_times))
+
+        envinfo['gait_frequency'] = gait_freq
 
         return ob, reward, done, envinfo
 
@@ -265,6 +291,9 @@ class DartHopperEnv(dart_env.DartEnv, utils.EzPickle):
         self.t = 0
 
         self.fall_on_ground = False
+
+        self.cycle_times = []  # gait cycle times
+        self.previous_contact = None
 
         return state
 
