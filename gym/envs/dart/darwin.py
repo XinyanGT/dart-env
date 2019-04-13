@@ -98,7 +98,7 @@ class DartDarwinEnv(dart_env.DartEnv, utils.EzPickle):
 
         # normal pose
         self.permitted_contact_ids = [-1, -2, -7, -8]
-        self.init_root_pert = np.array([ -0.1255759, 0.1256759, 1.5663481 , 0.0, 0.0, 0.0])
+        self.init_root_pert = np.array([0.0, 0.12, 0.0 , 0.0, 0.0, 0.0])#np.array([ -0.1255759, 0.1256759, 1.5663481 , 0.0, 0.0, 0.0])
 
         self.no_target_vel = True
         self.exp_target_vel_rew = False
@@ -122,6 +122,7 @@ class DartDarwinEnv(dart_env.DartEnv, utils.EzPickle):
         self.vel_reward_weight = 20.0
         self.pose_weight = 0.5
         self.contact_weight = 0.0
+        self.soft_ground = True
 
         self.cur_step = 0
 
@@ -180,7 +181,11 @@ class DartDarwinEnv(dart_env.DartEnv, utils.EzPickle):
             self.action_space = spaces.MultiDiscrete([11] * 20)
             #self.action_space = spaces.MultiDiscrete([5, 5, 5, 5, 5, 5, 3, 3, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7])
 
-        dart_env.DartEnv.__init__(self, ['darwinmodel/ground1.urdf', 'darwinmodel/darwin_nocollision.URDF', 'darwinmodel/coord.urdf', 'darwinmodel/robotis_op2.urdf'], 15, obs_dim,
+        model_file_list = ['darwinmodel/ground1.urdf', 'darwinmodel/darwin_nocollision.URDF', 'darwinmodel/coord.urdf','darwinmodel/robotis_op2.urdf']
+        if self.soft_ground:
+            model_file_list[0] = 'darwinmodel/soft_ground.skel'
+            model_file_list.insert(3, 'darwinmodel/soft_ground.urdf')
+        dart_env.DartEnv.__init__(self, model_file_list, 15, obs_dim,
                                   self.control_bounds, dt=0.002, disableViewer=True, action_type="continuous" if not self.use_discrete_action else "discrete")
 
         self.orig_bodynode_masses = [bn.mass() for bn in self.robot_skeleton.bodynodes]
@@ -584,7 +589,7 @@ class DartDarwinEnv(dart_env.DartEnv, utils.EzPickle):
             print('avg vel: ', (self.robot_skeleton.q[3] - self.init_q[3]) / self.t, vel_rew, np.mean(self.vel_cache))
 
         # move the obstacle forward when the robot has passed it
-        if self.randomize_obstacle:
+        if self.randomize_obstacle and not self.soft_ground:
             if self.robot_skeleton.C[0] - 0.4 > self.dart_world.skeletons[0].bodynodes[1].shapenodes[0].offset()[0]:
                 offset = np.copy(self.dart_world.skeletons[0].bodynodes[1].shapenodes[0].offset())
                 offset[0] += 1.0
@@ -728,7 +733,7 @@ class DartDarwinEnv(dart_env.DartEnv, utils.EzPickle):
         self.tau = np.zeros(26, )
         self.avg_tau = np.zeros(26, )
 
-        if self.randomize_obstacle:
+        if self.randomize_obstacle and not self.soft_ground:
             horizontal_range = [0.6, 0.7]
             vertical_range = [-1.368, -1.368]
             sampled_v = np.random.uniform(vertical_range[0], vertical_range[1])

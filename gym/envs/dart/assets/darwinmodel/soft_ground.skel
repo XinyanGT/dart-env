@@ -14,47 +14,63 @@
                 <gravity>1</gravity>
                 <transformation>2 0.0 -0.593 0 0 0</transformation>
                 <inertia>
-                    <mass>10</mass>
+                    <mass>100</mass>
                     <offset>0 0 0</offset>
                 </inertia>
-                <soft_shape>
+
+                <!--<soft_shape>
                     <total_mass>50.5</total_mass>
                     <geometry>
                         <box>
                             <size>5 2 0.5</size>
-                            <frags>10 4 4</frags>
+                            <frags>1 4 4</frags>
                         </box>
                     </geometry>
                 <kv>1500.0</kv>
                 <ke>0.0</ke>
                 <damp>5.0</damp>
-                </soft_shape>
+                </soft_shape>-->
+
                 <visualization_shape>
                     <transformation>0 0 0 0 0 0</transformation>
                     <geometry>
                         <box>
-                            <size>5 2 0.5</size>
+                            <size>15 2 0.5</size>
                         </box>
                     </geometry>
                 </visualization_shape>
-                <!--collision_shape>
+                <collision_shape>
                     <transformation>0 0 0 0 0 0</transformation>
                     <geometry>
                         <box>
-                            <size>0.1 0.025 0.025</size>
+                            <size>15 2 0.5</size>
                         </box>
                     </geometry>
-                </collision_shape-->
+                </collision_shape>
             </body>
-            <joint type="free" name="joint 1">
+            <!--<joint type="free" name="joint 1">
                 <parent>world</parent>
                 <child>link 1</child>
-                <!--transformation>-0.1 0 0 0 0 0</transformation-->
-                <!--transformation>0 -0.1 0 0 0 0</transformation-->
                 <axis>
                     <xyz>0 1 0</xyz>
                 </axis>
+            </joint>-->
+
+            <joint type="prismatic" name="joint 1">
+                <parent>world</parent>
+                <child>link 1</child>
+                <axis>
+                    <xyz>0 0 1</xyz>
+                    <dynamics>
+                        <damping>100.0</damping>
+                        <spring_stiffness>124000.0</spring_stiffness>
+                    </dynamics>
+                </axis>
+
+                   <init_pos>0.0</init_pos>
+                <init_vel>0</init_vel>
             </joint>
+
         </skeleton>
 
     </world>

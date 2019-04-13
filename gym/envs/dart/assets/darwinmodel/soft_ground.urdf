@@ -16,12 +16,12 @@
                 <color rgba ="1.0 0.6 0.01 0.7"/>
             </material>
         </visual>
-        <collision group="default">
+        <!--collision group="default">
             <origin xyz="0 0 -1.868"  rpy="0 0 0"/>
             <geometry>
                 <box size="125 25 2.05" />
             </geometry>
-        </collision>
+        </collision-->
     </link>
     <joint name="ground_joint" type="fixed">
         <origin xyz="0 0 0" rpy="0 0 0" />

@@ -351,21 +351,24 @@
     <visual>
       <origin rpy="0 0 0" xyz="0 0 0"/>
       <geometry>
-        <mesh filename="./meshes/body.stl" scale="0.001 0.001 0.001"/>
+        <mesh filename="./meshes/body_simp.stl" scale="0.001 0.001 0.001"/>
       </geometry>
       <material name="Grey">
         <color rgba="0.60 0.60 0.60 1.0"/>
       </material>
     </visual>
+
     <collision>
-      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <origin rpy="0 0 0" xyz="-0.01675 0.0 0.068249995"/>
       <geometry>
-        <mesh filename="./meshes/body.stl" scale="0.001 0.001 0.001"/>
+        <box size="0.1745 0.1288 0.14529999" />
       </geometry>
-      <material name="Grey">
-        <color rgba="0.60 0.60 0.60 1.0"/>
+      <material name="Red">
+        <color rgba="1.0 0.0 0.0 1.0"/>
       </material>
     </collision>
+
+
     <inertial>
       <origin xyz="-0.01501 0.00013 0.06582"/>
       <mass value="1.34928"/>
@@ -397,19 +400,19 @@
     <visual>
       <origin rpy="0 0 0" xyz="0 0 0"/>
       <geometry>
-        <mesh filename="./meshes/ll1.stl" scale="0.001 0.001 0.001"/>
+        <mesh filename="./meshes/ll1_simp.stl" scale="0.001 0.001 0.001"/>
       </geometry>
       <material name="Grey">
         <color rgba="0.60 0.60 0.60 1.0"/>
       </material>
     </visual>
     <collision>
-      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <origin rpy="0 0 0" xyz="-0.0015  0.0     -0.0155"/>
       <geometry>
-        <mesh filename="./meshes/ll1.stl" scale="0.001 0.001 0.001"/>
+        <box size="0.045 0.025 0.031"/>
       </geometry>
-      <material name="Grey">
-        <color rgba="0.60 0.60 0.60 1.0"/>
+      <material name="Red">
+        <color rgba="1.00 0.60 0.60 1.0"/>
       </material>
     </collision>
     <inertial>
@@ -442,19 +445,19 @@
     <visual>
       <origin rpy="0 0 0" xyz="0 0 0"/>
       <geometry>
-        <mesh filename="./meshes/ll2.stl" scale="0.001 0.001 0.001"/>
+        <mesh filename="./meshes/ll2_simp.stl" scale="0.001 0.001 0.001"/>
       </geometry>
       <material name="Grey">
         <color rgba="0.60 0.60 0.60 1.0"/>
       </material>
     </visual>
     <collision>
-      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <origin rpy="0 0 0" xyz="0.003875  0.0022   -0.012"/>
       <geometry>
-        <mesh filename="./meshes/ll2.stl" scale="0.001 0.001 0.001"/>
+        <box size="0.07975 0.0424  0.0465"/>
       </geometry>
-      <material name="Grey">
-        <color rgba="0.60 0.60 0.60 1.0"/>
+      <material name="Red">
+        <color rgba="1.00 0.60 0.60 1.0"/>
       </material>
     </collision>
     <inertial>
@@ -487,19 +490,19 @@
     <visual>
       <origin rpy="0 0 0" xyz="0 0 0"/>
       <geometry>
-        <mesh filename="./meshes/ll3.stl" scale="0.001 0.001 0.001"/>
+        <mesh filename="./meshes/ll3_simp.stl" scale="0.001 0.001 0.001"/>
       </geometry>
       <material name="Grey">
         <color rgba="0.60 0.60 0.60 1.0"/>
       </material>
     </visual>
     <collision>
-      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <origin rpy="0 0 0" xyz="0.000425 -0.0188   -0.05945"/>
       <geometry>
-        <mesh filename="./meshes/ll3.stl" scale="0.001 0.001 0.001"/>
+        <box size="0.03085 0.0464  0.1239"/>
       </geometry>
-      <material name="Grey">
-        <color rgba="0.60 0.60 0.60 1.0"/>
+      <material name="Red">
+        <color rgba="1.00 0.60 0.60 1.0"/>
       </material>
     </collision>
     <inertial>
@@ -532,19 +535,19 @@
     <visual>
       <origin rpy="0 0 0" xyz="0 0 0"/>
       <geometry>
-        <mesh filename="./meshes/ll4.stl" scale="0.001 0.001 0.001"/>
+        <mesh filename="./meshes/ll4_simp.stl" scale="0.001 0.001 0.001"/>
       </geometry>
       <material name="Grey">
         <color rgba="0.60 0.60 0.60 1.0"/>
       </material>
     </visual>
     <collision>
-      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <origin rpy="0 0 0" xyz="0.0    -0.02  -0.055"/>
       <geometry>
-        <mesh filename="./meshes/ll4.stl" scale="0.001 0.001 0.001"/>
+        <box size="0.03  0.044 0.115"/>
       </geometry>
-      <material name="Grey">
-        <color rgba="0.60 0.60 0.60 1.0"/>
+      <material name="Red">
+        <color rgba="1.00 0.60 0.60 1.0"/>
       </material>
     </collision>
     <inertial>
@@ -577,19 +580,19 @@
     <visual>
       <origin rpy="0 0 0" xyz="0 0 0"/>
       <geometry>
-        <mesh filename="./meshes/ll5.stl" scale="0.001 0.001 0.001"/>
+        <mesh filename="./meshes/ll5_simp.stl" scale="0.001 0.001 0.001"/>
       </geometry>
       <material name="Grey">
         <color rgba="0.60 0.60 0.60 1.0"/>
       </material>
     </visual>
     <collision>
-      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <origin rpy="0 0 0" xyz="-0.0206 -0.0168  0.012"/>
       <geometry>
-        <mesh filename="./meshes/ll5.stl" scale="0.001 0.001 0.001"/>
+        <box size="0.079  0.0424 0.0465"/>
       </geometry>
-      <material name="Grey">
-        <color rgba="0.60 0.60 0.60 1.0"/>
+      <material name="Red">
+        <color rgba="1.00 0.60 0.60 1.0"/>
       </material>
     </collision>
     <inertial>
@@ -622,19 +625,19 @@
     <visual>
       <origin rpy="0 0 0" xyz="0 0 0"/>
       <geometry>
-        <mesh filename="./meshes/ll6.stl" scale="0.001 0.001 0.001"/>
+        <mesh filename="./meshes/ll6_simp.stl" scale="0.001 0.001 0.001"/>
       </geometry>
       <material name="Grey">
         <color rgba="0.60 0.60 0.60 1.0"/>
       </material>
     </visual>
     <collision>
-      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <origin rpy="0 0 0" xyz="0.024   0.0125 -0.0255"/>
       <geometry>
-        <mesh filename="./meshes/ll6.stl" scale="0.001 0.001 0.001"/>
+        <box size="0.127 0.08  0.01"/>
       </geometry>
-      <material name="Grey">
-        <color rgba="0.60 0.60 0.60 1.0"/>
+      <material name="Red">
+        <color rgba="1.00 0.60 0.60 1.0"/>
       </material>
     </collision>
     <inertial>
@@ -667,19 +670,19 @@
     <visual>
       <origin rpy="0 0 0" xyz="0 0 0"/>
       <geometry>
-        <mesh filename="./meshes/rl1.stl" scale="0.001 0.001 0.001"/>
+        <mesh filename="./meshes/rl1_simp.stl" scale="0.001 0.001 0.001"/>
       </geometry>
       <material name="Grey">
         <color rgba="0.60 0.60 0.60 1.0"/>
       </material>
     </visual>
     <collision>
-      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <origin rpy="0 0 0" xyz="-0.0015  0.0     -0.0155"/>
       <geometry>
-        <mesh filename="./meshes/rl1.stl" scale="0.001 0.001 0.001"/>
+        <box size="0.045 0.025 0.031"/>
       </geometry>
-      <material name="Grey">
-        <color rgba="0.60 0.60 0.60 1.0"/>
+      <material name="Red">
+        <color rgba="1.00 0.60 0.60 1.0"/>
       </material>
     </collision>
     <inertial>
@@ -712,19 +715,19 @@
     <visual>
       <origin rpy="0 0 0" xyz="0 0 0"/>
       <geometry>
-        <mesh filename="./meshes/rl2.stl" scale="0.001 0.001 0.001"/>
+        <mesh filename="./meshes/rl2_simp.stl" scale="0.001 0.001 0.001"/>
       </geometry>
       <material name="Grey">
         <color rgba="0.60 0.60 0.60 1.0"/>
       </material>
     </visual>
     <collision>
-      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <origin rpy="0 0 0" xyz="0.003875 -0.0022   -0.012"/>
       <geometry>
-        <mesh filename="./meshes/rl2.stl" scale="0.001 0.001 0.001"/>
+        <box size="0.07975 0.0424  0.0465"/>
       </geometry>
-      <material name="Grey">
-        <color rgba="0.60 0.60 0.60 1.0"/>
+      <material name="Red">
+        <color rgba="1.00 0.60 0.60 1.0"/>
       </material>
     </collision>
     <inertial>
@@ -757,19 +760,19 @@
     <visual>
       <origin rpy="0 0 0" xyz="0 0 0"/>
       <geometry>
-        <mesh filename="./meshes/rl3.stl" scale="0.001 0.001 0.001"/>
+        <mesh filename="./meshes/rl3_simp.stl" scale="0.001 0.001 0.001"/>
       </geometry>
       <material name="Grey">
         <color rgba="0.60 0.60 0.60 1.0"/>
       </material>
     </visual>
     <collision>
-      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <origin rpy="0 0 0" xyz="0.000425  0.0188   -0.05945"/>
       <geometry>
-        <mesh filename="./meshes/rl3.stl" scale="0.001 0.001 0.001"/>
+        <box size="0.03085 0.0464  0.1239"/>
       </geometry>
-      <material name="Grey">
-        <color rgba="0.60 0.60 0.60 1.0"/>
+      <material name="Red">
+        <color rgba="1.00 0.60 0.60 1.0"/>
       </material>
     </collision>
     <inertial>
@@ -802,19 +805,19 @@
     <visual>
       <origin rpy="0 0 0" xyz="0 0 0"/>
       <geometry>
-        <mesh filename="./meshes/rl4.stl" scale="0.001 0.001 0.001"/>
+        <mesh filename="./meshes/rl4_simp.stl" scale="0.001 0.001 0.001"/>
       </geometry>
       <material name="Grey">
         <color rgba="0.60 0.60 0.60 1.0"/>
       </material>
     </visual>
     <collision>
-      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <origin rpy="0 0 0" xyz="0.0     0.02  -0.055"/>
       <geometry>
-        <mesh filename="./meshes/rl4.stl" scale="0.001 0.001 0.001"/>
+        <box size="0.03  0.044 0.115"/>
       </geometry>
-      <material name="Grey">
-        <color rgba="0.60 0.60 0.60 1.0"/>
+      <material name="Red">
+        <color rgba="1.00 0.60 0.60 1.0"/>
       </material>
     </collision>
     <inertial>
@@ -847,19 +850,19 @@
     <visual>
       <origin rpy="0 0 0" xyz="0 0 0"/>
       <geometry>
-        <mesh filename="./meshes/rl5.stl" scale="0.001 0.001 0.001"/>
+        <mesh filename="./meshes/rl5_simp.stl" scale="0.001 0.001 0.001"/>
       </geometry>
       <material name="Grey">
         <color rgba="0.60 0.60 0.60 1.0"/>
       </material>
     </visual>
     <collision>
-      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <origin rpy="0 0 0" xyz="-0.020225  0.0168    0.012"/>
       <geometry>
-        <mesh filename="./meshes/rl5.stl" scale="0.001 0.001 0.001"/>
+        <box size="0.07975 0.0424  0.0465"/>
       </geometry>
-      <material name="Grey">
-        <color rgba="0.60 0.60 0.60 1.0"/>
+      <material name="Red">
+        <color rgba="1.00 0.60 0.60 1.0"/>
       </material>
     </collision>
     <inertial>
@@ -892,19 +895,19 @@
     <visual>
       <origin rpy="0 0 0" xyz="0 0 0"/>
       <geometry>
-        <mesh filename="./meshes/rl6.stl" scale="0.001 0.001 0.001"/>
+        <mesh filename="./meshes/rl6_simp.stl" scale="0.001 0.001 0.001"/>
       </geometry>
       <material name="Grey">
         <color rgba="0.60 0.60 0.60 1.0"/>
       </material>
     </visual>
     <collision>
-      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <origin rpy="0 0 0" xyz="0.024  -0.0125 -0.0255"/>
       <geometry>
-        <mesh filename="./meshes/rl6.stl" scale="0.001 0.001 0.001"/>
+        <box size="0.127 0.08  0.01"/>
       </geometry>
-      <material name="Grey">
-        <color rgba="0.60 0.60 0.60 1.0"/>
+      <material name="Red">
+        <color rgba="1.00 0.60 0.60 1.0"/>
       </material>
     </collision>
     <inertial>
@@ -937,19 +940,19 @@
     <visual>
       <origin rpy="0 0 0" xyz="0 0 0"/>
       <geometry>
-        <mesh filename="./meshes/la1.stl" scale="0.001 0.001 0.001"/>
+        <mesh filename="./meshes/la1_simp.stl" scale="0.001 0.001 0.001"/>
       </geometry>
       <material name="Grey">
         <color rgba="0.60 0.60 0.60 1.0"/>
       </material>
     </visual>
     <collision>
-      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <origin rpy="0 0 0" xyz="0.0       0.0155  -0.00375"/>
       <geometry>
-        <mesh filename="./meshes/la1.stl" scale="0.001 0.001 0.001"/>
+        <box size="0.042  0.031  0.0325"/>
       </geometry>
-      <material name="Grey">
-        <color rgba="0.60 0.60 0.60 1.0"/>
+      <material name="Red">
+        <color rgba="1.00 0.60 0.60 1.0"/>
       </material>
     </collision>
     <inertial>
@@ -982,19 +985,19 @@
     <visual>
       <origin rpy="0 0 0" xyz="0 0 0"/>
       <geometry>
-        <mesh filename="./meshes/la2.stl" scale="0.001 0.001 0.001"/>
+        <mesh filename="./meshes/la2_simp.stl" scale="0.001 0.001 0.001"/>
       </geometry>
       <material name="Grey">
         <color rgba="0.60 0.60 0.60 1.0"/>
       </material>
     </visual>
     <collision>
-      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <origin rpy="0 0 0" xyz="-0.0168  0.0452  0.0007"/>
       <geometry>
-        <mesh filename="./meshes/la2.stl" scale="0.001 0.001 0.001"/>
+        <box size="0.0424 0.1129 0.0301"/>
       </geometry>
-      <material name="Grey">
-        <color rgba="0.60 0.60 0.60 1.0"/>
+      <material name="Red">
+        <color rgba="1.00 0.60 0.60 1.0"/>
       </material>
     </collision>
     <inertial>
@@ -1027,19 +1030,19 @@
     <visual>
       <origin rpy="0 0 0" xyz="0 0 0"/>
       <geometry>
-        <mesh filename="./meshes/la3.stl" scale="0.001 0.001 0.001"/>
+        <mesh filename="./meshes/la3_simp.stl" scale="0.001 0.001 0.001"/>
       </geometry>
       <material name="Grey">
         <color rgba="0.60 0.60 0.60 1.0"/>
       </material>
     </visual>
     <collision>
-      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <origin rpy="0 0 0" xyz="-0.019       0.07200493  0.0"/>
       <geometry>
-        <mesh filename="./meshes/la3.stl" scale="0.001 0.001 0.001"/>
+        <box size="0.042      0.14900986 0.03"/>
       </geometry>
-      <material name="Grey">
-        <color rgba="0.60 0.60 0.60 1.0"/>
+      <material name="Red">
+        <color rgba="1.00 0.60 0.60 1.0"/>
       </material>
     </collision>
     <inertial>
@@ -1072,19 +1075,19 @@
     <visual>
       <origin rpy="0 0 0" xyz="0 0 0"/>
       <geometry>
-        <mesh filename="./meshes/ra1.stl" scale="0.001 0.001 0.001"/>
+        <mesh filename="./meshes/ra1_simp.stl" scale="0.001 0.001 0.001"/>
       </geometry>
       <material name="Grey">
         <color rgba="0.60 0.60 0.60 1.0"/>
       </material>
     </visual>
     <collision>
-      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <origin rpy="0 0 0" xyz="0.0      -0.0155  -0.00375"/>
       <geometry>
-        <mesh filename="./meshes/ra1.stl" scale="0.001 0.001 0.001"/>
+        <box size="0.042  0.031  0.0325"/>
       </geometry>
-      <material name="Grey">
-        <color rgba="0.60 0.60 0.60 1.0"/>
+      <material name="Red">
+        <color rgba="1.00 0.60 0.60 1.0"/>
       </material>
     </collision>
     <inertial>
@@ -1117,19 +1120,19 @@
     <visual>
       <origin rpy="0 0 0" xyz="0 0 0"/>
       <geometry>
-        <mesh filename="./meshes/ra2.stl" scale="0.001 0.001 0.001"/>
+        <mesh filename="./meshes/ra2_simp.stl" scale="0.001 0.001 0.001"/>
       </geometry>
       <material name="Grey">
         <color rgba="0.60 0.60 0.60 1.0"/>
       </material>
     </visual>
     <collision>
-      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <origin rpy="0 0 0" xyz="-0.0168 -0.0452  0.0007"/>
       <geometry>
-        <mesh filename="./meshes/ra2.stl" scale="0.001 0.001 0.001"/>
+        <box size="0.0424 0.1129 0.0301"/>
       </geometry>
-      <material name="Grey">
-        <color rgba="0.60 0.60 0.60 1.0"/>
+      <material name="Red">
+        <color rgba="1.00 0.60 0.60 1.0"/>
       </material>
     </collision>
     <inertial>
@@ -1162,19 +1165,19 @@
     <visual>
       <origin rpy="0 0 0" xyz="0 0 0"/>
       <geometry>
-        <mesh filename="./meshes/ra3.stl" scale="0.001 0.001 0.001"/>
+        <mesh filename="./meshes/ra3_simp.stl" scale="0.001 0.001 0.001"/>
       </geometry>
       <material name="Grey">
         <color rgba="0.60 0.60 0.60 1.0"/>
       </material>
     </visual>
     <collision>
-      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <origin rpy="0 0 0" xyz="-0.019      -0.07200493  0.0"/>
       <geometry>
-        <mesh filename="./meshes/ra3.stl" scale="0.001 0.001 0.001"/>
+        <box size="0.042      0.14900986 0.03"/>
       </geometry>
-      <material name="Grey">
-        <color rgba="0.60 0.60 0.60 1.0"/>
+      <material name="Red">
+        <color rgba="1.00 0.60 0.60 1.0"/>
       </material>
     </collision>
     <inertial>
@@ -1207,21 +1210,23 @@
     <visual>
       <origin rpy="0 0 0" xyz="0 0 0"/>
       <geometry>
-        <mesh filename="./meshes/h1.stl" scale="0.001 0.001 0.001"/>
+        <mesh filename="./meshes/h1_simp.stl" scale="0.001 0.001 0.001"/>
       </geometry>
       <material name="Grey">
         <color rgba="0.60 0.60 0.60 1.0"/>
       </material>
     </visual>
     <collision>
-      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <origin rpy="0 0 0" xyz="0.00375 0.0 0.0155"/>
       <geometry>
-        <mesh filename="./meshes/h1.stl" scale="0.001 0.001 0.001"/>
+        <box size="0.0325 0.042  0.031"/>
       </geometry>
-      <material name="Grey">
-        <color rgba="0.60 0.60 0.60 1.0"/>
+      <material name="Red">
+        <color rgba="1.00 0.60 0.60 1.0"/>
       </material>
     </collision>
+
+
     <inertial>
       <origin xyz="0.00233 0.00000 0.00823"/>
       <mass value="0.01176"/>
@@ -1252,19 +1257,19 @@
     <visual>
       <origin rpy="0 0 0" xyz="0 0 0"/>
       <geometry>
-        <mesh filename="./meshes/h2.stl" scale="0.001 0.001 0.001"/>
+        <mesh filename="./meshes/h2_simp.stl" scale="0.001 0.001 0.001"/>
       </geometry>
       <material name="Grey">
         <color rgba="0.60 0.60 0.60 1.0"/>
       </material>
     </visual>
     <collision>
-      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <origin rpy="0 0 0" xyz="0.006   -0.019    0.02775"/>
       <geometry>
-        <mesh filename="./meshes/h2.stl" scale="0.001 0.001 0.001"/>
+        <box size="0.0445 0.094  0.078"/>
       </geometry>
-      <material name="Grey">
-        <color rgba="0.60 0.60 0.60 1.0"/>
+      <material name="Red">
+        <color rgba="1.00 0.60 0.60 1.0"/>
       </material>
     </collision>
     <inertial>

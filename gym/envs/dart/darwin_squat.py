@@ -1139,5 +1139,3 @@ class DartDarwinSquatEnv(dart_env.DartEnv, utils.EzPickle):
             self._get_viewer().scene.tb.phi = 0
 
         return 0
-
-

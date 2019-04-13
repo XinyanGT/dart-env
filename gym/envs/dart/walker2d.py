@@ -19,6 +19,9 @@ class DartWalker2dEnv(dart_env.DartEnv, utils.EzPickle):
         self.UP_noise_level = 0.0
         self.param_manager = walker2dParamManager(self)
 
+        self.vibrating_ground = True
+        self.ground_vib_params = [0.15, 2.0] # magnitude, frequency
+
         self.action_filtering = 0  # window size of filtering, 0 means no filtering
         self.action_filter_cache = []
         self.action_filter_in_env = False  # whether to filter out actions in the environment
@@ -39,8 +42,8 @@ class DartWalker2dEnv(dart_env.DartEnv, utils.EzPickle):
         self.state_index = 0
         self.use_sparse_reward = False
 
-        self.include_obs_history = 10
-        self.include_act_history = 10
+        self.include_obs_history = 1
+        self.include_act_history = 0
         obs_dim *= self.include_obs_history
         obs_dim += len(self.control_bounds[0]) * self.include_act_history
 
@@ -97,6 +100,9 @@ class DartWalker2dEnv(dart_env.DartEnv, utils.EzPickle):
         self.observation_buffer = []
         self.action_buffer = []
         self.state_buffer = []
+
+        self.cycle_times = [] # gait cycle times
+        self.previous_contact = None # [left or right foot, time]
 
         self.obs_delay = 0
         self.act_delay = 0
@@ -182,6 +188,9 @@ class DartWalker2dEnv(dart_env.DartEnv, utils.EzPickle):
         if self.action_filtering > 0 and self.action_filter_reward > 0 and len(self.action_filter_cache) > 0:
             action_filter_rew = -np.abs(np.mean(self.action_filter_cache, axis=0) - a).sum() * self.action_filter_reward
 
+        if self.vibrating_ground:
+            self.dart_world.skeletons[0].joints[0].set_rest_position(0, self.ground_vib_params[0] * np.sin(2*np.pi*self.ground_vib_params[1] * self.cur_step * self.dt))
+
         if self.action_filter_delta_act > 0:
             if len(self.action_filter_cache) == 0:
                 base_a = np.zeros(len(a))
@@ -197,6 +206,28 @@ class DartWalker2dEnv(dart_env.DartEnv, utils.EzPickle):
         if self.action_filtering > 0 and self.action_filter_in_env:
             a = np.mean(self.action_filter_cache, axis=0)
 
+        contacts = self.dart_world.collision_result.contacts
+        for contact in contacts:
+            if contact.skel_id1 != self.robot_skeleton.id and contact.skel_id2 != self.robot_skeleton.id:
+                continue
+            if self.robot_skeleton.bodynode('h_foot_left') in [contact.bodynode1, contact.bodynode2]\
+                    and \
+                    self.dart_world.skeletons[0].bodynodes[0] in [contact.bodynode1, contact.bodynode2]:
+                if self.previous_contact is None:
+                    self.previous_contact = [0, self.cur_step * self.dt]
+                elif self.previous_contact[0] == 1:
+                    self.cycle_times.append(self.cur_step * self.dt - self.previous_contact[1])
+                    self.previous_contact = [0, self.cur_step * self.dt]
+
+            if self.robot_skeleton.bodynode('h_foot') in [contact.bodynode1, contact.bodynode2]\
+                    and \
+                    self.dart_world.skeletons[0].bodynodes[0] in [contact.bodynode1, contact.bodynode2]:
+                if self.previous_contact is None:
+                    self.previous_contact = [1, self.cur_step * self.dt]
+                elif self.previous_contact[0] == 0:
+                    self.cycle_times.append(self.cur_step * self.dt - self.previous_contact[1])
+                    self.previous_contact = [1, self.cur_step * self.dt]
+
         self.cur_step += 1
         self.advance(a)
         reward = self.reward_func(a, sparse=self.use_sparse_reward) + action_filter_rew
@@ -205,7 +236,11 @@ class DartWalker2dEnv(dart_env.DartEnv, utils.EzPickle):
 
         ob = self._get_obs()
 
-        return ob, reward, done, {'dyn_model_id':0, 'state_index':self.state_index}
+        gait_freq = 0
+        if len(self.cycle_times) > 0:
+            gait_freq = 1.0 / (np.mean(self.cycle_times) * 2)
+
+        return ob, reward, done, {'dyn_model_id':0, 'state_index':self.state_index, 'gait_frequency':gait_freq}
 
     def _get_obs(self):
         state =  np.concatenate([
@@ -286,6 +321,9 @@ class DartWalker2dEnv(dart_env.DartEnv, utils.EzPickle):
         if self.action_filtering > 0:
             for i in range(self.action_filtering):
                 self.action_filter_cache.append(np.zeros(len(self.action_scale)))
+
+        self.cycle_times = []  # gait cycle times
+        self.previous_contact = None
 
         return self._get_obs()
 
