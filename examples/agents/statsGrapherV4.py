@@ -14,7 +14,7 @@ import pyPhysX.renderUtils as renderutils
 if __name__ == '__main__':
 
     #1. set variables
-    filemode = True
+    filemode = False
     legend = False
     graphStats = False #if true, graph mean/variance instead of data
     singleFrame = False #if true, graph everything on the same graph
@@ -25,8 +25,8 @@ if __name__ == '__main__':
     #ymax = 200
 
     #limb progress
-    #ymax = 1.0
-    #ymin = -2.0
+    ymax = 1.0
+    ymin = -2.0
 
     #forces
     #ymax = 700.0
@@ -50,33 +50,39 @@ if __name__ == '__main__':
         "/home/alexander/Documents/dev/data_recording_dir/onearm_curr_typical_linearpenx10/",
         "/home/alexander/Documents/dev/data_recording_dir/onearm_slowhr_linearpen/",
         "/home/alexander/Documents/dev/data_recording_dir/fresh_typical_linearconpen/",
-        "/home/alexander/Documents/dev/data_recording_dir/onearm_fresh_linearpenx10/"
+        "/home/alexander/Documents/dev/data_recording_dir/onearm_fresh_linearpenx10/",
+        "/home/alexander/Documents/dev/data_recording_dir/onearm_typical_nocap/"
+
     ]
 
     prefixes_tremor_onearm = [
         "/home/alexander/Documents/dev/data_recording_dir/tremor/",
         "/home/alexander/Documents/dev/data_recording_dir/curr_tremor_linearconpen/",
-        "/home/alexander/Documents/dev/data_recording_dir/onearm_fresh_tremor_linearpen/"
+        "/home/alexander/Documents/dev/data_recording_dir/onearm_fresh_tremor_linearpen/",
+        "/home/alexander/Documents/dev/data_recording_dir/onearm_curr_tremor_linearpenx10/"
     ]
 
     prefixes_weakness_onearm = [
         "/home/alexander/Documents/dev/data_recording_dir/weakness/",
         "/home/alexander/Documents/dev/data_recording_dir/curr_weak_linearconpen/",
-        "/home/alexander/Documents/dev/data_recording_dir/onearm_fresh_weak_linearpen/"
+        "/home/alexander/Documents/dev/data_recording_dir/onearm_fresh_weak_linearpen/",
+        "/home/alexander/Documents/dev/data_recording_dir/onearm_curr_weakstrong_linearpenx10/"
+
     ]
 
     prefixes_jcon_onearm = [
         "/home/alexander/Documents/dev/data_recording_dir/elbow_constraint/",
         "/home/alexander/Documents/dev/data_recording_dir/curr_elbowcon_linearconpen/",
-        "/home/alexander/Documents/dev/data_recording_dir/onearm_fresh_elbowconstraint_linearpen/"
+        "/home/alexander/Documents/dev/data_recording_dir/onearm_fresh_elbowconstraint_linearpen/",
+        "/home/alexander/Documents/dev/data_recording_dir/onearm_curr_jcon_linearpenx10/"
     ]
 
-    prefixes_typical = [
+    prefixes_typical_training = [
         "/home/alexander/Documents/dev/data_recording_dir/elbow_constraint/",
         "/home/alexander/Documents/dev/data_recording_dir/tremor/",
         "/home/alexander/Documents/dev/data_recording_dir/weakness/",
         "/home/alexander/Documents/dev/data_recording_dir/typical/"
-        "/home/alexander/Documents/dev/data_recording_dir/vel025/",
+        "/home/alexander/Documents/dev/data_recording_dir/vel025/"
     ]
 
 
@@ -90,7 +96,11 @@ if __name__ == '__main__':
         "/home/alexander/Documents/dev/data_recording_dir/curr_tremor_linearconpen/",
         "/home/alexander/Documents/dev/data_recording_dir/curr_slowrobo_linearconpen/",
         "/home/alexander/Documents/dev/data_recording_dir/curr_elbowcon_linearconpen/",
-        "/home/alexander/Documents/dev/data_recording_dir/onearm_curr_typical_linearpenx10/"
+        "/home/alexander/Documents/dev/data_recording_dir/onearm_curr_typical_linearpenx10/",
+        "/home/alexander/Documents/dev/data_recording_dir/onearm_curr_tremor_linearpenx10/",
+        "/home/alexander/Documents/dev/data_recording_dir/onearm_curr_jcon_linearpenx10/",
+        "/home/alexander/Documents/dev/data_recording_dir/onearm_curr_weakstrong_linearpenx10/"
+
     ]
 
     #fresh linear contact pen trials
@@ -111,10 +121,12 @@ if __name__ == '__main__':
     prefixes_twoarm = [
         "/home/alexander/Documents/dev/data_recording_dir/curr_twoarm_linearconpen/",
         "/home/alexander/Documents/dev/data_recording_dir/twoarm_gown/",
-        "/home/alexander/Documents/dev/data_recording_dir/twoarmgown_fresh_linearpen/"
+        "/home/alexander/Documents/dev/data_recording_dir/twoarmgown_fresh_linearpen/",
+        "/home/alexander/Documents/dev/data_recording_dir/twoarm_gown_curr_linearpenx10/",
+        "/home/alexander/Documents/dev/data_recording_dir/twoarm_gown_nocap/"
     ]
 
-    prefixes = prefixes_weakness_onearm
+    prefixes = prefixes_tremor_onearm
 
 
     for prefix in prefixes:
@@ -149,7 +161,7 @@ if __name__ == '__main__':
 
         #titles = [[ "limb 0 progress", "limb 1 progress"]]
 
-        ''''''
+        '''
         filenames = [
             ["max_cloth_contact", "total_cloth_contact"],
             ["max_rigid_contact", "total_rigid_contact"],
@@ -161,7 +173,7 @@ if __name__ == '__main__':
             ["max_rigid_contact", "total_rigid_contact"],
             ["max_contact", "total_contact"]
         ]
-        ''''''
+        '''
 
         if graphStats:
             for lix,list in enumerate(titles):

@@ -62,12 +62,12 @@ def main():
     #trial = "experiment_2019_03_30_twoarm_tshirt_demonstration"
     #trial = "experiment_2019_03_30_tshirt_sym"
     #trial = "experiment_2019_03_26_tshirt_pose"
-    trial = "experiment_2019_03_22_twoarm_tshirt_cont"
+    #trial = "experiment_2019_03_22_twoarm_tshirt_cont"
     #trial = "experiment_2019_03_22_twoarm_tshirt"
     #trial = "experiment_2019_03_22_twoarm_tshirt_06cont3_warm_penalties"
     #trial = "experiment_2019_03_20_twoarm_tshirt"
     #trial = "experiment_2019_03_20_twoarm_tshirt_06cont3_warm_penalties"
-    #trial = "experiment_2019_03_06_twoarm_tshirt_split_cont3_bendhead"
+    trial = "experiment_2019_03_06_twoarm_tshirt_split_cont3_bendhead"
     #trial = "experiment_2019_03_06_twoarm_tshirt_split_cont2"
     #trial = "experiment_2019_03_06_twoarm_tshirt_split_cont"
     #trial = "experiment_2019_03_06_twoarm_tshirt_split"
@@ -75,6 +75,9 @@ def main():
     # ---
 
     # --- new multiarm
+
+    #trial = "experiment_2019_04_12_twoarm_gown_nocap"
+    #trial = "experiment_2019_04_12_twoarm_gown_curr_linearpenx10"
     #trial = "experiment_2019_04_08_twoarmgown_fresh_linearpen"
     #trial = "experiment_2019_04_08_twoarmgown_curr_linearpen"
     #trial = "experiment_2019_03_27_twoarm_gown_robopose"
@@ -90,6 +93,10 @@ def main():
 
     # -- new env onearm
 
+    #trial = "experiment_2019_04_12_onearm_typical_nocap"
+    #trial = "experiment_2019_04_12_onearm_curr_weakstrong_linearpenx10"
+    #trial = "experiment_2019_04_11_onearm_curr_jcon_linearpenx10"
+    #trial = "experiment_2019_04_11_onearm_curr_tremor_linearpenx10"
     #trial = "experiment_2019_04_10_onearm_curr_typical_linearpenx10"
     #trial = "experiment_2019_04_09_onearm_fresh_elbowconstraint_linearpen"
     #trial = "experiment_2019_04_09_onearm_fresh_tremor_linearpen"
@@ -575,13 +582,15 @@ def main():
     loadSave_frame = None #if none, use most recent
     #loadSave_frame = 20
     graphOnly = False #if true, exit() after graphing
-    demoSave = False #if true, create an exp named demo folder and render into it
+    demoSave = True #if true, create an exp named demo folder and render into it
 
     if loadSave is True:
         import tensorflow as tf
         if trials is not None:
             for b_trial in trials:
                 with tf.Session() as sess:
+                    renderGraph(filename=prefix + b_trial + "/progress.csv")
+                    renderGraph(filename=prefix + b_trial + "/progress.csv", targetField="AverageReturn")
                     print("trying to load the params.pkl file")
                     frame_num = ""
                     if loadSave_frame is not None:
@@ -680,9 +689,9 @@ def main():
     #envName = 'DartIiwaGownAssistCoopt-v2'
     #envName = 'DartIiwaGownAssistCoopt_h-v2'
     #envName = 'DartIiwaGownMultibot-v1'
-    #envName = 'DartIiwaOnearmGown-v1'
+    envName = 'DartIiwaOnearmGown-v1'
     #envName = 'DartIiwaTwoarmGown-v1'
-    envName = 'DartIiwaTwoarmTshirt-v1'
+    #envName = 'DartIiwaTwoarmTshirt-v1'
 
     if len(sys.argv) > 1:
         #print(sys.argv[1])

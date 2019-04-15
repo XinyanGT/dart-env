@@ -2061,7 +2061,7 @@ class DartClothIiwaEnv(gym.Env):
         self.recording_progress = False
         self.recording_contact = False
         self.contact_record = {"max_cloth_contact":[], "total_cloth_contact":[], "max_rigid_contact":[], "total_rigid_contact":[], "max_contact":[], "total_contact":[]} #each list contains a list per episode
-        self.recording_directory = "data_recording_dir/twoarmgown_fresh_linearpen"
+        self.recording_directory = "data_recording_dir/twoarm_gown_nocap"
 
         #setup some flags
         self.dual_policy = dual_policy #if true, expect an action space concatenation of human/robot(s)
@@ -2471,15 +2471,16 @@ class DartClothIiwaEnv(gym.Env):
     def _step(self, a):
 
         #print(self.dressing_targets[2].previous_evaluation)
-        if self.dressing_targets[2].previous_evaluation > 0.6 and self.letgo:
-            #print("DONE")
-            for iiwa in self.iiwas:
-                iiwa.handle_node.clearHandles()
-                iiwa.pose_interpolation_target = np.zeros(7)
-                iiwa.control_mode = 2 #skip control and track manual target
-            self.humanSPDIntperolationTarget = np.zeros(len(self.human_skel.q))
-            self.humanSPDIntperolationTarget[8] = 2.4
-            self.humanSPDIntperolationTarget[16] = 2.4
+        if self.letgo: #NOTE: will crash onearm case
+            if self.dressing_targets[2].previous_evaluation > 0.6 and self.dressing_targets[1].previous_evaluation > 0.5 and self.dressing_targets[0].previous_evaluation > 0.5:
+                print("DONE")
+                for iiwa in self.iiwas:
+                    iiwa.handle_node.clearHandles()
+                    iiwa.pose_interpolation_target = np.zeros(7)
+                    iiwa.control_mode = 2 #skip control and track manual target
+                self.humanSPDIntperolationTarget = np.zeros(len(self.human_skel.q))
+                self.humanSPDIntperolationTarget[8] = 2.4
+                self.humanSPDIntperolationTarget[16] = 2.4
 
         #max_vel = np.amax(np.abs(self.iiwas[0].skel.dq))
         #print("max velocity: " + str(max_vel))

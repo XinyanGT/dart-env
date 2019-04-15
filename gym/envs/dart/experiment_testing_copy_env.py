@@ -111,22 +111,18 @@ class DartClothExperimentTestingEnv(DartClothIiwaEnv):
         #rest_pose_weights[3:19] *= 0 #ignore rest pose
         rest_pose_weights[19:] *= 3 #stable head
         self.reward_manager.addTerm(term=RestPoseRewardTerm(self.human_skel, pose=rest_pose, weights=rest_pose_weights))
-        self.reward_manager.addTerm(term=LimbProgressRewardTerm(dressing_target=self.dressing_targets[0], terminal=True, success_threshold=0.7, weight=20))
-        self.reward_manager.addTerm(term=LimbProgressRewardTerm(dressing_target=self.dressing_targets[1], terminal=True, success_threshold=0.7, weight=20))
-        self.reward_manager.addTerm(term=LimbProgressRewardTerm(dressing_target=self.dressing_targets[2], terminal=True, success_threshold=0.7, weight=20))
-        self.reward_manager.addTerm(term=LimbProgressRewardTerm(dressing_target=self.dressing_targets[3], terminal=True, success_threshold=1.0, weight=20))
-        self.reward_manager.addTerm(term=LimbProgressRewardTerm(dressing_target=self.dressing_targets[4], terminal=False, success_threshold=1.0, weight=20))
-        self.reward_manager.addTerm(term=LimbProgressRewardTerm(dressing_target=self.dressing_targets[5], terminal=False, success_threshold=1.0, weight=20))
+        self.reward_manager.addTerm(term=LimbProgressRewardTerm(dressing_target=self.dressing_targets[0], terminal=True, weight=20))
+        self.reward_manager.addTerm(term=LimbProgressRewardTerm(dressing_target=self.dressing_targets[1], terminal=True, weight=20))
+        self.reward_manager.addTerm(term=LimbProgressRewardTerm(dressing_target=self.dressing_targets[2], terminal=True, weight=20))
+        self.reward_manager.addTerm(term=LimbProgressRewardTerm(dressing_target=self.dressing_targets[3], terminal=True, weight=20))
+        self.reward_manager.addTerm(term=LimbProgressRewardTerm(dressing_target=self.dressing_targets[4], terminal=False, weight=20))
+        self.reward_manager.addTerm(term=LimbProgressRewardTerm(dressing_target=self.dressing_targets[5], terminal=False, weight=20))
         self.reward_manager.addTerm(term=GeodesicContactRewardTerm(sensor_index=21, env=self, separated_mesh=self.separated_meshes[0], dressing_target=self.dressing_targets[0], weight=15))
         self.reward_manager.addTerm(term=GeodesicContactRewardTerm(sensor_index=12, env=self, separated_mesh=self.separated_meshes[1], dressing_target=self.dressing_targets[1], weight=15))
         self.reward_manager.addTerm(term=GeodesicContactRewardTerm(sensor_index=3, env=self, separated_mesh=self.separated_meshes[2], dressing_target=self.dressing_targets[2], weight=15))
 
-        self.reward_manager.addTerm(term=ClothDeformationRewardTerm(self, weight=4))
-        self.reward_manager.addTerm(term=ClothAvgDeformationRewardTerm(self, weight=5))
+        self.reward_manager.addTerm(term=ClothDeformationRewardTerm(self, weight=5))
         self.reward_manager.addTerm(term=HumanContactRewardTerm(self, weight=5, tanh_params=(2, 0.15, 10)))
-
-        self.reward_manager.addTerm(term=BodyDistancePenaltyTerm(self, node1=self.iiwas[0].skel.bodynodes[8], offset1=np.zeros(3), node2=self.iiwas[1].skel.bodynodes[8], offset2=np.zeros(3), target_range=(0,0.4), weight=5))
-
 
         #set the observation space
         self.obs_dim = self.human_obs_manager.obs_size
@@ -255,9 +251,16 @@ class DartClothExperimentTestingEnv(DartClothIiwaEnv):
         self.iiwas[1].computeIK(maxIter=300)
         self.iiwas[0].skel.set_velocities(np.zeros(len(self.iiwas[0].skel.dq)))
         self.iiwas[0].setIKPose() #frame set in here too
-        self.iiwas[1].skel.set_velocities(np.zeros(len(self.iiwas[1].skel.dq)))
+        self.iiwas[1].skel.set_velocities(np.zeros(len(self.iiwas[0].skel.dq)))
         self.iiwas[1].setIKPose() #frame set in here too
 
+
+        if self.reset_number > 0:
+            #setup handle nodes
+            self.iiwas[0].addClothHandle(verts=[1251, 1724, 1402, 1853, 1629, 2111, 1683, 2185, 1562, 1979, 1919, 1249, 1854, 2000, 1250, 1399, 1917, 1438, 1716, 1281, 1639, 1715, 1561, 2113, 1785, 1418, 1851], offset=np.array([0, 0, 0.05]))
+            self.iiwas[1].addClothHandle(verts=[66, 67, 68, 69, 2057, 1274, 1723, 2040, 1243, 1863, 1617, 2066, 2039, 1744, 1627, 70, 2055, 1690, 1742, 1415, 2170, 1242, 1936, 1784, 1461, 1305, 1864, 1846, 1272, 1883], offset=np.array([0, 0, 0.05]))
+            for iiwa in self.iiwas:
+                iiwa.control_mode = 0
 
         #initialize the garment location
         #self.clothScene.translateCloth(0, np.array([0, 0, 1.0]))
@@ -348,9 +351,6 @@ class DartClothExperimentTestingEnv(DartClothIiwaEnv):
                 feature.fitPlane()
         #self.clothScene.saveObjState(filename="/home/alexander/Documents/dev/dart-env/gym/envs/dart/assets/twoArmTshirtHang")
         #self.clothScene.loadObjState()
-
-        #TODO: load testing
-        #self.loadState()
 
     def _getFile(self):
         return __file__
