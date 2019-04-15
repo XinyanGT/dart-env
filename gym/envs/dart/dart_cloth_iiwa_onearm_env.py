@@ -70,7 +70,7 @@ class DartClothIiwaOnearmEnv(DartClothIiwaEnv):
         #self.human_obs_manager.addObsFeature(feature=CollisionMPCObsFeature(env=self,is_human=True))
         #self.human_obs_manager.addObsFeature(feature=WeaknessScaleObsFeature(self,self.limbDofs[1],scale_range=(0.1,0.6)))
         #self.human_obs_manager.addObsFeature(feature=ActionTremorObsFeature(self,self.limbDofs[1],scale_ranges=np.ones(len(self.limbDofs[1]))*0.15))
-        self.human_obs_manager.addObsFeature(feature=JointConstraintObsFeature(self,dof=16,u_constraint_range=(0.5,2.85),l_constraint_range=(0.21,2.0), mode=0))
+        #self.human_obs_manager.addObsFeature(feature=JointConstraintObsFeature(self,dof=16,u_constraint_range=(0.5,2.85),l_constraint_range=(0.21,2.0), mode=0))
 
         self.human_obs_manager.addObsFeature(feature=OracleObsFeature(env=self,sensor_ix=21,dressing_target=self.dressing_targets[-1],sep_mesh=self.separated_meshes[-1]))
         for iiwa in self.iiwas:
@@ -82,7 +82,7 @@ class DartClothIiwaOnearmEnv(DartClothIiwaEnv):
             self.robot_obs_manager.addObsFeature(feature=JointPositionObsFeature(iiwa.skel, ignored_joints=[1], name="iiwa " + str(iiwa.index) + " joint positions"))
             if iiwa_control_mode == 0:
                 self.robot_obs_manager.addObsFeature(feature=RobotFramesObsFeature(iiwa, name="iiwa " + str(iiwa.index) + " frame"))
-            #self.robot_obs_manager.addObsFeature(feature=CapacitiveSensorObsFeature(iiwa, name="iiwa " + str(iiwa.index) + " cap sensor"))
+            self.robot_obs_manager.addObsFeature(feature=CapacitiveSensorObsFeature(iiwa, name="iiwa " + str(iiwa.index) + " cap sensor"))
             self.robot_obs_manager.addObsFeature(feature=FTSensorObsFeature(self, iiwa, name="iiwa " + str(iiwa.index) + " FT sensor"))
             if iiwa_control_mode == 1:
                 self.robot_obs_manager.addObsFeature(feature=RobotSPDTargetObsFeature(self, iiwa, name="iiwa " + str(iiwa.index) + " interp target"))

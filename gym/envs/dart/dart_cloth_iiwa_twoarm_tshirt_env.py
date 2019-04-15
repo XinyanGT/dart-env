@@ -415,17 +415,18 @@ class DartClothIiwaTwoarmTshirtEnv(DartClothIiwaEnv):
         #self.clothScene.loadObjState()
 
         #set rewards to final state
-        if len(self.state_distribution) == 0:
-            for i in range(self.initial_distribution_size):
-                self.loadState(directory=self.prefix + self.initial_distribution_directory, state_number=i)
-                self.state_distribution.append(SimState(self, make=True))
-            if self.connectivity_reward:
-                nix = len(self.state_distribution) - 1
-                n_state = self.state_distribution[nix]
-                self.rest_state_reward_terms[0].rest_pose = np.array(n_state.human_state[0])
-                for ix, iiwa in enumerate(self.iiwas):
-                    self.rest_state_reward_terms[ix + 1].rest_pose = np.array(n_state.robot_state[0][ix])
-                print("WARNING: setting rest poses explicitly from final loaded state")
+        if False:
+            if len(self.state_distribution) == 0:
+                for i in range(self.initial_distribution_size):
+                    self.loadState(directory=self.prefix + self.initial_distribution_directory, state_number=i)
+                    self.state_distribution.append(SimState(self, make=True))
+                if self.connectivity_reward:
+                    nix = len(self.state_distribution) - 1
+                    n_state = self.state_distribution[nix]
+                    self.rest_state_reward_terms[0].rest_pose = np.array(n_state.human_state[0])
+                    for ix, iiwa in enumerate(self.iiwas):
+                        self.rest_state_reward_terms[ix + 1].rest_pose = np.array(n_state.robot_state[0][ix])
+                    print("WARNING: setting rest poses explicitly from final loaded state")
 
         #self.loadState()
         if self.initialize_from_distribution:
