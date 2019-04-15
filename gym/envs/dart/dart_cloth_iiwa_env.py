@@ -403,6 +403,32 @@ class SkelSymmetryRewardTerm(RewardTerm):
 
         return self.previous_evaluation
 
+class JointVelocityPenaltyTerm(RewardTerm):
+    #L2 penalty on joint velocity
+    def __init__(self, env, skel, name="joint velocity penalty", weight=1.0):
+        self.env = env
+        self.skel = skel
+
+        self.min_possible = 0
+        j_range = self.skel.position_upper_limits() - self.skel.position_lower_limits()
+        for d in range(len(self.skel.q)):
+            if math.isfinite(j_range[d]):
+                self.min_possible -= j_range[d]*j_range[d]
+            else:
+                self.min_possible -= 16.0
+
+        RewardTerm.__init__(self, name=name, weight=weight, min=self.min_possible, max=0)
+
+    def evaluateReward(self):
+        self.previous_evaluation = 0
+
+        for v in self.skel.dq:
+            self.previous_evaluation -= v*v
+
+        self.previous_evaluation *= self.weight
+
+        return self.previous_evaluation
+
 class ObservationManager:
     def __init__(self):
         self.obs_features = []  # list of active reward terms
@@ -2071,8 +2097,8 @@ class DartClothIiwaEnv(gym.Env):
         self.dart_render = True
         self.proxy_render = False
         self.cloth_render = True
-        self.detail_render = False
-        self.demo_render = True #if true, render only the body and robot
+        self.detail_render = True
+        self.demo_render = False #if true, render only the body and robot
         self.simulating = True #used to allow simulation freezing while rendering continues
         self.passive_robots = False #if true, no motor torques from the robot
         self.two_bot_mirror = False #if true, set bot 1 to mirror of bot 2 pose
