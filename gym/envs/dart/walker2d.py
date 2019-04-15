@@ -20,7 +20,9 @@ class DartWalker2dEnv(dart_env.DartEnv, utils.EzPickle):
         self.param_manager = walker2dParamManager(self)
 
         self.vibrating_ground = True
-        self.ground_vib_params = [0.4875, 0.5] # magnitude, frequency
+        self.ground_vib_params = [0.03325,4.5] # magnitude, frequency
+        self.randomize_ground_vib = True
+        self.ground_vib_input = True
 
         self.action_filtering = 0  # window size of filtering, 0 means no filtering
         self.action_filter_cache = []
@@ -65,6 +67,11 @@ class DartWalker2dEnv(dart_env.DartEnv, utils.EzPickle):
             obs_dim += len(self.param_manager.activated_param)
             self.obs_perm = np.concatenate([self.obs_perm, np.arange(int(len(self.obs_perm)),
                                                 int(len(self.obs_perm)+len(self.param_manager.activated_param)))])
+
+        if self.ground_vib_input:
+            obs_dim += 2
+            self.obs_perm = np.concatenate([self.obs_perm, np.arange(int(len(self.obs_perm)),
+                                                                     int(len(self.obs_perm) + 2))])
 
         dart_env.DartEnv.__init__(self, ['walker2d.skel', 'walker2d_variation1.skel'\
                                          , 'walker2d_variation2.skel'], 4, obs_dim, self.control_bounds, disableViewer=True)
@@ -129,6 +136,10 @@ class DartWalker2dEnv(dart_env.DartEnv, utils.EzPickle):
         ang = self.robot_skeleton.q[2]
         done = not (np.isfinite(s).all() and (np.abs(s[2:]) < 100).all() and
                    (height > .8) and (height < 2.0) and (abs(ang) < 1.0))
+        lfooth = self.robot_skeleton.bodynode('h_foot_left').C[1]
+        rfooth = self.robot_skeleton.bodynode('h_foot').C[1]
+        #if lfooth > self.robot_skeleton.bodynode('h_thigh').C[1] or rfooth > self.robot_skeleton.bodynode('h_thigh_left').C[1]: # don't allow the feet to raise high
+        #    done = True
         if self.cur_step >= 1000:
             done = True
         return done
@@ -215,7 +226,7 @@ class DartWalker2dEnv(dart_env.DartEnv, utils.EzPickle):
                     self.dart_world.skeletons[0].bodynodes[0] in [contact.bodynode1, contact.bodynode2]:
                 if self.previous_contact is None:
                     self.previous_contact = [0, self.cur_step * self.dt]
-                elif self.previous_contact[0] == 1:
+                elif self.previous_contact[0] == 1 and self.robot_skeleton.q[3] < self.robot_skeleton.q[6]:
                     self.cycle_times.append(self.cur_step * self.dt - self.previous_contact[1])
                     self.previous_contact = [0, self.cur_step * self.dt]
 
@@ -224,7 +235,7 @@ class DartWalker2dEnv(dart_env.DartEnv, utils.EzPickle):
                     self.dart_world.skeletons[0].bodynodes[0] in [contact.bodynode1, contact.bodynode2]:
                 if self.previous_contact is None:
                     self.previous_contact = [1, self.cur_step * self.dt]
-                elif self.previous_contact[0] == 0:
+                elif self.previous_contact[0] == 0 and self.robot_skeleton.q[3] > self.robot_skeleton.q[6]:
                     self.cycle_times.append(self.cur_step * self.dt - self.previous_contact[1])
                     self.previous_contact = [1, self.cur_step * self.dt]
 
@@ -236,11 +247,11 @@ class DartWalker2dEnv(dart_env.DartEnv, utils.EzPickle):
 
         ob = self._get_obs()
 
-        gait_freq = 0
+        self.gait_freq = 0
         if len(self.cycle_times) > 0:
-            gait_freq = 1.0 / (np.mean(self.cycle_times) * 2)
+            self.gait_freq = 1.0 / (np.mean(self.cycle_times) * 2)
 
-        return ob, reward, done, {'dyn_model_id':0, 'state_index':self.state_index, 'gait_frequency':gait_freq}
+        return ob, reward, done, {'dyn_model_id':0, 'state_index':self.state_index, 'gait_frequency':self.gait_freq}
 
     def _get_obs(self):
         state =  np.concatenate([
@@ -277,6 +288,10 @@ class DartWalker2dEnv(dart_env.DartEnv, utils.EzPickle):
                     ub = np.clip(perturbed_pm[updim] + noise_range, 0, 1)
                     perturbed_pm[updim] = np.random.uniform(lb, ub)
             final_obs = np.concatenate([final_obs, perturbed_pm])
+
+        if self.ground_vib_input:
+            final_obs = np.concatenate([final_obs, self.ground_vib_params])
+
         if self.noisy_input:
             final_obs = final_obs + np.random.normal(0, .01, len(final_obs))
 
@@ -286,7 +301,10 @@ class DartWalker2dEnv(dart_env.DartEnv, utils.EzPickle):
         self.dart_world.reset()
         qpos = self.robot_skeleton.q + self.np_random.uniform(low=-.00015, high=.00015, size=self.robot_skeleton.ndofs)
         qvel = self.robot_skeleton.dq + self.np_random.uniform(low=-.00015, high=.00015, size=self.robot_skeleton.ndofs)
-        qpos[3] += 0.5
+        if np.random.random() > 0.5:
+            qpos[3] += 0.5
+        else:
+            qpos[6] += 0.5
         self.set_state(qpos, qvel)
 
         if self.resample_MP:
@@ -324,6 +342,11 @@ class DartWalker2dEnv(dart_env.DartEnv, utils.EzPickle):
 
         self.cycle_times = []  # gait cycle times
         self.previous_contact = None
+
+        if self.randomize_ground_vib:
+            frequency = np.random.random() * 4 + 1 # take frequency between 1 - 5
+            magnitutde = 0.126 / frequency * (1 + np.random.uniform(-1, 1) / 8.0)
+            self.ground_vib_params = [magnitutde, frequency]
 
         return self._get_obs()
 

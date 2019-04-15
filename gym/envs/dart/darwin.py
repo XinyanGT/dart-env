@@ -698,9 +698,9 @@ class DartDarwinEnv(dart_env.DartEnv, utils.EzPickle):
 
         self.action_buffer = []
 
+        self.current_param = self.param_manager.get_simulator_parameters()
         if self.resample_MP:
             self.param_manager.resample_parameters()
-            self.current_param = self.param_manager.get_simulator_parameters()
             if self.range_robust > 0:
                 lb = np.clip(self.current_param - self.range_robust, -0.05, 1.05)
                 ub = np.clip(self.current_param + self.range_robust, -0.05, 1.05)

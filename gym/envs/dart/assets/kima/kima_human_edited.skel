@@ -29,9 +29,19 @@
                     </geometry>
                 </collision_shape>
             </body>
-            <joint name="joint_1" type="free">
+            <joint name="joint_1" type="prismatic">
                 <parent>world</parent>
                 <child>ground</child>
+                <axis>
+                    <xyz>0 1 0</xyz>
+                    <dynamics>
+                        <damping>6.0</damping>
+                        <spring_stiffness>2000000.0</spring_stiffness>
+                    </dynamics>
+                </axis>
+
+                   <init_pos>0.0</init_pos>
+                <init_vel>0</init_vel>
             </joint>
         </skeleton>
 

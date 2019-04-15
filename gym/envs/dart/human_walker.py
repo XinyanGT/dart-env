@@ -20,6 +20,9 @@ class DartHumanWalkerEnv(dart_env.DartEnv, utils.EzPickle):
         self.action_penalty_weight = np.array([1.0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,  1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0])
         obs_dim = 57
 
+        self.vibrating_ground = False
+        self.ground_vib_params = [0.03325, 4.5]  # magnitude, frequency
+
         self.use_cartedian_obs = False
 
         if self.use_cartedian_obs:
@@ -31,8 +34,8 @@ class DartHumanWalkerEnv(dart_env.DartEnv, utils.EzPickle):
         self.t = 0
         self.target_vel = 0.0
         self.init_tv = 0.0
-        self.final_tv = -1.5
-        self.tv_endtime = 1.0
+        self.final_tv = 5.0
+        self.tv_endtime = 2.5
         self.tvel_diff_perc = 1.0
         self.smooth_tv_change = True
         self.running_average_velocity = False
@@ -41,7 +44,7 @@ class DartHumanWalkerEnv(dart_env.DartEnv, utils.EzPickle):
         self.vel_cache = []
         self.init_pos = 0
         self.pos_spd = False # Use spd on position in forward direction. Only use when treadmill is used
-        self.assist_timeout = 0.0  # do not provide pushing assistance after certain time
+        self.assist_timeout = 10.0  # do not provide pushing assistance after certain time
         self.assist_schedule = [[0.0, [2000, 2000]], [30.0, [1500, 1500.0]], [6.0, [1125, 1125]]]
 
         self.rand_target_vel = False
@@ -272,9 +275,11 @@ class DartHumanWalkerEnv(dart_env.DartEnv, utils.EzPickle):
         return clamped_control
 
     def step(self, a):
-
         if self.use_ref_policy:
             current_obs = self._get_obs()
+
+        if self.vibrating_ground:
+            self.dart_world.skeletons[0].joints[0].set_rest_position(0, self.ground_vib_params[0] * np.sin(2*np.pi*self.ground_vib_params[1] * self.cur_step * self.dt))
 
         # smoothly increase the target velocity
         if self.smooth_tv_change:

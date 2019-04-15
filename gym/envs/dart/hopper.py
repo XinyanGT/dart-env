@@ -211,11 +211,11 @@ class DartHopperEnv(dart_env.DartEnv, utils.EzPickle):
                 else:
                     self.cycle_times.append(self.cur_step * self.dt - self.previous_contact)
                     self.previous_contact = self.cur_step * self.dt
-        gait_freq = 0
+        self.gait_freq = 0
         if len(self.cycle_times) > 0:
-            gait_freq = 1.0 / (np.mean(self.cycle_times))
+            self.gait_freq = 1.0 / (np.mean(self.cycle_times))
 
-        envinfo['gait_frequency'] = gait_freq
+        envinfo['gait_frequency'] = self.gait_freq
 
         return ob, reward, done, envinfo
 

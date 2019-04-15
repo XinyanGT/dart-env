@@ -62,8 +62,8 @@
                 <axis>
                     <xyz>0 0 1</xyz>
                     <dynamics>
-                        <damping>100.0</damping>
-                        <spring_stiffness>124000.0</spring_stiffness>
+                        <damping>6.0</damping>
+                        <spring_stiffness>24000.0</spring_stiffness>
                     </dynamics>
                 </axis>
 
