@@ -70,7 +70,7 @@ class DartClothExperimentTestingEnv(DartClothIiwaEnv):
         #self.human_obs_manager.addObsFeature(feature=CollisionMPCObsFeature(env=self,is_human=True))
         #self.human_obs_manager.addObsFeature(feature=WeaknessScaleObsFeature(self,self.limbDofs[1],scale_range=(0.1,0.6)))
         #self.human_obs_manager.addObsFeature(feature=ActionTremorObsFeature(self,self.limbDofs[1],scale_ranges=np.ones(len(self.limbDofs[1]))*0.15))
-        #self.human_obs_manager.addObsFeature(feature=JointConstraintObsFeature(self,dof=16,u_constraint_range=(0.5,2.85),l_constraint_range=(0.21,2.0), mode=0))
+        self.human_obs_manager.addObsFeature(feature=JointConstraintObsFeature(self,dof=16,u_constraint_range=(0.5,2.85),l_constraint_range=(0.21,2.0), mode=0))
 
         self.human_obs_manager.addObsFeature(feature=OracleObsFeature(env=self,sensor_ix=21,dressing_target=self.dressing_targets[-1],sep_mesh=self.separated_meshes[-1]))
         for iiwa in self.iiwas:
@@ -82,7 +82,7 @@ class DartClothExperimentTestingEnv(DartClothIiwaEnv):
             self.robot_obs_manager.addObsFeature(feature=JointPositionObsFeature(iiwa.skel, ignored_joints=[1], name="iiwa " + str(iiwa.index) + " joint positions"))
             if iiwa_control_mode == 0:
                 self.robot_obs_manager.addObsFeature(feature=RobotFramesObsFeature(iiwa, name="iiwa " + str(iiwa.index) + " frame"))
-            self.robot_obs_manager.addObsFeature(feature=CapacitiveSensorObsFeature(iiwa, name="iiwa " + str(iiwa.index) + " cap sensor"))
+            #self.robot_obs_manager.addObsFeature(feature=CapacitiveSensorObsFeature(iiwa, name="iiwa " + str(iiwa.index) + " cap sensor"))
             self.robot_obs_manager.addObsFeature(feature=FTSensorObsFeature(self, iiwa, name="iiwa " + str(iiwa.index) + " FT sensor"))
             if iiwa_control_mode == 1:
                 self.robot_obs_manager.addObsFeature(feature=RobotSPDTargetObsFeature(self, iiwa, name="iiwa " + str(iiwa.index) + " interp target"))
@@ -103,9 +103,6 @@ class DartClothExperimentTestingEnv(DartClothIiwaEnv):
         self.reward_manager.addTerm(term=HumanContactRewardTerm(self, weight=5, tanh_params=(2, 0.15, 10))) #saturates at ~10 and ~38
         #self.reward_manager.addTerm(term=HumanContactRewardTerm(self, weight=25, tanh_params=(3, 0.05, 0))) #saturates at ~20 and ~100
         #self.reward_manager.addTerm(term=HumanContactLinearRewardTerm(self, weight=25, linear_scale=10.0))
-        self.reward_manager.addTerm(term=JointVelocityPenaltyTerm(self, self.human_skel, weight=5, name="human jvel pen"))
-        self.reward_manager.addTerm(term=JointVelocityPenaltyTerm(self, self.iiwas[0].skel, weight=35, name="robot jvel pen"))
-
 
         #set the observation space
         self.obs_dim = self.human_obs_manager.obs_size

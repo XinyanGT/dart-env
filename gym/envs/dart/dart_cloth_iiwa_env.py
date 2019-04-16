@@ -2087,7 +2087,7 @@ class DartClothIiwaEnv(gym.Env):
         self.recording_progress = False
         self.recording_contact = False
         self.contact_record = {"max_cloth_contact":[], "total_cloth_contact":[], "max_rigid_contact":[], "total_rigid_contact":[], "max_contact":[], "total_contact":[]} #each list contains a list per episode
-        self.recording_directory = "data_recording_dir/onearm_typical_velpen"
+        self.recording_directory = "data_recording_dir/onearm_jcon_nocap"
 
         #setup some flags
         self.dual_policy = dual_policy #if true, expect an action space concatenation of human/robot(s)

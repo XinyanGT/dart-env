@@ -94,12 +94,12 @@ def main():
 
     # -- new env onearm
 
-    trial = "experiment_2019_04_15_onearm_jcon_nocap"
-    trial = "experiment_2019_04_15_onearm_weakstrong_nocap"
-    trial = "experiment_2019_04_15_onearm_tremor_nocap"
-    trial = "experiment_2019_04_15_onearm_jcon_nohumanjobs"
-    trial = "experiment_2019_04_15_onearm_jcon_nohumanobs"
-    trial = "experiment_2019_04_15_onearm_typical_velpen"
+    #trial = "experiment_2019_04_15_onearm_jcon_nocap"
+    #trial = "experiment_2019_04_15_onearm_weakstrong_nocap"
+    #trial = "experiment_2019_04_15_onearm_tremor_nocap"
+    #trial = "experiment_2019_04_15_onearm_jcon_nohumanjobs"
+    #trial = "experiment_2019_04_15_onearm_jcon_nohumanobs"
+    #trial = "experiment_2019_04_15_onearm_typical_velpen" #too slow
     #trial = "experiment_2019_04_12_onearm_typical_nocap"
     #trial = "experiment_2019_04_12_onearm_curr_weakstrong_linearpenx10"
     #trial = "experiment_2019_04_11_onearm_curr_jcon_linearpenx10"
@@ -589,7 +589,7 @@ def main():
     loadSave_frame = None #if none, use most recent
     #loadSave_frame = 20
     graphOnly = False #if true, exit() after graphing
-    demoSave = True #if true, create an exp named demo folder and render into it
+    demoSave = False #if true, create an exp named demo folder and render into it
 
     if loadSave is True:
         import tensorflow as tf

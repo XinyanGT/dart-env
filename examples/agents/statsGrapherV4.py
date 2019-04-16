@@ -59,14 +59,16 @@ if __name__ == '__main__':
         "/home/alexander/Documents/dev/data_recording_dir/tremor/",
         "/home/alexander/Documents/dev/data_recording_dir/curr_tremor_linearconpen/",
         "/home/alexander/Documents/dev/data_recording_dir/onearm_fresh_tremor_linearpen/",
-        "/home/alexander/Documents/dev/data_recording_dir/onearm_curr_tremor_linearpenx10/"
+        "/home/alexander/Documents/dev/data_recording_dir/onearm_curr_tremor_linearpenx10/",
+        "/home/alexander/Documents/dev/data_recording_dir/onearm_tremor_nocap/"
     ]
 
     prefixes_weakness_onearm = [
         "/home/alexander/Documents/dev/data_recording_dir/weakness/",
         "/home/alexander/Documents/dev/data_recording_dir/curr_weak_linearconpen/",
         "/home/alexander/Documents/dev/data_recording_dir/onearm_fresh_weak_linearpen/",
-        "/home/alexander/Documents/dev/data_recording_dir/onearm_curr_weakstrong_linearpenx10/"
+        "/home/alexander/Documents/dev/data_recording_dir/onearm_curr_weakstrong_linearpenx10/",
+        "/home/alexander/Documents/dev/data_recording_dir/onearm_weakstrong_nocap/"
 
     ]
 
@@ -74,7 +76,10 @@ if __name__ == '__main__':
         "/home/alexander/Documents/dev/data_recording_dir/elbow_constraint/",
         "/home/alexander/Documents/dev/data_recording_dir/curr_elbowcon_linearconpen/",
         "/home/alexander/Documents/dev/data_recording_dir/onearm_fresh_elbowconstraint_linearpen/",
-        "/home/alexander/Documents/dev/data_recording_dir/onearm_curr_jcon_linearpenx10/"
+        "/home/alexander/Documents/dev/data_recording_dir/onearm_curr_jcon_linearpenx10/",
+        "/home/alexander/Documents/dev/data_recording_dir/onearm_jcon_nocap/",
+        "/home/alexander/Documents/dev/data_recording_dir/onearm_jcon_nohumanjobs/",
+        "/home/alexander/Documents/dev/data_recording_dir/onearm_jcon_nohumanobs/"
     ]
 
     prefixes_typical_training = [
@@ -126,301 +131,327 @@ if __name__ == '__main__':
         "/home/alexander/Documents/dev/data_recording_dir/twoarm_gown_nocap/"
     ]
 
-    prefixes = prefixes_tremor_onearm
+    prefixes_raw100 = [
+        "/home/alexander/Documents/dev/data_recording_dir/100x_raw_data/jcon/",
+        "/home/alexander/Documents/dev/data_recording_dir/100x_raw_data/jcon_x10/",
+        "/home/alexander/Documents/dev/data_recording_dir/100x_raw_data/tremor/",
+        "/home/alexander/Documents/dev/data_recording_dir/100x_raw_data/tremor_x10/",
+        "/home/alexander/Documents/dev/data_recording_dir/100x_raw_data/typical/",
+        "/home/alexander/Documents/dev/data_recording_dir/100x_raw_data/typical_x10/",
+        "/home/alexander/Documents/dev/data_recording_dir/100x_raw_data/weakstrong/",
+        "/home/alexander/Documents/dev/data_recording_dir/100x_raw_data/weakstrong_x10/"
+    ]
 
+    prefix_list = [
+        prefixes_capable_onearm,
+        prefixes_tremor_onearm,
+        prefixes_weakness_onearm,
+        prefixes_jcon_onearm
+    ]
 
-    for prefix in prefixes:
-        #define the matrix structure with remaining directory info:
-        #folders = [
-        #    ["1", "2"],
-        #    ["3", "4"]
-        #           ]
+    prefix_list = [
+        prefixes_raw100
+    ]
 
-        #elbow variation
-        folders = [
-            ["0", "1", "2"],
-            ["3", "4", "5"],
-            ["6", "7", "8"]
-        ]
-        titles = None
-        titles = [
-            ["0", "0.125", "0.25"],
-            ["0.375", "0.5", "0.625"],
-            ["0.75", "0.875", "1.0"]
-        ]
-        #folders = [['baseline']]
+    for prefixes in prefix_list:
 
-        folders = [[""]]
-        titles = [[""]]
+        for prefix in prefixes:
+            #define the matrix structure with remaining directory info:
+            #folders = [
+            #    ["1", "2"],
+            #    ["3", "4"]
+            #           ]
 
-        #filename = "limbProgressGraphData"
-        #filename = "deformationGraphData"
-        filename = "progress_history0.txt"
+            #elbow variation
+            folders = [
+                ["0", "1", "2"],
+                ["3", "4", "5"],
+                ["6", "7", "8"]
+            ]
+            titles = None
+            titles = [
+                ["0", "0.125", "0.25"],
+                ["0.375", "0.5", "0.625"],
+                ["0.75", "0.875", "1.0"]
+            ]
+            #folders = [['baseline']]
 
-        #filenames = [[ "progress_history0.txt", "progress_history1.txt"]]
+            folders = [[""]]
+            titles = [[""]]
 
-        #titles = [[ "limb 0 progress", "limb 1 progress"]]
+            #filename = "limbProgressGraphData"
+            #filename = "deformationGraphData"
+            filename = "progress_history0.txt"
 
-        '''
-        filenames = [
-            ["max_cloth_contact", "total_cloth_contact"],
-            ["max_rigid_contact", "total_rigid_contact"],
-            ["max_contact", "total_contact"]
-        ]
+            #filenames = [[ "progress_history0.txt", "progress_history1.txt"]]
 
-        titles = [
-            ["max_cloth_contact", "total_cloth_contact"],
-            ["max_rigid_contact", "total_rigid_contact"],
-            ["max_contact", "total_contact"]
-        ]
-        '''
+            #titles = [[ "limb 0 progress", "limb 1 progress"]]
 
-        if graphStats:
-            for lix,list in enumerate(titles):
-                for tix,title in enumerate(list):
-                    list[tix] = title + "_stats"
-
-        print(titles)
-
-        inprefixs = []
-
-        if filemode:
-            #file based method
-            for f_row in filenames:
-                inprefixs.append([])
-                for f in f_row:
-                    inprefixs[-1].append(prefix + f)
-        else:
-            #folder based method
-
-            for f_row in folders:
-                inprefixs.append([])
-                for f in f_row:
-                    inprefixs[-1].append(prefix+f+"/")
-
-        outprefix = prefix
-
-        print("loading data")
-
-        #labels = ["Linear", "RL Policy"]
-        labels = ["label"]
-
-        data = []
-        for p_row in inprefixs:
-            data.append([])
-            for p in p_row:
-                if filemode:
-                    print(p)
-                    data[-1].append(pyutils.loadData2D(filename=p))
-                else:
-                    print(p + filename)
-                    data[-1].append(pyutils.loadData2D(filename=p+filename))
-
-        #average over each timestep
-        avgs = []
-        vars = []
-
-        print("data string length: " + str(len(data[0][0][0])))
-
-        #compute the min and max y values if needed
-        if (ymax is None or ymin is None) and unifyScale:
-            print("computing min/max values:")
-            maxy = -99999
-            miny = 99999
-            for r in range(len(data)):
-                for c in range(len(data[r])):
-                    for s in range(len(data[r][c])):
-                        for t in range(len(data[r][c][s])):
-                            if data[r][c][s][t] < miny:
-                                miny = data[r][c][s][t]
-                            if data[r][c][s][t] > maxy:
-                                maxy = data[r][c][s][t]
-            print(" max: " + str(maxy) + ", min: " + str(miny))
-            if(ymax is None):
-                ymax = maxy
-            if(ymin is None):
-                ymin = miny
-
-        if graphStats:
-            #compute averages
-            for r in range(len(data)):
-                avgs.append([])
-                #compute averages of these lists
-                for c in range(len(data[r])):
-                    avgs[-1].append([])
-
-                    count = []
-                    for s in range(len(data[r][c])):
-                        for t in range(len(data[r][c][s])):
-                            if(t > len(count)-1):
-                                count.append(0)
-                                avgs[-1][-1].append(0)
-                            avgs[-1][-1][t] += data[r][c][s][t]
-                            count[t] += 1
-                    for t in range(len(avgs[-1][-1])):
-                        avgs[-1][-1][t] /= count[t]
-
-            #compute variances
-            for r in range(len(data)):
-                vars.append([])
-                #compute averages of these lists
-                for c in range(len(data[r])):
-                    vars[-1].append([])
-
-                    count = []
-                    for s in range(len(data[r][c])):
-                        for t in range(len(data[r][c][s])):
-                            if(t > len(count)-1):
-                                count.append(0)
-                                vars[-1][-1].append(0)
-                            vars[-1][-1][t] += (data[r][c][s][t] - avgs[r][c][t])*(data[r][c][s][t] - avgs[r][c][t])
-                            count[t] += 1
-                    for t in range(len(vars[-1][-1])):
-                        vars[-1][-1][t] /= count[t]
-                        #std dev
-                        vars[-1][-1][t] = math.sqrt(vars[-1][-1][t])
-
-        #if compressing to 1 frame, re-organize the data into one group
-        if singleFrame:
-            newdata = []
-
-            xdim = 0
+            '''
+            filenames = [
+                ["max_cloth_contact", "total_cloth_contact"],
+                ["max_rigid_contact", "total_rigid_contact"],
+                ["max_contact", "total_contact"]
+            ]
+    
+            titles = [
+                ["max_cloth_contact", "total_cloth_contact"],
+                ["max_rigid_contact", "total_rigid_contact"],
+                ["max_contact", "total_contact"]
+            ]
+            '''
 
             if graphStats:
-                # add average curve and 2 variance curves per entry
-                for r in avgs:
-                    for c in r:
-                        newdata.append(c)
-                for rix,r in enumerate(vars):
-                    for cix,c in enumerate(r):
-                        newdata.append([])
-                        newdata.append([])
-                        if len(c) > xdim:
-                            xdim = len(c)
-                        for tix,t in enumerate(c):
-                            newdata[-1].append(avgs[rix][cix][tix] + t)
-                            newdata[-2].append(avgs[rix][cix][tix] - t)
+                for lix,list in enumerate(titles):
+                    for tix,title in enumerate(list):
+                        list[tix] = title + "_stats"
+
+            print(titles)
+
+            inprefixs = []
+
+            if filemode:
+                #file based method
+                for f_row in filenames:
+                    inprefixs.append([])
+                    for f in f_row:
+                        inprefixs[-1].append(prefix + f)
             else:
-                #re-group all curves into one graph
-                for r in data:
-                    for c in r:
-                        for s in c:
-                            newdata.append(s)
-                            if len(s) > xdim:
-                                xdim = len(s)
+                #folder based method
 
-            graph = None
+                for f_row in folders:
+                    inprefixs.append([])
+                    for f in f_row:
+                        inprefixs[-1].append(prefix+f+"/")
 
-            if unifyScale or ymax is not None or ymax is not None:
-                graph = pyutils.LineGrapher(title=graphTitle, legend=legend, ylims=(ymin, ymax))
-            else:
-                graph = pyutils.LineGrapher(title=graphTitle, legend=legend)
+            outprefix = prefix
 
-            graph.xdata = np.arange(xdim)
+            print("loading data")
 
-            for dix,d in enumerate(newdata):
-                if graphStats:
-                    graph.plotData(ydata=d)
-                    if(dix > len(newdata)/3): #its a variance, so recolor to mean
-                        avg_ix = int((dix-len(newdata)/3)/2)
-                        pc = graph.getPlotColor(avg_ix)
-                        #spc = str(pc).lstrip('#')
-                        print("plot color: " + str(pc))
-                        #rgb = tuple(int(spc[i:i + 2], 16) for i in (0, 2, 4))
-                        #print('RGB =', rgb)
-                        #nrgb = (min(256, int(rgb[0]*1.2)), min(256, int(rgb[1]*1.2)), min(256, int(rgb[2]*1.2)))
-                        #print('nrgb =', nrgb)
-                        #nhex = '#%02x%02x%02x' % nrgb
-                        #print('nhex =', nhex)
-                        #newcolor = graph.lighten_color(pc)
-                        #if graph0:
-                        #    graph.plotData(ydata=np.zeros(xdim), color=[0, 0, 0])
-                        ##graph.plotData(ydata=d, color=graph.colors[avg_ix]*1.2) #make it lighter
-                        #graph.plotData(ydata=d, color=newcolor) #make it lighter
-                        #TODO: fix this
-                else:
-                    graph.plotData(ydata=d)
+            #labels = ["Linear", "RL Policy"]
+            labels = ["label"]
 
-            graph.save(filename=outprefix+graphTitle)
+            data = []
+            for p_row in inprefixs:
+                data.append([])
+                for p in p_row:
+                    if filemode:
+                        print(p)
+                        data[-1].append(pyutils.loadData2D(filename=p))
+                    else:
+                        print(p + filename)
+                        data[-1].append(pyutils.loadData2D(filename=p+filename))
 
-        else:
-            xdim = 0
-            infilenames = []
+            #average over each timestep
+            avgs = []
+            vars = []
 
-            #first create individual graphs and save them
+            print("data string length: " + str(len(data[0][0][0])))
+
+            #compute the min and max y values if needed
+            if (ymax is None or ymin is None) and unifyScale:
+                print("computing min/max values:")
+                maxy = -99999
+                miny = 99999
+                for r in range(len(data)):
+                    for c in range(len(data[r])):
+                        for s in range(len(data[r][c])):
+                            for t in range(len(data[r][c][s])):
+                                if data[r][c][s][t] < miny:
+                                    miny = data[r][c][s][t]
+                                if data[r][c][s][t] > maxy:
+                                    maxy = data[r][c][s][t]
+                print(" max: " + str(maxy) + ", min: " + str(miny))
+                if(ymax is None):
+                    ymax = maxy
+                if(ymin is None):
+                    ymin = miny
+
             if graphStats:
+                #compute averages
+                for r in range(len(data)):
+                    avgs.append([])
+                    #compute averages of these lists
+                    for c in range(len(data[r])):
+                        avgs[-1].append([])
+
+                        count = []
+                        for s in range(len(data[r][c])):
+                            for t in range(len(data[r][c][s])):
+                                if(t > len(count)-1):
+                                    count.append(0)
+                                    avgs[-1][-1].append(0)
+                                avgs[-1][-1][t] += data[r][c][s][t]
+                                count[t] += 1
+                        for t in range(len(avgs[-1][-1])):
+                            avgs[-1][-1][t] /= count[t]
+
+                #compute variances
+                for r in range(len(data)):
+                    vars.append([])
+                    #compute averages of these lists
+                    for c in range(len(data[r])):
+                        vars[-1].append([])
+
+                        count = []
+                        for s in range(len(data[r][c])):
+                            for t in range(len(data[r][c][s])):
+                                if(t > len(count)-1):
+                                    count.append(0)
+                                    vars[-1][-1].append(0)
+                                vars[-1][-1][t] += (data[r][c][s][t] - avgs[r][c][t])*(data[r][c][s][t] - avgs[r][c][t])
+                                count[t] += 1
+                        for t in range(len(vars[-1][-1])):
+                            vars[-1][-1][t] /= count[t]
+                            #std dev
+                            vars[-1][-1][t] = math.sqrt(vars[-1][-1][t])
+
+            #if compressing to 1 frame, re-organize the data into one group
+            if singleFrame:
                 newdata = []
-                for rix,r in enumerate(avgs):
-                    newdata.append([])
-                    infilenames.append([])
-                    for cix,c in enumerate(r):
-                        infilenames[-1].append(outprefix+"g_"+str(rix)+"_"+str(cix)+".png")
-                        newdata[-1].append([])
-                        newdata[-1][-1].append(c)
-                        if len(c) > xdim:
-                            xdim = len(c)
-                        newdata[-1][-1].append([])
-                        newdata[-1][-1].append([])
-                        for tix,t in enumerate(c):
-                            newdata[rix][cix][-1].append(c[tix] + vars[rix][cix][tix])
-                            newdata[rix][cix][-2].append(c[tix] - vars[rix][cix][tix])
 
-                        graph = None
-                        if(titles is not None):
-                            graphTitle = titles[rix][cix]
-                        if unifyScale or ymax is not None or ymax is not None:
-                            graph = pyutils.LineGrapher(title=graphTitle, legend=legend, ylims=(ymin, ymax))
-                        else:
-                            graph = pyutils.LineGrapher(title=graphTitle, legend=legend)
+                xdim = 0
 
-                        graph.xdata = np.arange(xdim)
+                if graphStats:
+                    # add average curve and 2 variance curves per entry
+                    for r in avgs:
+                        for c in r:
+                            newdata.append(c)
+                    for rix,r in enumerate(vars):
+                        for cix,c in enumerate(r):
+                            newdata.append([])
+                            newdata.append([])
+                            if len(c) > xdim:
+                                xdim = len(c)
+                            for tix,t in enumerate(c):
+                                newdata[-1].append(avgs[rix][cix][tix] + t)
+                                newdata[-2].append(avgs[rix][cix][tix] - t)
+                else:
+                    #re-group all curves into one graph
+                    for r in data:
+                        for c in r:
+                            for s in c:
+                                newdata.append(s)
+                                if len(s) > xdim:
+                                    xdim = len(s)
 
-                        if graph0:
-                            graph.plotData(ydata=np.zeros(xdim), color=[0, 0, 0])
+                graph = None
 
-                        graph.plotData(ydata=newdata[rix][cix][1], color=[0.6, 0.6, 1.0])
-                        graph.plotData(ydata=newdata[rix][cix][2], color=[0.6, 0.6, 1.0])
+                if unifyScale or ymax is not None or ymax is not None:
+                    graph = pyutils.LineGrapher(title=graphTitle, legend=legend, ylims=(ymin, ymax))
+                else:
+                    graph = pyutils.LineGrapher(title=graphTitle, legend=legend)
 
-                        graph.plotData(ydata=newdata[rix][cix][0], color=[0,0,1.0])
+                graph.xdata = np.arange(xdim)
 
+                for dix,d in enumerate(newdata):
+                    if graphStats:
+                        graph.plotData(ydata=d)
+                        if(dix > len(newdata)/3): #its a variance, so recolor to mean
+                            avg_ix = int((dix-len(newdata)/3)/2)
+                            pc = graph.getPlotColor(avg_ix)
+                            #spc = str(pc).lstrip('#')
+                            print("plot color: " + str(pc))
+                            #rgb = tuple(int(spc[i:i + 2], 16) for i in (0, 2, 4))
+                            #print('RGB =', rgb)
+                            #nrgb = (min(256, int(rgb[0]*1.2)), min(256, int(rgb[1]*1.2)), min(256, int(rgb[2]*1.2)))
+                            #print('nrgb =', nrgb)
+                            #nhex = '#%02x%02x%02x' % nrgb
+                            #print('nhex =', nhex)
+                            #newcolor = graph.lighten_color(pc)
+                            #if graph0:
+                            #    graph.plotData(ydata=np.zeros(xdim), color=[0, 0, 0])
+                            ##graph.plotData(ydata=d, color=graph.colors[avg_ix]*1.2) #make it lighter
+                            #graph.plotData(ydata=d, color=newcolor) #make it lighter
+                            #TODO: fix this
+                    else:
+                        #graph.plotData(ydata=d)
+                        graph.yData.append(d)
 
-                        #save the graphs
-                        graph.save(filename=outprefix+"g_"+str(rix)+"_"+str(cix))
+                if not graphStats:
+                    graph.update()
+
+                graph.save(filename=outprefix+graphTitle)
+
             else:
-                #simply re-graph the data with potentially unified scale
+                xdim = 0
+                infilenames = []
 
-                for rix,r in enumerate(data):
-                    infilenames.append([])
-                    for cix,c in enumerate(r):
-                        infilenames[-1].append(outprefix + "g_" + str(rix) + "_" + str(cix)+".png")
-                        for s in c:
-                            if len(s) > xdim:
-                                xdim = len(s)
+                #first create individual graphs and save them
+                if graphStats:
+                    newdata = []
+                    for rix,r in enumerate(avgs):
+                        newdata.append([])
+                        infilenames.append([])
+                        for cix,c in enumerate(r):
+                            infilenames[-1].append(outprefix+"g_"+str(rix)+"_"+str(cix)+".png")
+                            newdata[-1].append([])
+                            newdata[-1][-1].append(c)
+                            if len(c) > xdim:
+                                xdim = len(c)
+                            newdata[-1][-1].append([])
+                            newdata[-1][-1].append([])
+                            for tix,t in enumerate(c):
+                                newdata[rix][cix][-1].append(c[tix] + vars[rix][cix][tix])
+                                newdata[rix][cix][-2].append(c[tix] - vars[rix][cix][tix])
 
-                for rix,r in enumerate(data):
-                    for cix,c in enumerate(r):
-                        graph = None
-                        if (titles is not None):
-                            graphTitle = titles[rix][cix]
-                        if unifyScale or ymax is not None or ymax is not None:
-                            graph = pyutils.LineGrapher(title=graphTitle, legend=legend, ylims=(ymin, ymax))
-                        else:
-                            graph = pyutils.LineGrapher(title=graphTitle, legend=legend)
+                            graph = None
+                            if(titles is not None):
+                                graphTitle = titles[rix][cix]
+                            if unifyScale or ymax is not None or ymax is not None:
+                                graph = pyutils.LineGrapher(title=graphTitle, legend=legend, ylims=(ymin, ymax))
+                            else:
+                                graph = pyutils.LineGrapher(title=graphTitle, legend=legend)
 
-                        graph.xdata = np.arange(xdim)
+                            graph.xdata = np.arange(xdim)
 
-                        if graph0:
-                            graph.plotData(ydata=np.zeros(xdim), color=[0, 0, 0])
+                            if graph0:
+                                graph.plotData(ydata=np.zeros(xdim), color=[0, 0, 0])
 
-                        for six,s in enumerate(c):
-                            graph.plotData(ydata=data[rix][cix][six])
+                            graph.plotData(ydata=newdata[rix][cix][1], color=[0.6, 0.6, 1.0])
+                            graph.plotData(ydata=newdata[rix][cix][2], color=[0.6, 0.6, 1.0])
 
-                        #save the graphs
-                        graph.save(filename=outprefix+"g_" + str(rix) + "_" + str(cix))
+                            graph.plotData(ydata=newdata[rix][cix][0], color=[0,0,1.0])
 
-            print("infilenames: " + str(infilenames))
-            #then create an image matrix for the graphs
-            renderutils.imageMatrixFrom(filenames=infilenames, outfilename=outprefix+graphTitle)
+
+                            #save the graphs
+                            graph.save(filename=outprefix+"g_"+str(rix)+"_"+str(cix))
+                else:
+                    #simply re-graph the data with potentially unified scale
+
+                    for rix,r in enumerate(data):
+                        infilenames.append([])
+                        for cix,c in enumerate(r):
+                            infilenames[-1].append(outprefix + "g_" + str(rix) + "_" + str(cix)+".png")
+                            for s in c:
+                                if len(s) > xdim:
+                                    xdim = len(s)
+
+                    for rix,r in enumerate(data):
+                        for cix,c in enumerate(r):
+                            graph = None
+                            if (titles is not None):
+                                graphTitle = titles[rix][cix]
+                            if unifyScale or ymax is not None or ymax is not None:
+                                graph = pyutils.LineGrapher(title=graphTitle, legend=legend, ylims=(ymin, ymax))
+                            else:
+                                graph = pyutils.LineGrapher(title=graphTitle, legend=legend)
+
+                            graph.xdata = np.arange(xdim)
+
+                            if graph0:
+                                graph.plotData(ydata=np.zeros(xdim), color=[0, 0, 0])
+
+                            for six,s in enumerate(c):
+                                graph.plotData(ydata=data[rix][cix][six], update=False)
+                            graph.update()
+
+                            #save the graphs
+                            graph.save(filename=outprefix+"g_" + str(rix) + "_" + str(cix))
+
+                print("infilenames: " + str(infilenames))
+                #then create an image matrix for the graphs
+                renderutils.imageMatrixFrom(filenames=infilenames, outfilename=outprefix+graphTitle)
 
 
                     #avg_Graph.save(filename=outprefix+"progress_avg_Graph")
