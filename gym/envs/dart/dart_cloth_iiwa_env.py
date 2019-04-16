@@ -2087,7 +2087,7 @@ class DartClothIiwaEnv(gym.Env):
         self.recording_progress = False
         self.recording_contact = False
         self.contact_record = {"max_cloth_contact":[], "total_cloth_contact":[], "max_rigid_contact":[], "total_rigid_contact":[], "max_contact":[], "total_contact":[]} #each list contains a list per episode
-        self.recording_directory = "data_recording_dir/twoarm_gown_nocap"
+        self.recording_directory = "data_recording_dir/onearm_typical_velpen"
 
         #setup some flags
         self.dual_policy = dual_policy #if true, expect an action space concatenation of human/robot(s)
@@ -2097,8 +2097,8 @@ class DartClothIiwaEnv(gym.Env):
         self.dart_render = True
         self.proxy_render = False
         self.cloth_render = True
-        self.detail_render = True
-        self.demo_render = False #if true, render only the body and robot
+        self.detail_render = False
+        self.demo_render = True #if true, render only the body and robot
         self.simulating = True #used to allow simulation freezing while rendering continues
         self.passive_robots = False #if true, no motor torques from the robot
         self.two_bot_mirror = False #if true, set bot 1 to mirror of bot 2 pose

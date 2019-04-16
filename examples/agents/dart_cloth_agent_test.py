@@ -56,6 +56,7 @@ def main():
     trial = None
 
     # --- robot TShirt
+    #trial = "experiment_2019_04_15_twoarm_tshirt"
     #trial = "experiment_2019_04_01_twoarm_tshirt_demonstration_connect"
     #trial = "experiment_2019_04_01_twoarm_tshirt_demonstration2full" #Garbage
     #trial = "experiment_2019_03_30_twoarm_tshirt_demonstration_sym"
@@ -93,11 +94,17 @@ def main():
 
     # -- new env onearm
 
+    trial = "experiment_2019_04_15_onearm_jcon_nocap"
+    trial = "experiment_2019_04_15_onearm_weakstrong_nocap"
+    trial = "experiment_2019_04_15_onearm_tremor_nocap"
+    trial = "experiment_2019_04_15_onearm_jcon_nohumanjobs"
+    trial = "experiment_2019_04_15_onearm_jcon_nohumanobs"
+    trial = "experiment_2019_04_15_onearm_typical_velpen"
     #trial = "experiment_2019_04_12_onearm_typical_nocap"
     #trial = "experiment_2019_04_12_onearm_curr_weakstrong_linearpenx10"
     #trial = "experiment_2019_04_11_onearm_curr_jcon_linearpenx10"
     #trial = "experiment_2019_04_11_onearm_curr_tremor_linearpenx10"
-    trial = "experiment_2019_04_10_onearm_curr_typical_linearpenx10"
+    #trial = "experiment_2019_04_10_onearm_curr_typical_linearpenx10"
     #trial = "experiment_2019_04_09_onearm_fresh_elbowconstraint_linearpen"
     #trial = "experiment_2019_04_09_onearm_fresh_tremor_linearpen"
     #trial = "experiment_2019_04_09_onearm_fresh_weak_linearpen"
@@ -582,7 +589,7 @@ def main():
     loadSave_frame = None #if none, use most recent
     #loadSave_frame = 20
     graphOnly = False #if true, exit() after graphing
-    demoSave = False #if true, create an exp named demo folder and render into it
+    demoSave = True #if true, create an exp named demo folder and render into it
 
     if loadSave is True:
         import tensorflow as tf

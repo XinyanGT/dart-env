@@ -318,11 +318,14 @@ class DartClothIiwaTwoarmTshirtEnv(DartClothIiwaEnv):
         self.iiwas[1].pose_interpolation_target = np.array(self.iiwas[1].skel.q[6:])
 
 
-        #if self.reset_number > 0:
-            #setup handle nodes
-        #    self.iiwas[0].addClothHandle(verts=[1251, 1724, 1402, 1853, 1629, 2111, 1683, 2185, 1562, 1979, 1919, 1249, 1854, 2000, 1250, 1399, 1917, 1438, 1716, 1281, 1639, 1715, 1561, 2113, 1785, 1418, 1851], offset=np.array([0, 0, 0.05]))
-        #    self.iiwas[1].addClothHandle(verts=[66, 67, 68, 69, 2057, 1274, 1723, 2040, 1243, 1863, 1617, 2066, 2039, 1744, 1627, 70, 2055, 1690, 1742, 1415, 2170, 1242, 1936, 1784, 1461, 1305, 1864, 1846, 1272, 1883], offset=np.array([0, 0, 0.05]))
-
+        #letgo reset
+        if False:
+            if self.reset_number > 0:
+                #setup handle nodes
+                self.iiwas[0].addClothHandle(verts=[1251, 1724, 1402, 1853, 1629, 2111, 1683, 2185, 1562, 1979, 1919, 1249, 1854, 2000, 1250, 1399, 1917, 1438, 1716, 1281, 1639, 1715, 1561, 2113, 1785, 1418, 1851], offset=np.array([0, 0, 0.05]))
+                self.iiwas[1].addClothHandle(verts=[66, 67, 68, 69, 2057, 1274, 1723, 2040, 1243, 1863, 1617, 2066, 2039, 1744, 1627, 70, 2055, 1690, 1742, 1415, 2170, 1242, 1936, 1784, 1461, 1305, 1864, 1846, 1272, 1883], offset=np.array([0, 0, 0.05]))
+                for iiwa in self.iiwas:
+                    iiwa.control_mode = 0
 
         #initialize the garment location
         #self.clothScene.translateCloth(0, np.array([0, 0, 1.0]))
