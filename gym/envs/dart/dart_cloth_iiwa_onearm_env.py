@@ -119,7 +119,7 @@ class DartClothIiwaOnearmEnv(DartClothIiwaEnv):
         #self.reward_manager.addTerm(term=HumanContactRewardTerm(self, weight=25, tanh_params=(3, 0.05, 0))) #saturates at ~20 and ~100
         #self.reward_manager.addTerm(term=HumanContactLinearRewardTerm(self, weight=25, linear_scale=10.0))
         self.reward_manager.addTerm(term=JointVelocityPenaltyTerm(self, self.human_skel, weight=5, name="human jvel pen"))
-        self.reward_manager.addTerm(term=JointVelocityPenaltyTerm(self, self.iiwas[0].skel, weight=25, name="robot jvel pen"))
+        self.reward_manager.addTerm(term=JointVelocityPenaltyTerm(self, self.iiwas[0].skel, weight=15, name="robot jvel pen"))
 
 
         #set the observation space
