@@ -2114,7 +2114,7 @@ class DartClothIiwaEnv(gym.Env):
         self.dual_policy = dual_policy #if true, expect an action space concatenation of human/robot(s)
         self.dualPolicy = dual_policy
         self.is_human = is_human #(ignore if dualPolicy is True) if true, human action space is active, otherwise robot action space is active.
-        self.rendering = True
+        self.rendering = False
         self.dart_render = True
         self.proxy_render = False
         self.cloth_render = True
