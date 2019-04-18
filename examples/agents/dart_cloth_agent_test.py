@@ -56,7 +56,7 @@ def main():
     trial = None
 
     # --- robot TShirt
-    #trial = "experiment_2019_04_15_twoarm_tshirt"
+    trial = "experiment_2019_04_15_twoarm_tshirt"
     #trial = "experiment_2019_04_01_twoarm_tshirt_demonstration_connect"
     #trial = "experiment_2019_04_01_twoarm_tshirt_demonstration2full" #Garbage
     #trial = "experiment_2019_03_30_twoarm_tshirt_demonstration_sym"
@@ -94,6 +94,10 @@ def main():
 
     # -- new env onearm
 
+    #trial = "experiment_2019_04_16_onearm_typical_velpen_25r"
+    #trial = "experiment_2019_04_16_onearm_typical_velpen_15r"
+    #trial = "experiment_2019_04_16_onearm_tremor_nohumanjobs"
+    #trial = "experiment_2019_04_16_onearm_weakstrong_nohumanjobs"
     #trial = "experiment_2019_04_15_onearm_jcon_nocap"
     #trial = "experiment_2019_04_15_onearm_weakstrong_nocap"
     #trial = "experiment_2019_04_15_onearm_tremor_nocap"
@@ -584,6 +588,10 @@ def main():
 
     #batch loadSave...
     trials = None
+    trials = [
+        "experiment_2019_04_15_twoarm_tshirt",
+        "experiment_2019_04_16_onearm_tremor_nohumanjobs"
+    ]
 
     loadSave = False #now done automatically if policy file not found...
     loadSave_frame = None #if none, use most recent
@@ -866,7 +874,7 @@ def main():
     #o = env.reset()
     #useMeanPolicy = False
 
-    for i in range(21):
+    for i in range(101):
         print("-----------------------------------")
         print("  Starting rollout " + str(i))
         print("-----------------------------------")

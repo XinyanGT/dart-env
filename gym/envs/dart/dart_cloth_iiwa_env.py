@@ -750,6 +750,9 @@ class WeaknessScaleObsFeature(ObservationFeature):
     def reset(self):
         #draw a new scale value
         self.currentScale = np.random.uniform(0,1.0)
+        #self.currentScale = np.random.uniform(0,0.33) #weak
+        #self.currentScale = np.random.uniform(0.33,0.66) #moderate
+        #self.currentScale = np.random.uniform(0.66,1.0) #strong
         print("applied action scale: " + str(self.currentScale) + " to dofs: " + str(self.dofs))
 
         #update the human's capability
@@ -776,7 +779,10 @@ class ActionTremorObsFeature(ObservationFeature):
 
     def reset(self):
         #draw a new scale value
-        self.current_scale = np.random.uniform(0,1.0)
+        self.current_scale = np.random.uniform(0, 1.0)
+        #self.current_scale = np.random.uniform(0, 0.33) #low
+        #self.current_scale = np.random.uniform(0.33, 0.66) #moderate
+        #self.current_scale = np.random.uniform(0.66, 1.0) #high
 
         #update the human's capability
         self.env.human_SPD_target_noise = self.scale_ranges*self.current_scale
@@ -854,8 +860,18 @@ class JointConstraintObsFeature(ObservationFeature):
         valid = False
         while(not valid):
             valid = True
-            self.current_u_constraint = random.uniform(0.0,1.0)
-            self.current_l_constraint = random.uniform(0.0,1.0)
+            self.current_u_constraint = random.uniform(0, 1.0)
+            self.current_l_constraint = random.uniform(0, 1.0)
+            #low
+            #self.current_u_constraint = random.uniform(0, 0.33)
+            #self.current_l_constraint = random.uniform(0, 0.33)
+            #middle
+            #self.current_u_constraint = random.uniform(0.33, 0.66)
+            #self.current_l_constraint = random.uniform(0.33, 0.66)
+            #high
+            #self.current_u_constraint = random.uniform(0.66, 1.0)
+            #self.current_l_constraint = random.uniform(0.66, 1.0)
+
             dof_u_limit = LERP(self.u_constraint_range[0], self.u_constraint_range[1], self.current_u_constraint)
             dof_l_limit = LERP(self.l_constraint_range[0], self.l_constraint_range[1], self.current_l_constraint)
 
@@ -1093,7 +1109,8 @@ class ContinuousCapacitiveSensor:
     def draw(self, ranges=True):
         norm = self.frame.toGlobal(np.array([0, 0, 1])) - self.frame.toGlobal(np.zeros(3))
         norm /= np.linalg.norm(norm)
-        lines = [[self.frame.org, self.frame.org+norm]]
+        #lines = [[self.frame.org, self.frame.org+norm]]
+        lines = []
         for ix,p in enumerate(self.sensor_globals):
             renderUtils.drawSphere(pos=p)
             #renderUtils.drawSphere(pos=p, rad=self.sensor_ranges[ix], solid=False)
@@ -2087,7 +2104,7 @@ class DartClothIiwaEnv(gym.Env):
         self.recording_progress = False
         self.recording_contact = False
         self.contact_record = {"max_cloth_contact":[], "total_cloth_contact":[], "max_rigid_contact":[], "total_rigid_contact":[], "max_contact":[], "total_contact":[]} #each list contains a list per episode
-        self.recording_directory = "data_recording_dir/onearm_jcon_nocap"
+        self.recording_directory = "data_recording_dir/100x_raw_data/twoarm_gown_x10"
 
         #setup some flags
         self.dual_policy = dual_policy #if true, expect an action space concatenation of human/robot(s)
