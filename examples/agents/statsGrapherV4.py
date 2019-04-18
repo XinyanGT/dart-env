@@ -14,9 +14,9 @@ import pyPhysX.renderUtils as renderutils
 if __name__ == '__main__':
 
     #1. set variables
-    compute_success_percent = False
+    compute_success_percent = True
     success_threshold = 0.8
-    filemode = True
+    filemode = False
     legend = False
     graphStats = False #if true, graph mean/variance instead of data
     singleFrame = False #if true, graph everything on the same graph
@@ -27,8 +27,8 @@ if __name__ == '__main__':
     #ymax = 200
 
     #limb progress
-    #ymax = 1.0
-    #ymin = -2.0
+    ymax = 1.0
+    ymin = -2.0
 
     #forces
     #ymax = 700.0
@@ -160,9 +160,15 @@ if __name__ == '__main__':
         "/home/alexander/Documents/dev/data_recording_dir/100x_raw_data/weakstrong/",
         "/home/alexander/Documents/dev/data_recording_dir/100x_raw_data/weakstrong_x10/",
         "/home/alexander/Documents/dev/data_recording_dir/100x_raw_data/twoarm_gown/",
-        "/home/alexander/Documents/dev/data_recording_dir/100x_raw_data/twoarm_gown_x10/"
+        "/home/alexander/Documents/dev/data_recording_dir/100x_raw_data/twoarm_gown_x10/",
         "/home/alexander/Documents/dev/data_recording_dir/100x_raw_data/weakstrong_nocap/",
-        "/home/alexander/Documents/dev/data_recording_dir/100x_raw_data/weakstrong_nohumanjobs/"
+        "/home/alexander/Documents/dev/data_recording_dir/100x_raw_data/weakstrong_nohumanjobs/",
+        "/home/alexander/Documents/dev/data_recording_dir/100x_raw_data/jcon_x10_low/",
+        "/home/alexander/Documents/dev/data_recording_dir/100x_raw_data/jcon_x10_middle/",
+        "/home/alexander/Documents/dev/data_recording_dir/100x_raw_data/jcon_x10_high/",
+        "/home/alexander/Documents/dev/data_recording_dir/100x_raw_data/weakstrong_x10_weak/",
+        "/home/alexander/Documents/dev/data_recording_dir/100x_raw_data/weakstrong_x10_moderate/",
+        "/home/alexander/Documents/dev/data_recording_dir/100x_raw_data/weakstrong_x10_strong/"
     ]
 
     prefix_list = [
@@ -228,7 +234,7 @@ if __name__ == '__main__':
 
             '''
 
-            ''''''
+            '''
             filenames = [
                 #["max_cloth_contact"]
                 ["max_rigid_contact"]
@@ -239,7 +245,7 @@ if __name__ == '__main__':
                 ["Maximum Rigid Contact Force"]
             ]
 
-            ''''''
+            '''
 
             if graphStats:
                 for lix,list in enumerate(titles):
