@@ -56,7 +56,7 @@ def main():
     trial = None
 
     # --- robot TShirt
-    trial = "experiment_2019_04_15_twoarm_tshirt"
+    #trial = "experiment_2019_04_15_twoarm_tshirt"
     #trial = "experiment_2019_04_01_twoarm_tshirt_demonstration_connect"
     #trial = "experiment_2019_04_01_twoarm_tshirt_demonstration2full" #Garbage
     #trial = "experiment_2019_03_30_twoarm_tshirt_demonstration_sym"
@@ -96,7 +96,7 @@ def main():
 
     #trial = "experiment_2019_04_16_onearm_typical_velpen_25r"
     #trial = "experiment_2019_04_16_onearm_typical_velpen_15r"
-    #trial = "experiment_2019_04_16_onearm_tremor_nohumanjobs"
+    trial = "experiment_2019_04_16_onearm_tremor_nohumanjobs"
     #trial = "experiment_2019_04_16_onearm_weakstrong_nohumanjobs"
     #trial = "experiment_2019_04_15_onearm_jcon_nocap"
     #trial = "experiment_2019_04_15_onearm_weakstrong_nocap"
