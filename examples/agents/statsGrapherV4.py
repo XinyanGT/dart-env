@@ -14,10 +14,12 @@ import pyPhysX.renderUtils as renderutils
 if __name__ == '__main__':
 
     #1. set variables
-    filemode = True
+    compute_success_percent = False
+    success_threshold = 0.8
+    filemode = False
     legend = False
-    graphStats = False #if true, graph mean/variance instead of data
-    singleFrame = False #if true, graph everything on the same graph
+    graphStats = True #if true, graph mean/variance instead of data
+    singleFrame = True #if true, graph everything on the same graph
     graph0 = True #if true, put a black line through 0 y
     ymax = None
     ymin = None
@@ -25,8 +27,8 @@ if __name__ == '__main__':
     #ymax = 200
 
     #limb progress
-    #ymax = 1.0
-    #ymin = -2.0
+    ymax = 1.0
+    ymin = -2.0
 
     #forces
     #ymax = 700.0
@@ -76,6 +78,12 @@ if __name__ == '__main__':
         "/home/alexander/Documents/dev/data_recording_dir/onearm_curr_weakstrong_linearpenx10_moderate/",
         "/home/alexander/Documents/dev/data_recording_dir/onearm_curr_weakstrong_linearpenx10_strong/",
         "/home/alexander/Documents/dev/data_recording_dir/onearm_weakstrong_nohumanjobs/"
+    ]
+
+    prefixes_weakness_onearm_variations = [
+        "/home/alexander/Documents/dev/data_recording_dir/onearm_curr_weakstrong_linearpenx10_weak/",
+        "/home/alexander/Documents/dev/data_recording_dir/onearm_curr_weakstrong_linearpenx10_moderate/",
+        "/home/alexander/Documents/dev/data_recording_dir/onearm_curr_weakstrong_linearpenx10_strong/"
 
     ]
 
@@ -150,7 +158,11 @@ if __name__ == '__main__':
         "/home/alexander/Documents/dev/data_recording_dir/100x_raw_data/typical/",
         "/home/alexander/Documents/dev/data_recording_dir/100x_raw_data/typical_x10/",
         "/home/alexander/Documents/dev/data_recording_dir/100x_raw_data/weakstrong/",
-        "/home/alexander/Documents/dev/data_recording_dir/100x_raw_data/weakstrong_x10/"
+        "/home/alexander/Documents/dev/data_recording_dir/100x_raw_data/weakstrong_x10/",
+        "/home/alexander/Documents/dev/data_recording_dir/100x_raw_data/twoarm_gown/",
+        "/home/alexander/Documents/dev/data_recording_dir/100x_raw_data/twoarm_gown_x10/",
+        "/home/alexander/Documents/dev/data_recording_dir/100x_raw_data/weakstrong_nocap/",
+        "/home/alexander/Documents/dev/data_recording_dir/100x_raw_data/weakstrong_nohumanjobs/"
     ]
 
     prefix_list = [
@@ -160,10 +172,11 @@ if __name__ == '__main__':
         prefixes_jcon_onearm
     ]
 
-    #prefix_list = [
-    #    prefixes_tremor_onearm
-    #]
+    prefix_list = [
+        prefixes_weakness_onearm_variations
+    ]
 
+    success_percents = []
     for prefixes in prefix_list:
 
         for prefix in prefixes:
@@ -194,11 +207,13 @@ if __name__ == '__main__':
             #filename = "deformationGraphData"
             filename = "progress_history0.txt"
 
+
+
             #filenames = [[ "progress_history0.txt", "progress_history1.txt"]]
 
             #titles = [[ "limb 0 progress", "limb 1 progress"]]
 
-            ''''''
+            '''
             filenames = [
                 ["max_cloth_contact", "total_cloth_contact"],
                 ["max_rigid_contact", "total_rigid_contact"],
@@ -210,7 +225,7 @@ if __name__ == '__main__':
                 ["max_rigid_contact", "total_rigid_contact"],
                 ["max_contact", "total_contact"]
             ]
-            ''''''
+            '''
 
             if graphStats:
                 for lix,list in enumerate(titles):
@@ -277,6 +292,20 @@ if __name__ == '__main__':
                     ymax = maxy
                 if(ymin is None):
                     ymin = miny
+
+            if compute_success_percent:
+                for r in range(len(data)):
+                    for c in range(len(data[r])):
+                        success_percent = 0
+                        for s in range(len(data[r][c])):
+                            is_success = False
+                            for t in range(len(data[r][c][s])):
+                                if data[r][c][s][t] >= success_threshold:
+                                    is_success = True
+                            if is_success:
+                                success_percent += 1
+                        success_percent /= len(data[r][c])
+                        success_percents.append(success_percent)
 
             if graphStats:
                 #compute averages
@@ -464,5 +493,7 @@ if __name__ == '__main__':
                 #then create an image matrix for the graphs
                 renderutils.imageMatrixFrom(filenames=infilenames, outfilename=outprefix+graphTitle)
 
-
+                if compute_success_percent:
+                    print("Success Percents:")
+                    print(success_percents)
                     #avg_Graph.save(filename=outprefix+"progress_avg_Graph")

@@ -775,6 +775,7 @@ class ActionTremorObsFeature(ObservationFeature):
 
     def getObs(self):
         obs = np.array([self.current_scale])
+        #obs = np.zeros(0)
         return obs
 
     def reset(self):
@@ -2104,7 +2105,7 @@ class DartClothIiwaEnv(gym.Env):
         self.recording_progress = False
         self.recording_contact = False
         self.contact_record = {"max_cloth_contact":[], "total_cloth_contact":[], "max_rigid_contact":[], "total_rigid_contact":[], "max_contact":[], "total_contact":[]} #each list contains a list per episode
-        self.recording_directory = "data_recording_dir/100x_raw_data/twoarm_gown_x10"
+        self.recording_directory = "data_recording_dir/100x_raw_data/weakstrong_x10_strong"
 
         #setup some flags
         self.dual_policy = dual_policy #if true, expect an action space concatenation of human/robot(s)
