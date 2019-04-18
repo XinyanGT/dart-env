@@ -105,10 +105,10 @@ def main():
     #trial = "experiment_2019_04_15_onearm_jcon_nohumanobs"
     #trial = "experiment_2019_04_15_onearm_typical_velpen" #too slow
     #trial = "experiment_2019_04_12_onearm_typical_nocap"
-    trial = "experiment_2019_04_12_onearm_curr_weakstrong_linearpenx10"
+    #trial = "experiment_2019_04_12_onearm_curr_weakstrong_linearpenx10"
     #trial = "experiment_2019_04_11_onearm_curr_jcon_linearpenx10"
     #trial = "experiment_2019_04_11_onearm_curr_tremor_linearpenx10"
-    #trial = "experiment_2019_04_10_onearm_curr_typical_linearpenx10"
+    trial = "experiment_2019_04_10_onearm_curr_typical_linearpenx10"
     #trial = "experiment_2019_04_09_onearm_fresh_elbowconstraint_linearpen"
     #trial = "experiment_2019_04_09_onearm_fresh_tremor_linearpen"
     #trial = "experiment_2019_04_09_onearm_fresh_weak_linearpen"

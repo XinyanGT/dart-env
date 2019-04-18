@@ -16,10 +16,10 @@ if __name__ == '__main__':
     #1. set variables
     compute_success_percent = False
     success_threshold = 0.8
-    filemode = False
+    filemode = True
     legend = False
-    graphStats = True #if true, graph mean/variance instead of data
-    singleFrame = True #if true, graph everything on the same graph
+    graphStats = False #if true, graph mean/variance instead of data
+    singleFrame = False #if true, graph everything on the same graph
     graph0 = True #if true, put a black line through 0 y
     ymax = None
     ymin = None
@@ -27,8 +27,8 @@ if __name__ == '__main__':
     #ymax = 200
 
     #limb progress
-    ymax = 1.0
-    ymin = -2.0
+    #ymax = 1.0
+    #ymin = -2.0
 
     #forces
     #ymax = 700.0
@@ -160,7 +160,7 @@ if __name__ == '__main__':
         "/home/alexander/Documents/dev/data_recording_dir/100x_raw_data/weakstrong/",
         "/home/alexander/Documents/dev/data_recording_dir/100x_raw_data/weakstrong_x10/",
         "/home/alexander/Documents/dev/data_recording_dir/100x_raw_data/twoarm_gown/",
-        "/home/alexander/Documents/dev/data_recording_dir/100x_raw_data/twoarm_gown_x10/",
+        "/home/alexander/Documents/dev/data_recording_dir/100x_raw_data/twoarm_gown_x10/"
         "/home/alexander/Documents/dev/data_recording_dir/100x_raw_data/weakstrong_nocap/",
         "/home/alexander/Documents/dev/data_recording_dir/100x_raw_data/weakstrong_nohumanjobs/"
     ]
@@ -173,7 +173,7 @@ if __name__ == '__main__':
     ]
 
     prefix_list = [
-        prefixes_weakness_onearm_variations
+        prefixes_raw100
     ]
 
     success_percents = []
@@ -221,11 +221,25 @@ if __name__ == '__main__':
             ]
     
             titles = [
-                ["max_cloth_contact", "total_cloth_contact"],
+                ["Maximum Cloth Contact Force", "total_cloth_contact"],
                 ["max_rigid_contact", "total_rigid_contact"],
                 ["max_contact", "total_contact"]
             ]
+
             '''
+
+            ''''''
+            filenames = [
+                #["max_cloth_contact"]
+                ["max_rigid_contact"]
+            ]
+
+            titles = [
+                #["Maximum Cloth Contact Force"]
+                ["Maximum Rigid Contact Force"]
+            ]
+
+            ''''''
 
             if graphStats:
                 for lix,list in enumerate(titles):

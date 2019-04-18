@@ -745,6 +745,7 @@ class WeaknessScaleObsFeature(ObservationFeature):
 
     def getObs(self):
         obs = np.array([self.currentScale])
+        #obs = np.zeros(0)
         return obs
 
     def reset(self):
@@ -853,6 +854,8 @@ class JointConstraintObsFeature(ObservationFeature):
             obs = np.array([self.current_u_constraint])
         elif self.mode == 0: #dim 2
             obs = np.concatenate([obs, np.array([self.current_u_constraint])])
+
+        #obs = np.zeros(0)
         return obs
 
     def reset(self):
@@ -2105,13 +2108,13 @@ class DartClothIiwaEnv(gym.Env):
         self.recording_progress = False
         self.recording_contact = False
         self.contact_record = {"max_cloth_contact":[], "total_cloth_contact":[], "max_rigid_contact":[], "total_rigid_contact":[], "max_contact":[], "total_contact":[]} #each list contains a list per episode
-        self.recording_directory = "data_recording_dir/100x_raw_data/weakstrong_x10_strong"
+        self.recording_directory = "data_recording_dir/100x_raw_data/typical_on_weakness"
 
         #setup some flags
         self.dual_policy = dual_policy #if true, expect an action space concatenation of human/robot(s)
         self.dualPolicy = dual_policy
         self.is_human = is_human #(ignore if dualPolicy is True) if true, human action space is active, otherwise robot action space is active.
-        self.rendering = False
+        self.rendering = True
         self.dart_render = True
         self.proxy_render = False
         self.cloth_render = True
