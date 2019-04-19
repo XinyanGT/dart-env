@@ -21,6 +21,11 @@ if __name__ == '__main__':
     graphStats = False #if true, graph mean/variance instead of data
     singleFrame = False #if true, graph everything on the same graph
     graph0 = True #if true, put a black line through 0 y
+
+    x_axis_title = "Timestep"
+    y_axis_title = "Progress"
+    #y_axis_title = "Force (Newtons)"
+
     ymax = None
     ymin = None
     #ymax = 100.0
@@ -168,7 +173,10 @@ if __name__ == '__main__':
         "/home/alexander/Documents/dev/data_recording_dir/100x_raw_data/jcon_x10_high/",
         "/home/alexander/Documents/dev/data_recording_dir/100x_raw_data/weakstrong_x10_weak/",
         "/home/alexander/Documents/dev/data_recording_dir/100x_raw_data/weakstrong_x10_moderate/",
-        "/home/alexander/Documents/dev/data_recording_dir/100x_raw_data/weakstrong_x10_strong/"
+        "/home/alexander/Documents/dev/data_recording_dir/100x_raw_data/weakstrong_x10_strong/",
+        "/home/alexander/Documents/dev/data_recording_dir/100x_raw_data/typical_on_tremor/",
+        "/home/alexander/Documents/dev/data_recording_dir/100x_raw_data/typical_on_weakness/",
+        "/home/alexander/Documents/dev/data_recording_dir/100x_raw_data/typical_on_jcon/"
     ]
 
     prefix_list = [
@@ -185,7 +193,7 @@ if __name__ == '__main__':
     success_percents = []
     for prefixes in prefix_list:
 
-        for prefix in prefixes:
+        for prix,prefix in enumerate(prefixes):
             #define the matrix structure with remaining directory info:
             #folders = [
             #    ["1", "2"],
@@ -207,7 +215,7 @@ if __name__ == '__main__':
             #folders = [['baseline']]
 
             folders = [[""]]
-            titles = [[""]]
+            titles = [["Limb Progress"]]
 
             #filename = "limbProgressGraphData"
             #filename = "deformationGraphData"
@@ -236,13 +244,13 @@ if __name__ == '__main__':
 
             '''
             filenames = [
-                #["max_cloth_contact"]
-                ["max_rigid_contact"]
+                ["max_cloth_contact"]
+                #["max_rigid_contact"]
             ]
 
             titles = [
-                #["Maximum Cloth Contact Force"]
-                ["Maximum Rigid Contact Force"]
+                ["Maximum Cloth Contact Force"]
+                #["Maximum Rigid Contact Force"]
             ]
 
             '''
@@ -398,9 +406,9 @@ if __name__ == '__main__':
                 graph = None
 
                 if unifyScale or ymax is not None or ymax is not None:
-                    graph = pyutils.LineGrapher(title=graphTitle, legend=legend, ylims=(ymin, ymax))
+                    graph = pyutils.LineGrapher(title=graphTitle, legend=legend, ylims=(ymin, ymax), x_axis_title=x_axis_title, y_axis_title=y_axis_title)
                 else:
-                    graph = pyutils.LineGrapher(title=graphTitle, legend=legend)
+                    graph = pyutils.LineGrapher(title=graphTitle, legend=legend, x_axis_title=x_axis_title, y_axis_title=y_axis_title)
 
                 graph.xdata = np.arange(xdim)
 
@@ -458,10 +466,12 @@ if __name__ == '__main__':
                             graph = None
                             if(titles is not None):
                                 graphTitle = titles[rix][cix]
+                                if compute_success_percent:
+                                    graphTitle = graphTitle + "\n" + str(int(success_percents[prix]*100)) +"% successful"
                             if unifyScale or ymax is not None or ymax is not None:
-                                graph = pyutils.LineGrapher(title=graphTitle, legend=legend, ylims=(ymin, ymax))
+                                graph = pyutils.LineGrapher(title=graphTitle, legend=legend, ylims=(ymin, ymax), x_axis_title=x_axis_title, y_axis_title=y_axis_title)
                             else:
-                                graph = pyutils.LineGrapher(title=graphTitle, legend=legend)
+                                graph = pyutils.LineGrapher(title=graphTitle, legend=legend, x_axis_title=x_axis_title, y_axis_title=y_axis_title)
 
                             graph.xdata = np.arange(xdim)
 
@@ -492,10 +502,13 @@ if __name__ == '__main__':
                             graph = None
                             if (titles is not None):
                                 graphTitle = titles[rix][cix]
+                                if compute_success_percent:
+                                    graphTitle = graphTitle + "\n" + str(int(success_percents[prix] * 100)) + "% successful"
+
                             if unifyScale or ymax is not None or ymax is not None:
-                                graph = pyutils.LineGrapher(title=graphTitle, legend=legend, ylims=(ymin, ymax))
+                                graph = pyutils.LineGrapher(title=graphTitle, legend=legend, ylims=(ymin, ymax), x_axis_title=x_axis_title, y_axis_title=y_axis_title)
                             else:
-                                graph = pyutils.LineGrapher(title=graphTitle, legend=legend)
+                                graph = pyutils.LineGrapher(title=graphTitle, legend=legend, x_axis_title=x_axis_title, y_axis_title=y_axis_title)
 
                             graph.xdata = np.arange(xdim)
 

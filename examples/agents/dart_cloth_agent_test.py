@@ -56,6 +56,7 @@ def main():
     trial = None
 
     # --- robot TShirt
+    #trial = "experiment_2019_04_15_twoarm_tshirt_cont"
     #trial = "experiment_2019_04_15_twoarm_tshirt"
     #trial = "experiment_2019_04_01_twoarm_tshirt_demonstration_connect"
     #trial = "experiment_2019_04_01_twoarm_tshirt_demonstration2full" #Garbage
@@ -108,7 +109,7 @@ def main():
     #trial = "experiment_2019_04_12_onearm_curr_weakstrong_linearpenx10"
     #trial = "experiment_2019_04_11_onearm_curr_jcon_linearpenx10"
     #trial = "experiment_2019_04_11_onearm_curr_tremor_linearpenx10"
-    trial = "experiment_2019_04_10_onearm_curr_typical_linearpenx10"
+    #trial = "experiment_2019_04_10_onearm_curr_typical_linearpenx10"
     #trial = "experiment_2019_04_09_onearm_fresh_elbowconstraint_linearpen"
     #trial = "experiment_2019_04_09_onearm_fresh_tremor_linearpen"
     #trial = "experiment_2019_04_09_onearm_fresh_weak_linearpen"
@@ -589,8 +590,10 @@ def main():
     #batch loadSave...
     trials = None
     trials = [
-        "experiment_2019_04_15_twoarm_tshirt",
-        "experiment_2019_04_16_onearm_tremor_nohumanjobs"
+        "experiment_2019_04_15_twoarm_tshirt_cont",
+        "experiment_2019_04_18_onearm_weak_jcon",
+        "experiment_2019_04_18_onearm_typical_currx10_currvel",
+        "experiment_2019_04_18_onearm_weakstrong_currx10_currweakest"
     ]
 
     loadSave = False #now done automatically if policy file not found...
@@ -704,9 +707,9 @@ def main():
     #envName = 'DartIiwaGownAssistCoopt-v2'
     #envName = 'DartIiwaGownAssistCoopt_h-v2'
     #envName = 'DartIiwaGownMultibot-v1'
-    envName = 'DartIiwaOnearmGown-v1'
+    #envName = 'DartIiwaOnearmGown-v1'
     #envName = 'DartIiwaTwoarmGown-v1'
-    #envName = 'DartIiwaTwoarmTshirt-v1'
+    envName = 'DartIiwaTwoarmTshirt-v1'
 
     if len(sys.argv) > 1:
         #print(sys.argv[1])

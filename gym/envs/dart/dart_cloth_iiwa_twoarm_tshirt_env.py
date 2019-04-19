@@ -8,13 +8,13 @@ class DartClothIiwaTwoarmTshirtEnv(DartClothIiwaEnv):
         # manual control config
         manual_human_control = False
         #demonstration learning
-        self.initialize_from_distribution = False
-        self.initial_distribution_directory = "/assets/state_distributions/assisted_tshirt/"
-        self.initial_distribution_size = 8
-        self.state_distribution = []
-        self.connectivity_reward = False
-        self.rest_state_reward_terms = []
-        self.connectivity_reward_weight = 30
+        #self.initialize_from_distribution = False
+        #self.initial_distribution_directory = "/assets/state_distributions/assisted_tshirt/"
+        #self.initial_distribution_size = 8
+        #self.state_distribution = []
+        #self.connectivity_reward = False
+        #self.rest_state_reward_terms = []
+        #self.connectivity_reward_weight = 30
 
         self.limbNodesR = [3, 4, 5, 6, 7]
         self.limbNodesL = [8, 9, 10, 11, 12]
@@ -138,18 +138,20 @@ class DartClothIiwaTwoarmTshirtEnv(DartClothIiwaEnv):
         self.reward_manager.addTerm(term=GeodesicContactRewardTerm(sensor_index=12, env=self, separated_mesh=self.separated_meshes[1], dressing_target=self.dressing_targets[1], weight=15))
         self.reward_manager.addTerm(term=GeodesicContactRewardTerm(sensor_index=3, env=self, separated_mesh=self.separated_meshes[2], dressing_target=self.dressing_targets[2], weight=15))
 
-        self.reward_manager.addTerm(term=ClothDeformationRewardTerm(self, weight=3))
-        self.reward_manager.addTerm(term=ClothAvgDeformationRewardTerm(self, weight=3))
+        self.reward_manager.addTerm(term=ClothDeformationRewardTerm(self, weight=5))
+        self.reward_manager.addTerm(term=ClothAvgDeformationRewardTerm(self, weight=6))
         self.reward_manager.addTerm(term=HumanContactRewardTerm(self, weight=4, tanh_params=(2, 0.15, 10)))
 
-        self.reward_manager.addTerm(term=BodyDistancePenaltyTerm(self, node1=self.iiwas[0].skel.bodynodes[8], offset1=np.zeros(3), node2=self.iiwas[1].skel.bodynodes[8], offset2=np.zeros(3), target_range=(0,0.4), weight=8))
+        self.reward_manager.addTerm(term=BodyDistancePenaltyTerm(self, node1=self.iiwas[0].skel.bodynodes[8], offset1=np.zeros(3), node2=self.iiwas[1].skel.bodynodes[8], offset2=np.zeros(3), target_range=(0,0.35), weight=15))
 
+        '''
         if self.connectivity_reward:
             self.rest_state_reward_terms.append(RestPoseRewardTerm(self.human_skel, pose=np.zeros(len(self.human_skel.q)), weights=np.ones(len(self.human_skel.q))*self.connectivity_reward_weight))
             self.reward_manager.addTerm(self.rest_state_reward_terms[-1])
             for iiwa in self.iiwas:
                 self.rest_state_reward_terms.append(RestPoseRewardTerm(iiwa.skel, pose=np.zeros(len(iiwa.skel.q)), weights=np.ones(len(iiwa.skel.q))*self.connectivity_reward_weight))
                 self.reward_manager.addTerm(self.rest_state_reward_terms[-1])
+        '''
 
         #setup robot symmetry reward
         if False:
@@ -431,6 +433,7 @@ class DartClothIiwaTwoarmTshirtEnv(DartClothIiwaEnv):
                         self.rest_state_reward_terms[ix + 1].rest_pose = np.array(n_state.robot_state[0][ix])
                     print("WARNING: setting rest poses explicitly from final loaded state")
 
+        '''
         #self.loadState()
         if self.initialize_from_distribution:
             if len(self.state_distribution) == 0:
@@ -469,7 +472,7 @@ class DartClothIiwaTwoarmTshirtEnv(DartClothIiwaEnv):
             from_centroid = self.waistFeature.plane.org - cloth_centroid
             from_centroid = from_centroid / np.linalg.norm(from_centroid)
             self.waistFeature.fitPlane(normhint=-from_centroid)
-
+        '''
 
     def _getFile(self):
         return __file__

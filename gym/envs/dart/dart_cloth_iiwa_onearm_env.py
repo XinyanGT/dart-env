@@ -68,7 +68,7 @@ class DartClothIiwaOnearmEnv(DartClothIiwaEnv):
         #self.human_obs_manager.addObsFeature(feature=DataDrivenJointLimitsObsFeature(self))
 
         #self.human_obs_manager.addObsFeature(feature=CollisionMPCObsFeature(env=self,is_human=True))
-        self.human_obs_manager.addObsFeature(feature=WeaknessScaleObsFeature(self,self.limbDofs[1],scale_range=(0.1,0.26)))
+        #self.human_obs_manager.addObsFeature(feature=WeaknessScaleObsFeature(self,self.limbDofs[1],scale_range=(0.1,0.6)))
         #self.human_obs_manager.addObsFeature(feature=ActionTremorObsFeature(self,self.limbDofs[1],scale_ranges=np.ones(len(self.limbDofs[1]))*0.15))
         #self.human_obs_manager.addObsFeature(feature=JointConstraintObsFeature(self,dof=16,u_constraint_range=(0.5,2.85),l_constraint_range=(0.21,2.0), mode=0))
 

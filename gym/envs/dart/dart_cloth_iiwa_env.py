@@ -771,20 +771,20 @@ class ActionTremorObsFeature(ObservationFeature):
         self.dofs = dofs
         self.env.human_SPD_target_noise_dofs = self.dofs
         self.scale_ranges = scale_ranges
-        ObservationFeature.__init__(self, name=name, dim=1, render=render)
+        ObservationFeature.__init__(self, name=name, dim=0, render=render)
         self.current_scale = 1.0
 
     def getObs(self):
         obs = np.array([self.current_scale])
-        #obs = np.zeros(0)
+        obs = np.zeros(0)
         return obs
 
     def reset(self):
         #draw a new scale value
-        self.current_scale = np.random.uniform(0, 1.0)
+        #self.current_scale = np.random.uniform(0, 1.0)
         #self.current_scale = np.random.uniform(0, 0.33) #low
         #self.current_scale = np.random.uniform(0.33, 0.66) #moderate
-        #self.current_scale = np.random.uniform(0.66, 1.0) #high
+        self.current_scale = np.random.uniform(0.66, 1.0) #high
 
         #update the human's capability
         self.env.human_SPD_target_noise = self.scale_ranges*self.current_scale
