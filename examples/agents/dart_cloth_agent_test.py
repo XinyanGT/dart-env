@@ -56,6 +56,7 @@ def main():
     trial = None
 
     # --- robot TShirt
+    #trial = "experiment_2019_04_19_twoarm_tshirt"
     #trial = "experiment_2019_04_15_twoarm_tshirt_cont"
     #trial = "experiment_2019_04_15_twoarm_tshirt"
     #trial = "experiment_2019_04_01_twoarm_tshirt_demonstration_connect"
@@ -95,6 +96,9 @@ def main():
 
     # -- new env onearm
 
+    #trial = "experiment_2019_04_18_onearm_weakstrong_currx10_currweakest"
+    #trial = "experiment_2019_04_18_onearm_typical_currx10_currvel"
+    trial = "experiment_2019_04_18_onearm_weak_jcon"
     #trial = "experiment_2019_04_16_onearm_typical_velpen_25r"
     #trial = "experiment_2019_04_16_onearm_typical_velpen_15r"
     #trial = "experiment_2019_04_16_onearm_tremor_nohumanjobs"
@@ -590,7 +594,7 @@ def main():
     #batch loadSave...
     trials = None
     trials = [
-        "experiment_2019_04_15_twoarm_tshirt_cont",
+        "experiment_2019_04_19_twoarm_tshirt",
         "experiment_2019_04_18_onearm_weak_jcon",
         "experiment_2019_04_18_onearm_typical_currx10_currvel",
         "experiment_2019_04_18_onearm_weakstrong_currx10_currweakest"
@@ -707,9 +711,9 @@ def main():
     #envName = 'DartIiwaGownAssistCoopt-v2'
     #envName = 'DartIiwaGownAssistCoopt_h-v2'
     #envName = 'DartIiwaGownMultibot-v1'
-    #envName = 'DartIiwaOnearmGown-v1'
+    envName = 'DartIiwaOnearmGown-v1'
     #envName = 'DartIiwaTwoarmGown-v1'
-    envName = 'DartIiwaTwoarmTshirt-v1'
+    #envName = 'DartIiwaTwoarmTshirt-v1'
 
     if len(sys.argv) > 1:
         #print(sys.argv[1])
@@ -877,7 +881,7 @@ def main():
     #o = env.reset()
     #useMeanPolicy = False
 
-    for i in range(101):
+    for i in range(21):
         print("-----------------------------------")
         print("  Starting rollout " + str(i))
         print("-----------------------------------")

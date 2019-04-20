@@ -118,6 +118,10 @@ class RewardManager:
             m_viewport = self.env.viewer.viewport
             self.rewards_data.render(topLeft=[m_viewport[2] - 410, m_viewport[3] - 15], dimensions=[400, -m_viewport[3] + 30])
 
+    def demo_draw(self):
+        for reward_term in self.reward_terms:
+            reward_term.demo_draw()
+
     def reset(self):
         self.rewards_data.reset()
         for term in self.reward_terms:
@@ -138,6 +142,9 @@ class RewardTerm:
         return self.previous_evaluation
 
     def draw(self):
+        pass
+
+    def demo_draw(self):
         pass
 
     def reset(self):
@@ -200,6 +207,14 @@ class LimbProgressRewardTerm(RewardTerm):
         p,v = pyutils.getLimbPointVec(limb, 1.0-self.success_threshold)
         point_plane = Plane(org=p, normal=v/np.linalg.norm(v))
         point_plane.draw(0.12)
+
+    def demo_draw(self):
+        if False:
+            #render the threshold
+            limb = pyutils.limbFromNodeSequence(self.dressing_target.skel, nodes=self.dressing_target.limb_sequence, offset=self.dressing_target.distal_offset)
+            p,v = pyutils.getLimbPointVec(limb, 1.0-self.success_threshold)
+            point_plane = Plane(org=p, normal=v/np.linalg.norm(v))
+            point_plane.draw(0.12)
 
 class GeodesicContactRewardTerm(RewardTerm):
     #reward for touching the cloth close to the target feature
@@ -729,17 +744,19 @@ class DataDrivenJointLimitsObsFeature(ObservationFeature):
 
 class WeaknessScaleObsFeature(ObservationFeature):
     #observation of the weakness scale of a set of dofs
-    def __init__(self, env, dofs, scale_range=(0.2,0.5), name="Weakness Scale Obs", render=True):
+    def __init__(self, env, dofs, scale_range=(0.2,0.5), sample_range = (0,1.0), name="Weakness Scale Obs", render=True):
         '''
         :param env:
         :param dofs: a list of dof indices
         :param scale_range: a tuple (>0) defining the scaling range of initialScale (since obs should normalize to [0,1])
+        :param sample_range: a tuple (0<x<1) defining the sampling (obs) range (passed as input the network)
         :param name:
         :param render:
         '''
         self.env = env
         self.dofs = dofs
         self.scale_range = scale_range
+        self.sample_range = sample_range
         ObservationFeature.__init__(self, name=name, dim=1, render=render)
         self.currentScale = 1.0
 
@@ -750,7 +767,8 @@ class WeaknessScaleObsFeature(ObservationFeature):
 
     def reset(self):
         #draw a new scale value
-        self.currentScale = np.random.uniform(0,1.0)
+        #self.currentScale = np.random.uniform(0,1.0)
+        self.currentScale = np.random.uniform(self.sample_range[0], self.sample_range[1])
         #self.currentScale = np.random.uniform(0,0.33) #weak
         #self.currentScale = np.random.uniform(0.33,0.66) #moderate
         #self.currentScale = np.random.uniform(0.66,1.0) #strong
@@ -2108,7 +2126,7 @@ class DartClothIiwaEnv(gym.Env):
         self.recording_progress = False
         self.recording_contact = False
         self.contact_record = {"max_cloth_contact":[], "total_cloth_contact":[], "max_rigid_contact":[], "total_rigid_contact":[], "max_contact":[], "total_contact":[]} #each list contains a list per episode
-        self.recording_directory = "data_recording_dir/100x_raw_data/typical_on_weakness"
+        self.recording_directory = "data_recording_dir/typical_curr_vel"
 
         #setup some flags
         self.dual_policy = dual_policy #if true, expect an action space concatenation of human/robot(s)
@@ -2859,8 +2877,8 @@ class DartClothIiwaEnv(gym.Env):
         if self.proxy_render:
             renderUtils.drawLines(pyutils.getRobotLinks(self.proxy_human_skel, pose=self.proxy_human_skel.q))
 
-        if self.manual_human_control:
-            renderUtils.drawLines(pyutils.getRobotLinks(self.human_skel,pose=self.human_manual_target))
+        #if self.manual_human_control:
+        #    renderUtils.drawLines(pyutils.getRobotLinks(self.human_skel,pose=self.human_manual_target))
 
         if self.manual_robot_control:
             lines = []
@@ -2981,6 +2999,7 @@ class DartClothIiwaEnv(gym.Env):
             self.reward_manager.draw()
         self.human_obs_manager.demo_draw()
         self.robot_obs_manager.demo_draw()
+        self.reward_manager.demo_draw()
 
         #inner bicep indicator strips
         renderUtils.setColor([0,0,0])

@@ -14,9 +14,9 @@ import pyPhysX.renderUtils as renderutils
 if __name__ == '__main__':
 
     #1. set variables
-    compute_success_percent = True
+    compute_success_percent = False
     success_threshold = 0.8
-    filemode = False
+    filemode = True
     legend = False
     graphStats = False #if true, graph mean/variance instead of data
     singleFrame = False #if true, graph everything on the same graph
@@ -32,8 +32,8 @@ if __name__ == '__main__':
     #ymax = 200
 
     #limb progress
-    ymax = 1.0
-    ymin = -2.0
+    #ymax = 1.0
+    #ymin = -2.0
 
     #forces
     #ymax = 700.0
@@ -179,6 +179,11 @@ if __name__ == '__main__':
         "/home/alexander/Documents/dev/data_recording_dir/100x_raw_data/typical_on_jcon/"
     ]
 
+    typical_curr_vel_comp = [
+        "/home/alexander/Documents/dev/data_recording_dir/onearm_curr_typical_linearpenx10/",
+        "/home/alexander/Documents/dev/data_recording_dir/typical_curr_vel/"
+    ]
+
     prefix_list = [
         prefixes_capable_onearm,
         prefixes_tremor_onearm,
@@ -187,10 +192,11 @@ if __name__ == '__main__':
     ]
 
     prefix_list = [
-        prefixes_raw100
+        typical_curr_vel_comp
     ]
 
     success_percents = []
+    success_time_avgs = []
     for prefixes in prefix_list:
 
         for prix,prefix in enumerate(prefixes):
@@ -242,18 +248,18 @@ if __name__ == '__main__':
 
             '''
 
-            '''
+            ''''''
             filenames = [
-                ["max_cloth_contact"]
-                #["max_rigid_contact"]
+                #["max_cloth_contact"]
+                ["max_rigid_contact"]
             ]
 
             titles = [
-                ["Maximum Cloth Contact Force"]
-                #["Maximum Rigid Contact Force"]
+                #["Maximum Cloth Contact Force"]
+                ["Maximum Rigid Contact Force"]
             ]
 
-            '''
+            ''''''
 
             if graphStats:
                 for lix,list in enumerate(titles):
@@ -325,15 +331,22 @@ if __name__ == '__main__':
                 for r in range(len(data)):
                     for c in range(len(data[r])):
                         success_percent = 0
+                        success_time_avg = 0
                         for s in range(len(data[r][c])):
                             is_success = False
+                            success_time = -1
                             for t in range(len(data[r][c][s])):
                                 if data[r][c][s][t] >= success_threshold:
                                     is_success = True
+                                    if success_time < 0:
+                                        success_time = t
                             if is_success:
                                 success_percent += 1
+                                success_time_avg += success_time
                         success_percent /= len(data[r][c])
                         success_percents.append(success_percent)
+                        success_time_avg /= (success_percent*len(data[r][c]))
+                        success_time_avgs.append(success_time_avg)
 
             if graphStats:
                 #compute averages
@@ -529,4 +542,6 @@ if __name__ == '__main__':
                 if compute_success_percent:
                     print("Success Percents:")
                     print(success_percents)
+                    print("Success Time Avgs:")
+                    print(success_time_avgs)
                     #avg_Graph.save(filename=outprefix+"progress_avg_Graph")
