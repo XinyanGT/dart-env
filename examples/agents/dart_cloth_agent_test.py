@@ -98,7 +98,7 @@ def main():
 
     #trial = "experiment_2019_04_18_onearm_weakstrong_currx10_currweakest"
     #trial = "experiment_2019_04_18_onearm_typical_currx10_currvel"
-    trial = "experiment_2019_04_18_onearm_weak_jcon"
+    #trial = "experiment_2019_04_18_onearm_weak_jcon"
     #trial = "experiment_2019_04_16_onearm_typical_velpen_25r"
     #trial = "experiment_2019_04_16_onearm_typical_velpen_15r"
     #trial = "experiment_2019_04_16_onearm_tremor_nohumanjobs"
@@ -113,7 +113,7 @@ def main():
     #trial = "experiment_2019_04_12_onearm_curr_weakstrong_linearpenx10"
     #trial = "experiment_2019_04_11_onearm_curr_jcon_linearpenx10"
     #trial = "experiment_2019_04_11_onearm_curr_tremor_linearpenx10"
-    #trial = "experiment_2019_04_10_onearm_curr_typical_linearpenx10"
+    trial = "experiment_2019_04_10_onearm_curr_typical_linearpenx10"
     #trial = "experiment_2019_04_09_onearm_fresh_elbowconstraint_linearpen"
     #trial = "experiment_2019_04_09_onearm_fresh_tremor_linearpen"
     #trial = "experiment_2019_04_09_onearm_fresh_weak_linearpen"
@@ -593,12 +593,10 @@ def main():
 
     #batch loadSave...
     trials = None
-    trials = [
-        "experiment_2019_04_19_twoarm_tshirt",
-        "experiment_2019_04_18_onearm_weak_jcon",
-        "experiment_2019_04_18_onearm_typical_currx10_currvel",
-        "experiment_2019_04_18_onearm_weakstrong_currx10_currweakest"
-    ]
+    #trials = [
+    #    "experiment_2019_04_19_twoarm_tshirt",
+    #    "experiment_2019_04_18_onearm_curr_weak_jcon_weakest"
+    #]
 
     loadSave = False #now done automatically if policy file not found...
     loadSave_frame = None #if none, use most recent
@@ -881,7 +879,7 @@ def main():
     #o = env.reset()
     #useMeanPolicy = False
 
-    for i in range(21):
+    for i in range(10):
         print("-----------------------------------")
         print("  Starting rollout " + str(i))
         print("-----------------------------------")

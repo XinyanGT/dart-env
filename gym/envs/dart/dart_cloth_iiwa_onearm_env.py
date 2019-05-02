@@ -68,9 +68,9 @@ class DartClothIiwaOnearmEnv(DartClothIiwaEnv):
         #self.human_obs_manager.addObsFeature(feature=DataDrivenJointLimitsObsFeature(self))
 
         #self.human_obs_manager.addObsFeature(feature=CollisionMPCObsFeature(env=self,is_human=True))
-        self.human_obs_manager.addObsFeature(feature=WeaknessScaleObsFeature(self,self.limbDofs[1],scale_range=(0.1,0.6), sample_range=(0,0.33)))
+        #self.human_obs_manager.addObsFeature(feature=WeaknessScaleObsFeature(self,self.limbDofs[1],scale_range=(0.1,0.6), sample_range=(0,1.0)))
         #self.human_obs_manager.addObsFeature(feature=ActionTremorObsFeature(self,self.limbDofs[1],scale_ranges=np.ones(len(self.limbDofs[1]))*0.15))
-        self.human_obs_manager.addObsFeature(feature=JointConstraintObsFeature(self,dof=16,u_constraint_range=(0.5,2.85),l_constraint_range=(0.21,2.0), mode=0))
+        #self.human_obs_manager.addObsFeature(feature=JointConstraintObsFeature(self,dof=16,u_constraint_range=(0.5,2.85),l_constraint_range=(0.21,2.0), mode=0))
 
         #variation testing ranges
         #weakness
@@ -121,7 +121,7 @@ class DartClothIiwaOnearmEnv(DartClothIiwaEnv):
         #velocity penalty:
         #self.reward_manager.addTerm(term=JointVelocityPenaltyTerm(self, self.human_skel, weight=5, name="human jvel pen"))
         #self.reward_manager.addTerm(term=JointVelocityPenaltyTerm(self, self.iiwas[0].skel, weight=15, name="robot jvel pen"))
-
+        self.reward_manager.addTerm(term=PointVelocityPenaltyTerm(self, self.iiwas[0].skel, node=9, weight=10))
 
         #set the observation space
         self.obs_dim = self.human_obs_manager.obs_size

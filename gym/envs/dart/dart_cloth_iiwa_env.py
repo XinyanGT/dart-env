@@ -444,6 +444,45 @@ class JointVelocityPenaltyTerm(RewardTerm):
 
         return self.previous_evaluation
 
+class PointVelocityPenaltyTerm(RewardTerm):
+    # L2 penalty on local body point velocity above threshold in world frame
+    def __init__(self, env, skel, node, offset=np.zeros(3), threshold=0.0, name="point velocity penalty", weight=1.0):
+        self.env = env
+        self.skel = skel
+        self.node = node
+        self.offset = offset
+        self.threshold = threshold
+
+        self.prev_position = np.zeros(3)
+
+        self.min_possible = -1.0
+
+        self.last_update = 0
+
+        RewardTerm.__init__(self, name=name, weight=weight, min=self.min_possible, max=0)
+
+    def evaluateReward(self):
+
+        if self.env.numSteps > self.last_update:
+            position = self.skel.bodynodes[self.node].to_world(self.offset)
+            vel = position - self.prev_position
+            self.last_update = self.env.numSteps
+            self.prev_position = self.skel.bodynodes[self.node].to_world(self.offset)
+            self.previous_evaluation = -np.dot(vel, vel)*10000
+            self.previous_evaluation *= self.weight
+
+        if self.env.numSteps == 0:
+            return 0
+
+        #print(self.previous_evaluation)
+
+        return self.previous_evaluation
+
+    def reset(self):
+        self.previous_evaluation = 0
+        self.prev_position = self.skel.bodynodes[self.node].to_world(self.offset)
+        self.last_update = -1
+
 class ObservationManager:
     def __init__(self):
         self.obs_features = []  # list of active reward terms
@@ -767,8 +806,10 @@ class WeaknessScaleObsFeature(ObservationFeature):
 
     def reset(self):
         #draw a new scale value
-        #self.currentScale = np.random.uniform(0,1.0)
-        self.currentScale = np.random.uniform(self.sample_range[0], self.sample_range[1])
+        self.currentScale = np.random.uniform(0,1.0)
+        #self.currentScale = np.random.uniform(self.sample_range[0], self.sample_range[1])
+        #variation = 5
+        #self.currentScale = np.random.uniform(0.166*variation,0.166*(variation+1)) #weak
         #self.currentScale = np.random.uniform(0,0.33) #weak
         #self.currentScale = np.random.uniform(0.33,0.66) #moderate
         #self.currentScale = np.random.uniform(0.66,1.0) #strong
@@ -789,20 +830,21 @@ class ActionTremorObsFeature(ObservationFeature):
         self.dofs = dofs
         self.env.human_SPD_target_noise_dofs = self.dofs
         self.scale_ranges = scale_ranges
-        ObservationFeature.__init__(self, name=name, dim=0, render=render)
+        ObservationFeature.__init__(self, name=name, dim=1, render=render)
         self.current_scale = 1.0
 
     def getObs(self):
         obs = np.array([self.current_scale])
-        obs = np.zeros(0)
+        #obs = np.zeros(0)
         return obs
 
     def reset(self):
         #draw a new scale value
-        #self.current_scale = np.random.uniform(0, 1.0)
+        self.current_scale = np.random.uniform(0, 1.0)
         #self.current_scale = np.random.uniform(0, 0.33) #low
         #self.current_scale = np.random.uniform(0.33, 0.66) #moderate
-        self.current_scale = np.random.uniform(0.66, 1.0) #high
+        #self.current_scale = np.random.uniform(0.66, 1.0) #high
+        #self.current_scale = 1.0
 
         #update the human's capability
         self.env.human_SPD_target_noise = self.scale_ranges*self.current_scale
@@ -884,15 +926,23 @@ class JointConstraintObsFeature(ObservationFeature):
             valid = True
             self.current_u_constraint = random.uniform(0, 1.0)
             self.current_l_constraint = random.uniform(0, 1.0)
-            #low
-            #self.current_u_constraint = random.uniform(0, 0.33)
-            #self.current_l_constraint = random.uniform(0, 0.33)
+
+            #variation = 5
+            #self.current_u_constraint = random.uniform(0.166*variation,0.166*(variation+1))
+            #self.current_l_constraint = random.uniform(0.166*variation,0.166*(variation+1))
+
+            #if self.current_u_constraint < 0.5:
+            #    #low
+            #    self.current_u_constraint = random.uniform(0, 0.33)
+            #    self.current_l_constraint = random.uniform(0, 0.33)
+            #else:
+
             #middle
             #self.current_u_constraint = random.uniform(0.33, 0.66)
             #self.current_l_constraint = random.uniform(0.33, 0.66)
-            #high
-            #self.current_u_constraint = random.uniform(0.66, 1.0)
-            #self.current_l_constraint = random.uniform(0.66, 1.0)
+                #high
+            #    self.current_u_constraint = random.uniform(0.66, 1.0)
+            #    self.current_l_constraint = random.uniform(0.66, 1.0)
 
             dof_u_limit = LERP(self.u_constraint_range[0], self.u_constraint_range[1], self.current_u_constraint)
             dof_l_limit = LERP(self.l_constraint_range[0], self.l_constraint_range[1], self.current_l_constraint)
@@ -2126,7 +2176,7 @@ class DartClothIiwaEnv(gym.Env):
         self.recording_progress = False
         self.recording_contact = False
         self.contact_record = {"max_cloth_contact":[], "total_cloth_contact":[], "max_rigid_contact":[], "total_rigid_contact":[], "max_contact":[], "total_contact":[]} #each list contains a list per episode
-        self.recording_directory = "data_recording_dir/typical_curr_vel"
+        self.recording_directory = "data_recording_dir/100x_raw_data/weakstrong_x10_currweakest"
 
         #setup some flags
         self.dual_policy = dual_policy #if true, expect an action space concatenation of human/robot(s)
@@ -2544,8 +2594,13 @@ class DartClothIiwaEnv(gym.Env):
                     iiwa.pose_interpolation_target = np.zeros(7)
                     iiwa.control_mode = 2 #skip control and track manual target
                 self.humanSPDIntperolationTarget = np.zeros(len(self.human_skel.q))
-                self.humanSPDIntperolationTarget[8] = 2.4
-                self.humanSPDIntperolationTarget[16] = 2.4
+                #self.humanSPDIntperolationTarget = np.array([0.0, 0.0, 0.0, 0.1365056127949078, 0.15807589532573335, -1.1674962118362258, -1.222932465046803, 0.34188746102801915, 1.6413026208639552, 0.004928689819800214, 0.20796112718164272, 0.1365056127949078, 0.15807589532573335, 1.1674962118362258, -1.222932465046803, -0.34188746102801915, 1.6413026208639552, 0.004928689819800214, 0.20796112718164272, 0.0, 0.0, 0.0])
+                #self.humanSPDIntperolationTarget = np.array([0.0, 0.0, 0.0, -0.05855931957391297, 0.2401747878742253, -0.06793848283436787, 0.19791640037187452, -0.09080831853433668, 1.7260776114173817, -0.3859197166290005, 0.041301317367582024, -0.05855931957391297, 0.2401747878742253, 0.06793848283436787, 0.19791640037187452, 0.09080831853433668, 1.7260776114173817, -0.3859197166290005, 0.041301317367582024, 0.0, 0.0, 0.0])
+                #self.humanSPDIntperolationTarget = np.array([0.0, 0.0, 0.0, -0.2203112155692722, 0.012241092127476427, 0.6161269512632357, -2.6670125954442474, -2.016131798594806, 0.7759659046678458, -0.05820380143303727, 0.36863084501898846, -0.2203112155692722, 0.012241092127476427, -0.6161269512632357, -2.6670125954442474, 2.016131798594806, 0.7759659046678458, -0.05820380143303727, 0.36863084501898846, 0.0, 0.0, 0.0])
+                #self.humanSPDIntperolationTarget = np.array([0.0, 0.0, 0.0, 0.13404383785111446, 0.1131270189968237, 0.3929527590342943, -1.8727914760181115, -1.217544571299459, 0.3156815326625816, 0.40794198108981317, -0.23240580659092674, 0.13404383785111446, 0.1131270189968237, -0.3929527590342943, -1.8727914760181115, 1.217544571299459, 0.3156815326625816, 0.40794198108981317, -0.23240580659092674, 0.0, 0.0, 0.0])
+                #self.humanSPDIntperolationTarget = np.array()
+                #self.humanSPDIntperolationTarget[8] = 2.4
+                #self.humanSPDIntperolationTarget[16] = 2.4
 
         #max_vel = np.amax(np.abs(self.iiwas[0].skel.dq))
         #print("max velocity: " + str(max_vel))
@@ -2734,22 +2789,23 @@ class DartClothIiwaEnv(gym.Env):
             # every other step simulate cloth and update handles
             if (i % 2 == 1 and self.simulateCloth):
                 #update robot handles
-                for iiwa in self.iiwas:
-                    iiwa.updateClothHandle()
-                #TODO: update positions of non-robot handles
-                #for handle_node in self.handleNodes:
-                #    handle_node.
+                for i in range(1):
+                    for iiwa in self.iiwas:
+                        iiwa.updateClothHandle()
+                    #TODO: update positions of non-robot handles
+                    #for handle_node in self.handleNodes:
+                    #    handle_node.
 
-                self.updateClothCollisionStructures(hapticSensors=True)
-                self.clothScene.step()
+                    self.updateClothCollisionStructures(hapticSensors=True)
+                    self.clothScene.step()
 
-                #step handles
-                for iiwa in self.iiwas:
-                    if iiwa.handle_node is not None:
-                        iiwa.handle_node.step() #handle FT update happens here
-                        iiwa.updateClothFTSensorReading(clear=(i == 1)) #clear on the first of each set of updates
-                for handle_node in self.handleNodes:
-                    handle_node.step()
+                    #step handles
+                    for iiwa in self.iiwas:
+                        if iiwa.handle_node is not None:
+                            iiwa.handle_node.step() #handle FT update happens here
+                            iiwa.updateClothFTSensorReading(clear=(i == 1)) #clear on the first of each set of updates
+                    for handle_node in self.handleNodes:
+                        handle_node.step()
                 #update human/cloth haptic observation
                 if i == 1:
                     self.haptic_sensor_data["cloth_steps"] = 0
@@ -2777,6 +2833,7 @@ class DartClothIiwaEnv(gym.Env):
 
         #random seeding
         seeds = []
+        seeds = np.arange(100)
 
         if False:
             try:
@@ -2838,6 +2895,7 @@ class DartClothIiwaEnv(gym.Env):
 
         self.reset_number += 1
         self.numSteps = 0
+
 
         return self._get_obs()
 
@@ -3028,7 +3086,7 @@ class DartClothIiwaEnv(gym.Env):
         #TEXT
         m_viewport = self.viewer.viewport
 
-        self.clothScene.drawText(x=15., y=15, text="Time = " + str(self.numSteps * self.dt * self.frame_skip), color=(0., 0, 0))
+        #self.clothScene.drawText(x=15., y=15, text="Time = " + str(self.numSteps * self.dt * self.frame_skip), color=(0., 0, 0))
 
         #draw the text queue
         textHeight = 15
@@ -3125,6 +3183,11 @@ class DartClothIiwaEnv(gym.Env):
             # recording angle from front of person with robot on left side...
             self._get_viewer().scene.tb._trans = [0.34000000000000019, 0.020000000000000004, -2.0999999999999988]
             rot = [-0.094887037321912837, -0.91548784322523225, -0.071299301298955647, 0.38444098206273875]
+            #pyutils.setTrackballOrientation(self.viewer.scene.tb, rot)
+
+            #front
+            self._get_viewer().scene.tb._trans = [0.030000000000000027, 0.020000000000000004, -2.6999999999999993]
+            rot = [-0.0057438909635249141, -0.9992480424523178, 0.033626712723690888, 0.018428281613001165]
             pyutils.setTrackballOrientation(self.viewer.scene.tb, rot)
 
     def _seed(self, seed=None):

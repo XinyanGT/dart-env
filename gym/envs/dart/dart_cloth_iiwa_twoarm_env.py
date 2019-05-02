@@ -14,7 +14,7 @@ class DartClothIiwaTwoarmEnv(DartClothIiwaEnv):
 
         #setup robot root dofs
         # setup robot base location
-        self.dFromRoot = 1.75
+        self.dFromRoot = 0.75
         #self.dFromRoot = 2.75
         self.aFrom_invZ = 1.1
         self.iiwa_root_dofs = []  # values for the fixed 6 dof root transformation
@@ -116,11 +116,12 @@ class DartClothIiwaTwoarmEnv(DartClothIiwaEnv):
 
         #set manual target to random pose
         if self.manual_human_control:
-            #self.human_manual_target = self.getValidRandomPose(verbose=False)
+            self.human_manual_target = self.getValidRandomPose(verbose=False,symmetrical=True,dofs=[3,4,5,6,7,8,9,10])
+            print(np.array(self.human_manual_target).tolist())
             #self.human_manual_target = np.array([0.0, 0.0, 0.0, -0.09486478804170062, 0.16919563098552753, -0.4913244737893412, -1.371164742525659, -0.1465004046206566, 0.3062212857520513, 0.18862771696450964, 0.4970038523987025, -0.09486478804170062, 0.16919563098552753, 0.4913244737893412, -1.371164742525659, 0.1465004046206566, 0.3062212857520513, 0.18862771696450964, 0.4970038523987025, 0.48155552859527917, -0.13660824713013747, 0.6881130165905589])
             #self.human_manual_target = np.array([0.0, 0.0, 0.0, 0.2014567442644234, 0.12976885838990154, 0.07445680418190292, 3.95336417358366, -0.9002739292338819, 0.29925007698275996, 0.4400513472819564, 0.0051886712832222015, 0.2014567442644234, 0.12976885838990154, -0.07445680418190292, 3.95336417358366, 0.9002739292338819, 0.29925007698275996, 0.4400513472819564, 0.0051886712832222015, 0.0, 0.0, 0.0])
-            self.human_manual_target = np.array([0.0, 0.0, 0.0, -0.09486478804170062, 0.16919563098552753, -0.4913244737893412, -1.371164742525659, -0.1465004046206566, 0.3062212857520513, 0.18862771696450964, 0.4970038523987025, -0.09486478804170062, 0.16919563098552753, 0.4913244737893412, -1.371164742525659, 0.1465004046206566, 0.3062212857520513, 0.18862771696450964, 0.4970038523987025, 0.0, 0.0, 0.0])
-            self.human_manual_target = np.zeros(22)
+            #self.human_manual_target = np.array([0.0, 0.0, 0.0, -0.09486478804170062, 0.16919563098552753, -0.4913244737893412, -1.371164742525659, -0.1465004046206566, 0.3062212857520513, 0.18862771696450964, 0.4970038523987025, -0.09486478804170062, 0.16919563098552753, 0.4913244737893412, -1.371164742525659, 0.1465004046206566, 0.3062212857520513, 0.18862771696450964, 0.4970038523987025, 0.0, 0.0, 0.0])
+            #self.human_manual_target = np.zeros(22)
 
             #print("chose manual target = " + str(self.human_manual_target.tolist()))
             for iiwa in self.iiwas:
@@ -131,7 +132,7 @@ class DartClothIiwaTwoarmEnv(DartClothIiwaEnv):
             #self.human_skel.set_positions([0.0, 0.0, 0.0, -0.21890184289240233, 0.1618533105311784, -0.03417282760690066, 0.670498809614021, -0.16780524349209935, 1.8045016700105585, -0.3012597961534294, 0.4064480138415224, -0.21890184289240233, 0.1618533105311784, 0.03417282760690066, 0.670498809614021, 0.16780524349209935, 1.8045016700105585, -0.3012597961534294, 0.4064480138415224, 0.2530563478930248, -0.5648952906859239, 0.9915228996786887])
             #self.human_skel.set_positions([0.0, 0.0, 0.0, -0.09486478804170062, 0.16919563098552753, -0.4913244737893412, -1.371164742525659, -0.1465004046206566, 0.3062212857520513, 0.18862771696450964, 0.4970038523987025, -0.09486478804170062, 0.16919563098552753, 0.4913244737893412, -1.371164742525659, 0.1465004046206566, 0.3062212857520513, 0.18862771696450964, 0.4970038523987025, 0.0, 0.0, 0.0])
             self.human_skel.set_positions(self.human_manual_target)
-            #self.humanSPDIntperolationTarget = np.array(self.human_skel.q)
+            self.humanSPDIntperolationTarget = np.array(self.human_manual_target)
 
         else:
             human_pose = np.array(self.human_skel.q)
@@ -182,7 +183,7 @@ class DartClothIiwaTwoarmEnv(DartClothIiwaEnv):
         p0L = r_pivotL + pyutils.sampleDirections(num=1)[0] * diskRad
         p0R = r_pivotR + pyutils.sampleDirections(num=1)[0] * diskRad
         depth_offset = 0.15
-        '''
+
         while (not good):
             good = True
             # xz0 = np.array([p0[0], p0[2]])
@@ -221,7 +222,7 @@ class DartClothIiwaTwoarmEnv(DartClothIiwaEnv):
         self.iiwas[0].setIKPose() #frame set in here too
         self.iiwas[1].skel.set_velocities(np.zeros(len(self.iiwas[0].skel.dq)))
         self.iiwas[1].setIKPose() #frame set in here too
-        '''
+
 
         # set the interpolation pose
         self.iiwas[0].pose_interpolation_target = np.array(self.iiwas[0].skel.q[6:])
@@ -288,7 +289,7 @@ class DartClothIiwaTwoarmEnv(DartClothIiwaEnv):
             self.separated_meshes[1].computeGeodesic(feature=self.sleeveRSeamFeature, oneSided=True, side=0, normalSide=1, boundary_skip_vertices=vertex_blacklist)
 
         # sticking up the in the air with no cloth
-        if True:
+        if False:
             for iiwa in self.iiwas:
                 iiwa.handle_node.clearHandles()
                 iiwa.pose_interpolation_target = np.zeros(7)

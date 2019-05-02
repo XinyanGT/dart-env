@@ -42,11 +42,11 @@ class StaticClothGLUTWindow(StaticGLUTWindow):
         #self.interactors.append(VertexSelectInteractor(self))
         self.lastContextSwitch = 0 #holds the frame of the last context switch (for label rendering)
         self.captureIndex = 0 #increments when captureToFile is called
-        self.captureDirectory = "/home/alexander/Documents/frame_capture_output/pose_threshold_reference"
+        self.captureDirectory = "/home/alexander/Documents/frame_capture_output/stable_cloth_jcon"
         #self.captureDirectory = "/home/alexander/Documents/frame_capture_output/variations/1"
         #self.captureDirectory = "/home/alexander/Documents/frame_capture_output/variations/elbow_data/0"
         #self.captureDirectory = "/home/alexander/Documents/dev/saved_render_states/siggraph_asia_finals/tshirt_failures/frames"
-        self.capturing = True
+        self.capturing = False
         self.states_saved = 1 #incremented on each state save 's'
         self.state_save_dir = "/home/alexander/Documents/dev/dart-env/gym/envs/dart/assets/state_distributions/assisted_tshirt/"
         self.key_down = []
