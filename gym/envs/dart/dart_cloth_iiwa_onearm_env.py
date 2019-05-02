@@ -121,7 +121,7 @@ class DartClothIiwaOnearmEnv(DartClothIiwaEnv):
         #velocity penalty:
         #self.reward_manager.addTerm(term=JointVelocityPenaltyTerm(self, self.human_skel, weight=5, name="human jvel pen"))
         #self.reward_manager.addTerm(term=JointVelocityPenaltyTerm(self, self.iiwas[0].skel, weight=15, name="robot jvel pen"))
-        self.reward_manager.addTerm(term=PointVelocityPenaltyTerm(self, self.iiwas[0].skel, node=9, weight=20))
+        self.reward_manager.addTerm(term=PointVelocityPenaltyTerm(self, self.iiwas[0].skel, node=9, weight=10))
 
         #set the observation space
         self.obs_dim = self.human_obs_manager.obs_size
