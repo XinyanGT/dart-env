@@ -8,14 +8,17 @@ import copy
 
 import joblib, os
 from pydart2.utils.transformations import quaternion_from_matrix, euler_from_matrix, euler_from_quaternion
+from gym import error, spaces
 
 class DartHopperEnv(dart_env.DartEnv, utils.EzPickle):
     def __init__(self):
         self.control_bounds = np.array([[1.0, 1.0, 1.0],[-1.0, -1.0, -1.0]])
         self.action_scale = np.array([200.0, 200.0, 200.0]) * 1.0
         self.train_UP = False
-        self.noisy_input = False
+        self.noisy_input = True
         self.input_time = False
+
+        self.fallstates = []
 
         self.action_filtering = 0  # window size of filtering, 0 means no filtering
         self.action_filter_cache = []
@@ -24,8 +27,16 @@ class DartHopperEnv(dart_env.DartEnv, utils.EzPickle):
 
         obs_dim = 11
 
-        self.vibrating_ground = True
-        self.ground_vib_params = [0.4875, 0.5]  # magnitude, frequency
+        self.vibrating_ground = False
+        self.ground_vib_params = [0.14, 1.5]  # magnitude, frequency
+
+        self.periodic_noise = False
+        self.periodic_noise_params = [0.1, 4.5]  # magnitude, frequency
+
+        self.learnable_perturbation = False
+        self.learnable_perturbation_list = [['h_shin', 80, 0]] # [bodynode name, force magnitude, torque magnitude
+        self.learnable_perturbation_space = spaces.Box(np.array([-1] * len(self.learnable_perturbation_list) * 6), np.array([1] * len(self.learnable_perturbation_list) * 6))
+        self.learnable_perturbation_act = np.zeros(len(self.learnable_perturbation_list) * 6)
 
         self.velrew_weight = 1.0
         self.UP_noise_level = 0.0
@@ -61,6 +72,7 @@ class DartHopperEnv(dart_env.DartEnv, utils.EzPickle):
         dart_env.DartEnv.__init__(self, ['hopper_capsule.skel', 'hopper_box.skel', 'hopper_ellipsoid.skel'], 4, obs_dim, self.control_bounds, disableViewer=False)
 
         self.initial_local_coms = [np.copy(bn.local_com()) for bn in self.robot_skeleton.bodynodes]
+        self.initial_coms = [np.copy(bn.com()) for bn in self.robot_skeleton.bodynodes]
 
         self.current_param = self.param_manager.get_simulator_parameters()
 
@@ -82,6 +94,11 @@ class DartHopperEnv(dart_env.DartEnv, utils.EzPickle):
 
         self.param_manager.set_simulator_parameters(self.current_param)
 
+        self.height_threshold_low = 0.56 * self.robot_skeleton.bodynodes[2].com()[1]
+        self.rot_threshold = 0.4
+
+        self.short_perturb_params = []#[1.0, 1.3, np.array([-200, 0, 0])] # start time, end time, force
+
         print('sim parameters: ', self.param_manager.get_simulator_parameters())
         self.current_param = self.param_manager.get_simulator_parameters()
         self.active_param = self.param_manager.activated_param
@@ -89,7 +106,15 @@ class DartHopperEnv(dart_env.DartEnv, utils.EzPickle):
         # data structure for actuation modeling
         self.zeroed_height = self.robot_skeleton.bodynodes[2].com()[1]
 
+        self.cur_step = 0
+
         utils.EzPickle.__init__(self)
+
+    def resample_task(self):
+        pass
+        self.param_manager.resample_parameters()
+        self.current_param = self.param_manager.get_simulator_parameters()
+        self.velrew_weight = np.sign(np.random.randn(1))[0]
 
     def pad_action(self, a):
         full_ac = np.zeros(len(self.robot_skeleton.q))
@@ -98,6 +123,32 @@ class DartHopperEnv(dart_env.DartEnv, utils.EzPickle):
 
     def unpad_action(self, a):
         return a[3:]
+
+    def do_simulation(self, tau, n_frames):
+        for _ in range(n_frames):
+            if len(self.short_perturb_params) > 0:
+                if self.cur_step * self.dt > self.short_perturb_params[0] and\
+                    self.cur_step * self.dt < self.short_perturb_params[1]:
+                    self.robot_skeleton.bodynodes[2].add_ext_force(self.short_perturb_params[2])
+
+            if self.learnable_perturbation: # if learn to perturb
+                for bid, pert_param in enumerate(self.learnable_perturbation_list):
+                    force_dir = self.learnable_perturbation_act[bid * 6: bid * 6 + 3]
+                    torque_dir = self.learnable_perturbation_act[bid * 6 + 3: bid * 6 + 6]
+                    if np.all(force_dir == 0):
+                        pert_force = np.zeros(3)
+                    else:
+                        pert_force = pert_param[1] * force_dir / np.linalg.norm(force_dir)
+                    if np.all(torque_dir == 0):
+                        pert_torque = np.zeros(3)
+                    else:
+                        pert_torque = pert_param[2] * torque_dir / np.linalg.norm(torque_dir)
+                    self.robot_skeleton.bodynode(pert_param[0]).add_ext_force(pert_force)
+                    self.robot_skeleton.bodynode(pert_param[0]).add_ext_torque(pert_torque)
+
+
+            self.robot_skeleton.set_forces(tau)
+            self.dart_world.step()
 
     def advance(self, a):
         if self.actuator_nonlinearity:
@@ -119,6 +170,8 @@ class DartHopperEnv(dart_env.DartEnv, utils.EzPickle):
 
         tau = np.zeros(self.robot_skeleton.ndofs)
         tau[3:] = clamped_control * self.action_scale
+
+
         self.do_simulation(tau, self.frame_skip)
 
 
@@ -129,6 +182,14 @@ class DartHopperEnv(dart_env.DartEnv, utils.EzPickle):
         self.dart_world.check_collision()
 
     def terminated(self):
+        '''if self.cur_step * self.dt > self.short_perturb_params[0] and \
+                self.cur_step * self.dt < self.short_perturb_params[1] + 2: # allow 2 seconds to recover
+            self.height_threshold_low = 0.0
+            self.rot_threshold = 10
+        else:
+            self.height_threshold_low = 0.56 * self.initial_coms[2][1]
+            self.rot_threshold = 0.4'''
+
         self.fall_on_ground = False
         contacts = self.dart_world.collision_result.contacts
         total_force_mag = 0
@@ -143,7 +204,7 @@ class DartHopperEnv(dart_env.DartEnv, utils.EzPickle):
         ang = self.robot_skeleton.q[2]
         done = not (np.isfinite(s).all() and (np.abs(s[2:]) < 100).all() and (np.abs(self.robot_skeleton.dq) < 100).all()\
             #and not self.fall_on_ground)
-            and (height > self.height_threshold_low) and (abs(ang) < .4))
+            and (height > self.height_threshold_low) and (abs(ang) < self.rot_threshold))
         return done
 
     def pre_advance(self):
@@ -162,6 +223,7 @@ class DartHopperEnv(dart_env.DartEnv, utils.EzPickle):
         reward += alive_bonus * step_skip
         reward -= 1e-3 * np.square(a).sum()
         reward -= 5e-1 * joint_limit_penalty
+        reward -= np.abs(self.robot_skeleton.q[2])
         return reward
 
     def step(self, a):
@@ -216,7 +278,6 @@ class DartHopperEnv(dart_env.DartEnv, utils.EzPickle):
             self.gait_freq = 1.0 / (np.mean(self.cycle_times))
 
         envinfo['gait_frequency'] = self.gait_freq
-
         return ob, reward, done, envinfo
 
     def _get_obs(self, update_buffer = True):
@@ -258,6 +319,8 @@ class DartHopperEnv(dart_env.DartEnv, utils.EzPickle):
             else:
                 final_obs = np.concatenate([final_obs, [0.0]*len(self.control_bounds[0])])
 
+        if self.periodic_noise:
+            final_obs += np.random.randn(len(final_obs)) * self.periodic_noise_params[0] * (np.sin(2*np.pi*self.periodic_noise_params[1] * self.cur_step * self.dt) + 1)
 
         return final_obs
 
@@ -269,6 +332,11 @@ class DartHopperEnv(dart_env.DartEnv, utils.EzPickle):
         qvel = self.robot_skeleton.dq + self.np_random.uniform(low=-.005, high=.005, size=self.robot_skeleton.ndofs)
 
         self.set_state(qpos, qvel)
+
+        if len(self.fallstates) > 0:
+            if np.random.random() < 0.5:
+                self.set_state_vector(self.fallstates[np.random.randint(len(self.fallstates))])
+
         if self.resample_MP:
             self.param_manager.resample_parameters()
             self.current_param = self.param_manager.get_simulator_parameters()
@@ -287,13 +355,20 @@ class DartHopperEnv(dart_env.DartEnv, utils.EzPickle):
 
         self.cur_step = 0
 
-        self.height_threshold_low = 0.56*self.robot_skeleton.bodynodes[2].com()[1]
+
         self.t = 0
 
         self.fall_on_ground = False
 
         self.cycle_times = []  # gait cycle times
         self.previous_contact = None
+
+        if self.vibrating_ground:
+            self.ground_vib_params[0] = np.random.random() * 0.14
+
+        self.learnable_perturbation_act = np.zeros(len(self.learnable_perturbation_list) * 6)
+
+        #self.short_perturb_params = [np.random.uniform(0.9, 1.2), np.random.uniform(1.2, 1.4), np.array([200*-1, 0, 0])]  # start time, end time, force
 
         return state
 

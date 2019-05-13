@@ -20,9 +20,9 @@ class DartWalker2dEnv(dart_env.DartEnv, utils.EzPickle):
         self.param_manager = walker2dParamManager(self)
 
         self.vibrating_ground = True
-        self.ground_vib_params = [0.03325,4.5] # magnitude, frequency
-        self.randomize_ground_vib = True
-        self.ground_vib_input = True
+        self.ground_vib_params = [0.12,1.5] # magnitude, frequency
+        self.randomize_ground_vib = False
+        self.ground_vib_input = False
 
         self.action_filtering = 0  # window size of filtering, 0 means no filtering
         self.action_filter_cache = []
@@ -155,7 +155,7 @@ class DartWalker2dEnv(dart_env.DartEnv, utils.EzPickle):
         vel = (posafter - self.posbefore) / self.dt
         reward = vel
         reward += alive_bonus
-        reward -= 1e-3 * np.square(a).sum()
+        reward -= 1e-1 * np.square(a).sum()
         joint_limit_penalty = 0
         for j in [-2, -5]:
             if (self.robot_skeleton.q_lower[j] - self.robot_skeleton.q[j]) > -0.05:
@@ -347,6 +347,10 @@ class DartWalker2dEnv(dart_env.DartEnv, utils.EzPickle):
             frequency = np.random.random() * 4 + 1 # take frequency between 1 - 5
             magnitutde = 0.126 / frequency * (1 + np.random.uniform(-1, 1) / 8.0)
             self.ground_vib_params = [magnitutde, frequency]
+
+        if self.vibrating_ground:
+            self.ground_vib_params[0] = np.random.random() * 0.12
+
 
         return self._get_obs()
 

@@ -56,7 +56,7 @@
                 </axis>
             </joint>-->
 
-            <joint type="prismatic" name="joint 1">
+            <joint type="weld" name="joint 1">
                 <parent>world</parent>
                 <child>link 1</child>
                 <axis>

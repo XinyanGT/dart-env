@@ -8,7 +8,7 @@
         </physics>
 
         <skeleton name="ground skeleton">
-            <mobile>false</mobile>
+            <!--<mobile>false</mobile>-->
             <body name="ground">
                 <transformation>0 -0.025 0 0 0 0</transformation>
                 <visualization_shape>

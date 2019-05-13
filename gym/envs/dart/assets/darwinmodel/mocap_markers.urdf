@@ -1,0 +1,210 @@
+<?xml version="1.0"?>
+<robot name="mocap_marker_skeleton">
+    <link name="world" />
+
+    <link name="dummy11">
+      <inertial>
+          <mass value="0.0"/>
+      </inertial>
+    </link>
+    <link name="dummy12">
+      <inertial>
+          <mass value="0.0"/>
+      </inertial>
+    </link>
+    <link name="marker1">
+      <inertial>
+            <mass value="1000.0" />
+            <origin xyz="0 0 0" rpy="0 0 0"/>
+            <inertia ixx="1.0" ixy="0" ixz="0" iyy="1.0" iyz="0" izz="1.0" />
+        </inertial>
+        <visual>
+            <origin xyz="0 0 0" rpy="0 0 0" />
+            <geometry>
+                <box size="0.01 0.01 0.01" />
+            </geometry>
+        </visual>
+    </link>
+
+    <joint name="jt11" type="prismatic">
+        <parent link="world"/>
+        <child link="dummy11"/>
+        <origin rpy="0 0 0" xyz="0 0 0.0"/>
+        <axis xyz="1 0 0"/>
+        <limit effort="2.8" lower="-6.28" upper="6.28" velocity="5.6548668"/>
+    </joint>
+    <joint name="jt12" type="prismatic">
+        <parent link="dummy11"/>
+        <child link="dummy12"/>
+        <origin rpy="0 0 0" xyz="0 0 0.0"/>
+        <axis xyz="0 1 0"/>
+        <limit effort="2.8" lower="-6.28" upper="6.28" velocity="5.6548668"/>
+    </joint>
+    <joint name="jt13" type="prismatic">
+        <parent link="dummy12"/>
+        <child link="marker1"/>
+        <origin rpy="0 0 0" xyz="0 0 0.0"/>
+        <axis xyz="0 0 1"/>
+        <limit effort="2.8" lower="-6.28" upper="6.28" velocity="5.6548668"/>
+    </joint>
+
+
+
+
+
+    <link name="dummy21">
+      <inertial>
+          <mass value="0.0"/>
+      </inertial>
+    </link>
+    <link name="dummy22">
+      <inertial>
+          <mass value="0.0"/>
+      </inertial>
+    </link>
+    <link name="marker2">
+      <inertial>
+            <mass value="1000.0" />
+            <origin xyz="0 0 0" rpy="0 0 0"/>
+            <inertia ixx="1.0" ixy="0" ixz="0" iyy="1.0" iyz="0" izz="1.0" />
+        </inertial>
+        <visual>
+            <origin xyz="0 0 0" rpy="0 0 0" />
+            <geometry>
+                <box size="0.01 0.01 0.01" />
+            </geometry>
+        </visual>
+    </link>
+
+    <joint name="jt21" type="prismatic">
+        <parent link="world"/>
+        <child link="dummy21"/>
+        <origin rpy="0 0 0" xyz="0 0 0.0"/>
+        <axis xyz="1 0 0"/>
+        <limit effort="2.8" lower="-6.28" upper="6.28" velocity="5.6548668"/>
+    </joint>
+    <joint name="jt22" type="prismatic">
+        <parent link="dummy21"/>
+        <child link="dummy22"/>
+        <origin rpy="0 0 0" xyz="0 0 0.0"/>
+        <axis xyz="0 1 0"/>
+        <limit effort="2.8" lower="-6.28" upper="6.28" velocity="5.6548668"/>
+    </joint>
+    <joint name="jt23" type="prismatic">
+        <parent link="dummy22"/>
+        <child link="marker2"/>
+        <origin rpy="0 0 0" xyz="0 0 0.0"/>
+        <axis xyz="0 0 1"/>
+        <limit effort="2.8" lower="-6.28" upper="6.28" velocity="5.6548668"/>
+    </joint>
+
+
+
+
+
+
+
+
+
+
+    <link name="dummy31">
+      <inertial>
+          <mass value="0.0"/>
+      </inertial>
+    </link>
+    <link name="dummy32">
+      <inertial>
+          <mass value="0.0"/>
+      </inertial>
+    </link>
+    <link name="marker3">
+      <inertial>
+            <mass value="1000.0" />
+            <origin xyz="0 0 0" rpy="0 0 0"/>
+            <inertia ixx="1.0" ixy="0" ixz="0" iyy="1.0" iyz="0" izz="1.0" />
+        </inertial>
+        <visual>
+            <origin xyz="0 0 0" rpy="0 0 0" />
+            <geometry>
+                <box size="0.01 0.01 0.01" />
+            </geometry>
+        </visual>
+    </link>
+
+
+    <joint name="jt31" type="prismatic">
+        <parent link="world"/>
+        <child link="dummy31"/>
+        <origin rpy="0 0 0" xyz="0 0 0.0"/>
+        <axis xyz="1 0 0"/>
+        <limit effort="2.8" lower="-6.28" upper="6.28" velocity="5.6548668"/>
+    </joint>
+    <joint name="jt32" type="prismatic">
+        <parent link="dummy31"/>
+        <child link="dummy32"/>
+        <origin rpy="0 0 0" xyz="0 0 0.0"/>
+        <axis xyz="0 1 0"/>
+        <limit effort="2.8" lower="-6.28" upper="6.28" velocity="5.6548668"/>
+    </joint>
+    <joint name="jt33" type="prismatic">
+        <parent link="dummy32"/>
+        <child link="marker3"/>
+        <origin rpy="0 0 0" xyz="0 0 0.0"/>
+        <axis xyz="0 0 1"/>
+        <limit effort="2.8" lower="-6.28" upper="6.28" velocity="5.6548668"/>
+    </joint>
+
+
+
+
+
+
+
+    <link name="dummy41">
+      <inertial>
+          <mass value="0.0"/>
+      </inertial>
+    </link>
+    <link name="dummy42">
+      <inertial>
+          <mass value="0.0"/>
+      </inertial>
+    </link>
+    <link name="marker4">
+       <inertial>
+            <mass value="1000.0" />
+            <origin xyz="0 0 0" rpy="0 0 0"/>
+            <inertia ixx="1.0" ixy="0" ixz="0" iyy="1.0" iyz="0" izz="1.0" />
+        </inertial>
+        <visual>
+            <origin xyz="0 0 0" rpy="0 0 0" />
+            <geometry>
+                <box size="0.01 0.01 0.01" />
+            </geometry>
+        </visual>
+    </link>
+
+    <joint name="jt41" type="prismatic">
+        <parent link="world"/>
+        <child link="dummy41"/>
+        <origin rpy="0 0 0" xyz="0 0 0.0"/>
+        <axis xyz="1 0 0"/>
+        <limit effort="2.8" lower="-6.28" upper="6.28" velocity="5.6548668"/>
+    </joint>
+    <joint name="jt42" type="prismatic">
+        <parent link="dummy41"/>
+        <child link="dummy42"/>
+        <origin rpy="0 0 0" xyz="0 0 0.0"/>
+        <axis xyz="0 1 0"/>
+        <limit effort="2.8" lower="-6.28" upper="6.28" velocity="5.6548668"/>
+    </joint>
+
+    <joint name="jt43" type="prismatic">
+        <parent link="dummy42"/>
+        <child link="marker4"/>
+        <origin rpy="0 0 0" xyz="0 0 0.0"/>
+        <axis xyz="0 0 1"/>
+        <limit effort="2.8" lower="-6.28" upper="6.28" velocity="5.6548668"/>
+    </joint>
+
+</robot>

@@ -90,8 +90,8 @@ class DartDarwinSquatEnv(dart_env.DartEnv, utils.EzPickle):
         self.kd = None
         self.kc = None
 
-        self.soft_ground = True
-        self.task_mode = self.STEPPING
+        self.soft_ground = False
+        self.task_mode = self.WALK
         self.side_walk = False
 
         if self.use_DCMotor:
@@ -121,6 +121,8 @@ class DartDarwinSquatEnv(dart_env.DartEnv, utils.EzPickle):
         self.obs_delay = 0
 
         self.gravity_sch = [[0.0, np.array([0, 0, -9.81])]]
+
+        self.heuristic_balance = [0.02085987, 0.05597697, 0.00031102, 0.00471298]
 
 
         # single leg stand
@@ -581,14 +583,14 @@ class DartDarwinSquatEnv(dart_env.DartEnv, utils.EzPickle):
         self.robot_skeleton.q = q
 
 
-    def get_sim_bno55(self):
+    def get_sim_bno55(self, supress_randomization=False):
         # simulate bno55 reading
         tinv = np.linalg.inv(self.robot_skeleton.bodynode('MP_BODY').T[0:3, 0:3])
         angvel = self.robot_skeleton.bodynode('MP_BODY').com_spatial_velocity()[0:3]
         langvel = np.dot(tinv, angvel)
 
         euler = np.array(euler_from_matrix(self.robot_skeleton.bodynode('MP_BODY').T[0:3, 0:3], 'sxyz'))
-        if self.randomize_gyro_bias:
+        if self.randomize_gyro_bias and not supress_randomization:
             euler[0:2] += self.gyro_bias
             # add noise
             euler += np.random.uniform(-0.01, 0.01, 3)
@@ -627,6 +629,31 @@ class DartDarwinSquatEnv(dart_env.DartEnv, utils.EzPickle):
         self.ref_target = self.get_ref_pose(self.t)
 
         self.target[6:] = self.ref_target + clamped_control * self.delta_angle_scale
+
+        if self.heuristic_balance is not None: # apply heuristic balance control
+            gyro = self.get_sim_bno55()
+            # hip
+            gyro_lr = gyro[3]
+            gyro_fb = gyro[4]
+
+            gyro_lr = (gyro[0] - self.initial_gyro[0]) * 5
+            gyro_fb = (gyro[1] - self.initial_gyro[1]) * 5
+            self.target[21] -= self.heuristic_balance[2] * gyro_lr
+            self.target[15] -= self.heuristic_balance[2] * gyro_lr
+
+            # knee
+            self.target[23] += self.heuristic_balance[0] * gyro_fb
+            self.target[17] -= self.heuristic_balance[0] * gyro_fb
+
+            # ankle pitch
+            self.target[24] -= self.heuristic_balance[1] * gyro_fb
+            self.target[18] += self.heuristic_balance[1] * gyro_fb
+
+            # ankle roll
+            self.target[25] += self.heuristic_balance[3] * gyro_lr
+            self.target[19] += self.heuristic_balance[3] * gyro_lr
+            self.target[6:] = np.clip(self.target[6:], CONTROL_LOW_BOUND, CONTROL_UP_BOUND)
+
         self.target[6:] = np.clip(self.target[6:], JOINT_LOW_BOUND, JOINT_UP_BOUND)
 
         dup_pos = np.copy(self.target)
@@ -648,6 +675,9 @@ class DartDarwinSquatEnv(dart_env.DartEnv, utils.EzPickle):
         for i in range(self.frame_skip):
             self.tau[6:] = self.PID()
             self.tau[0:6] *= 0.0
+
+            if self.t > 1.5 and self.t < 1.8:
+                self.robot_skeleton.bodynodes[0].add_ext_force([np.random.uniform(-20, 20), 10, 0])
 
             if self.task_mode == self.BONGOBOARD:
                 if self.t < self.assist_timeout:
@@ -1032,9 +1062,9 @@ class DartDarwinSquatEnv(dart_env.DartEnv, utils.EzPickle):
     def reset_model(self):
         self.dart_world.reset()
         qpos = np.zeros(
-            self.robot_skeleton.ndofs)# + self.np_random.uniform(low=-.005, high=.005, size=self.robot_skeleton.ndofs)
-        qvel = self.robot_skeleton.dq# + self.np_random.uniform(low=-.005, high=.005,
-                                     #                          size=self.robot_skeleton.ndofs)  # np.zeros(self.robot_skeleton.ndofs) #
+            self.robot_skeleton.ndofs) + self.np_random.uniform(low=-.005, high=.005, size=self.robot_skeleton.ndofs)
+        qvel = self.robot_skeleton.dq + self.np_random.uniform(low=-.005, high=.005,
+                                                               size=self.robot_skeleton.ndofs)  # np.zeros(self.robot_skeleton.ndofs) #
 
         #if self.task_mode != self.BONGOBOARD:
         #    qpos[1] += np.random.uniform(-0.1, 0.1)
@@ -1070,6 +1100,8 @@ class DartDarwinSquatEnv(dart_env.DartEnv, utils.EzPickle):
         self.robot_skeleton.q = q
 
         self.init_q = np.copy(self.robot_skeleton.q)
+
+        self.initial_gyro = self.get_sim_bno55(supress_randomization=True)
 
         self.t = 0
         self.last_root = [0, 0]

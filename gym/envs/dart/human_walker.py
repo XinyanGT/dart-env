@@ -21,7 +21,9 @@ class DartHumanWalkerEnv(dart_env.DartEnv, utils.EzPickle):
         obs_dim = 57
 
         self.vibrating_ground = False
-        self.ground_vib_params = [0.03325, 4.5]  # magnitude, frequency
+        self.ground_vib_params = [0.08,1.5]  # magnitude, frequency
+        #[0.0669375,2.0]
+        #[0.0869375,1.5]
 
         self.use_cartedian_obs = False
 
@@ -35,7 +37,7 @@ class DartHumanWalkerEnv(dart_env.DartEnv, utils.EzPickle):
         self.target_vel = 0.0
         self.init_tv = 0.0
         self.final_tv = 5.0
-        self.tv_endtime = 2.5
+        self.tv_endtime = 3.0
         self.tvel_diff_perc = 1.0
         self.smooth_tv_change = True
         self.running_average_velocity = False
@@ -44,7 +46,7 @@ class DartHumanWalkerEnv(dart_env.DartEnv, utils.EzPickle):
         self.vel_cache = []
         self.init_pos = 0
         self.pos_spd = False # Use spd on position in forward direction. Only use when treadmill is used
-        self.assist_timeout = 10.0  # do not provide pushing assistance after certain time
+        self.assist_timeout = 0.0  # do not provide pushing assistance after certain time
         self.assist_schedule = [[0.0, [2000, 2000]], [30.0, [1500, 1500.0]], [6.0, [1125, 1125]]]
 
         self.rand_target_vel = False
@@ -67,8 +69,8 @@ class DartHumanWalkerEnv(dart_env.DartEnv, utils.EzPickle):
         self.total_act_force = 0
         self.total_ass_force = 0
 
-        self.energy_weight = 0.15 / 1.5
-        self.alive_bonus_rew = 11.0 + 2.0
+        self.energy_weight = 0.25
+        self.alive_bonus_rew = 11.0
 
         self.cur_step = 0
         self.stepwise_rewards = []
@@ -105,6 +107,16 @@ class DartHumanWalkerEnv(dart_env.DartEnv, utils.EzPickle):
 
         self.init_qs = []
         self.init_dqs = []
+
+        self.obs_perm = np.array(
+                                 [0.0001, -1, 2, -3, -4, -11, 12, -13, 14, 15, 16, -5, 6, -7, 8, 9,
+                                  10, -17, 18, -19, -24, 25, -26, 27, -20, 21, -22, 23,
+                                  28, 29, -30, 31, -32, -33, -40, 41, -42, 43, 44, 45, -34, 35, -36,
+                                  37, 38, 39, -46, 47, -48, -53, 54, -55, 56, -49, 50, -51, 52, 58,
+                                  57, 59])
+        self.act_perm = np.array(
+                                 [-6, 7, -8, 9, 10, 11, -0.001, 1, -2, 3, 4, 5, -12, 13, -14, -19,
+                                  20, -21, 22, -15, 16, -17, 18])
 
         if self.treadmill:
             dart_env.DartEnv.__init__(self, 'kima/kima_human_edited_treadmill.skel', 15, obs_dim, self.control_bounds,
