@@ -97,6 +97,10 @@ class DartHalfCheetahEnv(dart_env.DartEnv, utils.EzPickle):
         tau[3:] = clamped_control * self.action_scale * self.g_action_scaler
         self.do_simulation(tau, self.frame_skip)
 
+    def resample_task(self):
+        #self.param_manager.resample_parameters()
+        #self.current_param = self.param_manager.get_simulator_parameters()
+        self.velrew_weight = np.sign(np.random.randn(1))[0]
 
     def about_to_contact(self):
         return False
@@ -114,7 +118,7 @@ class DartHalfCheetahEnv(dart_env.DartEnv, utils.EzPickle):
 
     def reward_func(self, a, step_skip=1):
         posafter = self.robot_skeleton.q[0]
-        alive_bonus = 1.0
+        alive_bonus = 0.5
         reward = (posafter - self.posbefore) / self.dt * self.velrew_weight
         reward += alive_bonus * step_skip
         reward -= 1e-1 * np.square(a).sum()

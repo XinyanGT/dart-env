@@ -91,6 +91,14 @@ class DartCartPoleSwingUpEnv(dart_env.DartEnv):
 
         utils.EzPickle.__init__(self)
 
+    def resample_task(self):
+        self.param_manager.resample_parameters()
+        self.current_param = self.param_manager.get_simulator_parameters()
+        return self.current_param
+
+    def set_task(self, task_params):
+        self.param_manager.set_simulator_parameters(task_params)
+
     def about_to_contact(self):
         return False
 

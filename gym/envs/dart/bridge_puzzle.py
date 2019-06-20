@@ -1,16 +1,17 @@
 import numpy as np
 from gym import utils
 from gym.envs.dart import dart_env
+import pydart2.utils.transformations as transformations
 
 class DartBridgePuzzle(dart_env.DartEnv, utils.EzPickle):
     def __init__(self):
-        self.target = np.array([15.0, 0.3, 0.0])
+        self.target = np.array([23.0, 0.5, 0.0])
         self.action_scale = 100
 
         self.action_filtering = 0  # window size of filtering, 0 means no filtering
         self.action_filter_cache = []
 
-        self.hierarchical = True
+        self.hierarchical = False
         if self.hierarchical:
             self.h_horizon = 20
             self.action_scale = 2.0
@@ -25,14 +26,33 @@ class DartBridgePuzzle(dart_env.DartEnv, utils.EzPickle):
 
         #self.dart_world.skeletons[0].bodynodes[0].set_friction_coeff(5.0)
         for bn in self.dart_world.skeletons[1].bodynodes:
-            bn.set_friction_coeff(0.2)
+            bn.set_friction_coeff(0.3)
         for bn in self.dart_world.skeletons[-1].bodynodes:
-            bn.set_friction_coeff(0.2)
+            bn.set_friction_coeff(0.3)
 
-        self.restored_initialization = True
-        self.init_state_pool = []
+        self.set_task([0.1])
 
         utils.EzPickle.__init__(self)
+
+    def _rotate_bridge(self, angle):
+        pos_rot_matrix = transformations.rotation_matrix(angle, [0, 1, 0])
+        neg_rot_matrix = transformations.rotation_matrix(-angle, [0, 1, 0])
+        for i in range(1, int(len(self.dart_world.skeletons[0].bodynodes[0].shapenodes)/2-2)):
+            current_trans = self.dart_world.skeletons[0].bodynodes[0].shapenodes[i].relative_transform()
+            current_trans[0:3, 0:3] = np.identity(3)
+            current_trans = np.dot(current_trans, neg_rot_matrix if i % 2 == 0 else pos_rot_matrix)
+            self.dart_world.skeletons[0].bodynodes[0].shapenodes[i].set_relative_transform(current_trans)
+            self.dart_world.skeletons[0].bodynodes[0].shapenodes[int(i + len(self.dart_world.skeletons[0].bodynodes[0].shapenodes)/2)].set_relative_transform(current_trans)
+
+
+    def resample_task(self):
+        bridge_rotation = np.random.random() * 0.85
+        self._rotate_bridge(bridge_rotation)
+        return [bridge_rotation]
+
+    def set_task(self, task_params):
+        bridge_rotation = task_params[0]
+        self._rotate_bridge(bridge_rotation)
 
     def step(self, a):
         clamped_control = np.array(a)
@@ -73,20 +93,18 @@ class DartBridgePuzzle(dart_env.DartEnv, utils.EzPickle):
 
         vec = self.robot_skeleton.bodynodes[-1].com() - self.target
 
-        reward_dist = - np.linalg.norm(vec)
+        reward_dist = - np.linalg.norm(vec) * 0.65
         reward_ctrl = - np.square(a).sum()*0.1
         reward = reward_dist + reward_ctrl + 15
+
+        if np.linalg.norm(vec) < 0.8:
+            reward += 10
 
         #    reward -= 15
 
         s = self.state_vector()
         #done = not (np.isfinite(s).all() and (-reward_dist > 0.02))
         done = False
-
-        if np.random.random() < 0.01:
-            self.init_state_pool.append(self.state_vector())
-            if len(self.init_state_pool) > 1000:
-                self.init_state_pool.pop(0)
 
         if self.robot_skeleton.bodynodes[-1].com()[1] < -0.0 or self.robot_skeleton.bodynodes[-1].com()[1] > 0.5:
             done = True
@@ -106,13 +124,9 @@ class DartBridgePuzzle(dart_env.DartEnv, utils.EzPickle):
         qvel[1] = 0.0
         self.set_state(qpos, qvel)
 
-
-        if len(self.init_state_pool) >= 900 and self.restored_initialization:
-            if np.random.random() < 0.25:
-                self.set_state_vector(self.init_state_pool[np.random.randint(len(self.init_state_pool))] + self.np_random.uniform(low=-.005, high=.005, size=self.robot_skeleton.ndofs*2))
-
         if not self.hierarchical:
             self.dart_world.skeletons[-2].q = np.array([1000, 10, 10])
+        self.dart_world.skeletons[-2].q = self.target
 
         return self._get_obs()
 
@@ -121,3 +135,4 @@ class DartBridgePuzzle(dart_env.DartEnv, utils.EzPickle):
         self._get_viewer().scene.tb.trans[2] = -40.0
         self._get_viewer().scene.tb._set_theta(-60)
         self.track_skeleton_id = 0
+

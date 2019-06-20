@@ -31,7 +31,7 @@
 
                 <!-- bridge -->
                 <visualization_shape>
-                    <transformation>5 -1.75 -2.5 0 0.785398 0</transformation>
+                    <transformation>5 -1.75 -1.5 0 0.785398 0</transformation>
                     <geometry>
                         <box>
                             <size>8.0 4.0 1.0</size>
@@ -40,7 +40,7 @@
                     <color>0.7 0.7 0.7 1.0 </color>
                 </visualization_shape>
                 <collision_shape>
-                    <transformation>5 -1.75 -2.5 0 0.785398 0</transformation>
+                    <transformation>5 -1.75 -1.5 0 0.785398 0</transformation>
                     <geometry>
                         <box>
                             <size>8.0 4.0 1.0</size>
@@ -49,7 +49,7 @@
                 </collision_shape>
 
                 <visualization_shape>
-                    <transformation>10 -1.75 -2.5 0 -0.785398 0</transformation>
+                    <transformation>10 -1.75 -1.5 0 -0.785398 0</transformation>
                     <geometry>
                         <box>
                             <size>8.0 4.0 1.0</size>
@@ -58,7 +58,7 @@
                     <color>0.7 0.7 0.7 1.0 </color>
                 </visualization_shape>
                 <collision_shape>
-                    <transformation>10 -1.75 -2.5 0 -0.785398 0</transformation>
+                    <transformation>10 -1.75 -1.5 0 -0.785398 0</transformation>
                     <geometry>
                         <box>
                             <size>8.0 4.0 1.0</size>
@@ -67,7 +67,7 @@
                 </collision_shape>
 
                 <visualization_shape>
-                    <transformation>15 -1.75 -2.5 0 0.785398 0</transformation>
+                    <transformation>15 -1.75 -1.5 0 0.785398 0</transformation>
                     <geometry>
                         <box>
                             <size>8.0 4.0 1.0</size>
@@ -76,7 +76,7 @@
                     <color>0.7 0.7 0.7 1.0 </color>
                 </visualization_shape>
                 <collision_shape>
-                    <transformation>15 -1.75 -2.5 0 0.785398 0</transformation>
+                    <transformation>15 -1.75 -1.5 0 0.785398 0</transformation>
                     <geometry>
                         <box>
                             <size>8.0 4.0 1.0</size>
@@ -85,7 +85,7 @@
                 </collision_shape>
 
                 <visualization_shape>
-                    <transformation>20 -1.75 -2.5 0 -0.785398 0</transformation>
+                    <transformation>20 -1.75 -1.5 0 -0.785398 0</transformation>
                     <geometry>
                         <box>
                             <size>8.0 4.0 1.0</size>
@@ -94,7 +94,7 @@
                     <color>0.7 0.7 0.7 1.0 </color>
                 </visualization_shape>
                 <collision_shape>
-                    <transformation>20 -1.75 -2.5 0 -0.785398 0</transformation>
+                    <transformation>20 -1.75 -1.5 0 -0.785398 0</transformation>
                     <geometry>
                         <box>
                             <size>8.0 4.0 1.0</size>
@@ -121,6 +121,24 @@
                     <geometry>
                         <box>
                             <size>4.0 4.0 8.0</size>
+                        </box>
+                    </geometry>
+                </collision_shape>
+
+                <visualization_shape>
+                    <transformation>26.5 -1.05 0 0 0 0</transformation>
+                    <geometry>
+                        <box>
+                            <size>1.0 4.0 8.0</size>
+                        </box>
+                    </geometry>
+                    <color>0.7 0.7 0.7 1.0 </color>
+                </visualization_shape>
+                <collision_shape>
+                    <transformation>26.5 -1.05 0 0 0 0</transformation>
+                    <geometry>
+                        <box>
+                            <size>1.0 4.0 8.0</size>
                         </box>
                     </geometry>
                 </collision_shape>
@@ -203,4 +221,5 @@
 
     </world>
 </skel>
+
 
