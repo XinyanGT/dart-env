@@ -24,14 +24,9 @@ class hopperContactMassManager:
         self.actuator_nonlin_range = [0.75, 1.5]
         self.reward_predictor = None
 
-<<<<<<< HEAD
-        self.activated_param = [0, 5]#[0,1, 2,3,4,5, 6,7,8, 9, 12,13,14,15]
-        self.controllable_param = [0, 5]#[0,1, 2,3,4,5, 6,7,8, 9, 12,13,14,15]
-=======
         self.activated_param = [0,1,2,5,9]#[0,1, 2,3,4,5, 6,7,8, 9, 12,13,14,15]
         self.controllable_param = [0,1,2,5,9]#[0,1, 2,3,4,5, 6,7,8, 9, 12,13,14,15]
->>>>>>> b0172e91664c1f0ef2a2e701fee3ab2266cafea8
-        
+
         self.binned_param = 0 # don't bin if = 0
 
         self.param_dim = len(self.activated_param)
@@ -380,13 +375,8 @@ class walker2dParamManager:
         self.left_leg_power = [20, 150]
         self.right_leg_power = [20, 150]
 
-<<<<<<< HEAD
-        self.activated_param = [19,20]#[0,1,2,3,4,5, 17, 19, 20]#[0,1,2,3,4,5,6,  7,8,9,10,11,12,  13, 14, 15, 16]
-        self.controllable_param = [19,20]#[0,1,2,3,4,5, 17, 19, 20]#[0,1,2,3,4,5,6,  7,8,9,10,11,12,  13, 14, 15, 16]
-=======
         self.activated_param = [0,1,2,3,4,5, 17, 19, 20]#[0,1,2,3,4,5,6,  7,8,9,10,11,12,  13, 14, 15, 16]
         self.controllable_param = [0,1,2,3,4,5, 17, 19, 20]#[0,1,2,3,4,5,6,  7,8,9,10,11,12,  13, 14, 15, 16]
->>>>>>> b0172e91664c1f0ef2a2e701fee3ab2266cafea8
 
         self.param_dim = len(self.activated_param)
         self.sampling_selector = None
