@@ -24,8 +24,13 @@ class hopperContactMassManager:
         self.actuator_nonlin_range = [0.75, 1.5]
         self.reward_predictor = None
 
+<<<<<<< HEAD
         self.activated_param = [0, 5]#[0,1, 2,3,4,5, 6,7,8, 9, 12,13,14,15]
         self.controllable_param = [0, 5]#[0,1, 2,3,4,5, 6,7,8, 9, 12,13,14,15]
+=======
+        self.activated_param = [0,1,2,5,9]#[0,1, 2,3,4,5, 6,7,8, 9, 12,13,14,15]
+        self.controllable_param = [0,1,2,5,9]#[0,1, 2,3,4,5, 6,7,8, 9, 12,13,14,15]
+>>>>>>> b0172e91664c1f0ef2a2e701fee3ab2266cafea8
         
         self.binned_param = 0 # don't bin if = 0
 
@@ -286,15 +291,15 @@ class mjHopperManager:
 class CartPoleManager:
     def __init__(self, simulator):
         self.simulator = simulator
-        self.range = [0.05, 10.0] # mass range
+        self.range = [0.05, 1.0] # mass range
         self.joint_damping = [0.0, 1.0]
         self.actuator_strength = [20, 50]
         self.attach_width = [0.05, 0.3]
         self.cartmass = [0.05, 5.0]
         self.jug_mass = [0.2, 3.0]
 
-        self.activated_param = [0, 1, 2, 3, 4]
-        self.controllable_param = [0, 1, 2, 3, 4]
+        self.activated_param = [0]
+        self.controllable_param = [0]
         self.param_dim = len(self.activated_param)
         self.sampling_selector = None
         self.selector_target = -1
@@ -355,7 +360,7 @@ class CartPoleManager:
             cur_id += 1
 
     def resample_parameters(self):
-        x = np.random.uniform(0.0, 1.0, len(self.get_simulator_parameters()))
+        x = np.random.uniform(0.0, 1.0, len(self.activated_param))
         if self.sampling_selector is not None:
             while not self.sampling_selector.classify(np.array([x])) == self.selector_target:
                 x = np.random.uniform(0, 1, len(self.get_simulator_parameters()))
@@ -375,8 +380,13 @@ class walker2dParamManager:
         self.left_leg_power = [20, 150]
         self.right_leg_power = [20, 150]
 
+<<<<<<< HEAD
         self.activated_param = [19,20]#[0,1,2,3,4,5, 17, 19, 20]#[0,1,2,3,4,5,6,  7,8,9,10,11,12,  13, 14, 15, 16]
         self.controllable_param = [19,20]#[0,1,2,3,4,5, 17, 19, 20]#[0,1,2,3,4,5,6,  7,8,9,10,11,12,  13, 14, 15, 16]
+=======
+        self.activated_param = [0,1,2,3,4,5, 17, 19, 20]#[0,1,2,3,4,5,6,  7,8,9,10,11,12,  13, 14, 15, 16]
+        self.controllable_param = [0,1,2,3,4,5, 17, 19, 20]#[0,1,2,3,4,5,6,  7,8,9,10,11,12,  13, 14, 15, 16]
+>>>>>>> b0172e91664c1f0ef2a2e701fee3ab2266cafea8
 
         self.param_dim = len(self.activated_param)
         self.sampling_selector = None

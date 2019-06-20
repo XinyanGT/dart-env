@@ -135,3 +135,4 @@ class DartBridgePuzzle(dart_env.DartEnv, utils.EzPickle):
         self._get_viewer().scene.tb.trans[2] = -40.0
         self._get_viewer().scene.tb._set_theta(-60)
         self.track_skeleton_id = 0
+

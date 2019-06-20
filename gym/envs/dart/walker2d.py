@@ -379,3 +379,4 @@ class DartWalker2dEnv(dart_env.DartEnv, utils.EzPickle):
 
     def viewer_setup(self):
         self._get_viewer().scene.tb.trans[2] = -4
+
