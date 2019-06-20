@@ -14,12 +14,14 @@ class DartWalker2dEnv(dart_env.DartEnv, utils.EzPickle):
         self.action_scale = np.array([100, 100, 20, 100, 100, 20])
         obs_dim = 17
         self.train_UP = False
-        self.noisy_input = False
+        self.noisy_input = True
         self.resample_MP = False
         self.UP_noise_level = 0.0
         self.param_manager = walker2dParamManager(self)
 
-        self.vibrating_ground = True
+        self.terminate_for_not_moving = [0.5, 1.0]  # [distance, time], need to mvoe distance in time
+
+        self.vibrating_ground = False
         self.ground_vib_params = [0.12,1.5] # magnitude, frequency
         self.randomize_ground_vib = False
         self.ground_vib_input = False
@@ -30,6 +32,8 @@ class DartWalker2dEnv(dart_env.DartEnv, utils.EzPickle):
         self.action_filter_inobs = False  # whether to add the previous actions to the observations
         self.action_filter_reward = 0.0
         self.action_filter_delta_act = 0.0 # 0.0 if disabled
+
+        self.velrew_weight = 1.0
 
         if self.action_filtering > 0 and self.action_filter_inobs:
             obs_dim += len(self.action_scale) * self.action_filtering
@@ -43,6 +47,8 @@ class DartWalker2dEnv(dart_env.DartEnv, utils.EzPickle):
         self.task_expand_flag = False
         self.state_index = 0
         self.use_sparse_reward = False
+
+        self.t = 0
 
         self.include_obs_history = 1
         self.include_act_history = 0
@@ -119,6 +125,16 @@ class DartWalker2dEnv(dart_env.DartEnv, utils.EzPickle):
 
         utils.EzPickle.__init__(self)
 
+    def resample_task(self):
+        self.param_manager.resample_parameters()
+        self.current_param = self.param_manager.get_simulator_parameters()
+        #self.velrew_weight = np.sign(np.random.randn(1))[0]
+        return np.array(self.current_param), self.velrew_weight
+
+    def set_task(self, task_params):
+        self.param_manager.set_simulator_parameters(task_params[0])
+        self.velrew_weight = task_params[1]
+
     def about_to_contact(self):
         return False
 
@@ -142,6 +158,13 @@ class DartWalker2dEnv(dart_env.DartEnv, utils.EzPickle):
         #    done = True
         if self.cur_step >= 1000:
             done = True
+
+        if self.terminate_for_not_moving is not None:
+            if self.t > self.terminate_for_not_moving[1] and \
+                    (np.abs(self.robot_skeleton.q[0]) < self.terminate_for_not_moving[0] or
+                     self.robot_skeleton.q[0] * self.velrew_weight < 0):
+                done = True
+
         return done
 
     def post_advance(self):
@@ -152,7 +175,7 @@ class DartWalker2dEnv(dart_env.DartEnv, utils.EzPickle):
         height = self.robot_skeleton.bodynodes[2].com()[1]
 
         alive_bonus = 1.0 * step_skip
-        vel = (posafter - self.posbefore) / self.dt
+        vel = (posafter - self.posbefore) / self.dt * self.velrew_weight
         reward = vel
         reward += alive_bonus
         reward -= 1e-1 * np.square(a).sum()
@@ -240,6 +263,7 @@ class DartWalker2dEnv(dart_env.DartEnv, utils.EzPickle):
                     self.previous_contact = [1, self.cur_step * self.dt]
 
         self.cur_step += 1
+        self.t += self.dt
         self.advance(a)
         reward = self.reward_func(a, sparse=self.use_sparse_reward) + action_filter_rew
 
@@ -294,7 +318,6 @@ class DartWalker2dEnv(dart_env.DartEnv, utils.EzPickle):
 
         if self.noisy_input:
             final_obs = final_obs + np.random.normal(0, .01, len(final_obs))
-
         return final_obs
 
     def reset_model(self):
@@ -334,6 +357,7 @@ class DartWalker2dEnv(dart_env.DartEnv, utils.EzPickle):
         self.observation_buffer = []
         self.action_buffer = []
         self.cur_step = 0
+        self.t = 0
 
         self.action_filter_cache = []
         if self.action_filtering > 0:
@@ -350,7 +374,6 @@ class DartWalker2dEnv(dart_env.DartEnv, utils.EzPickle):
 
         if self.vibrating_ground:
             self.ground_vib_params[0] = np.random.random() * 0.12
-
 
         return self._get_obs()
 

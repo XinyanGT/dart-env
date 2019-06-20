@@ -23,8 +23,6 @@ class AntEnv(mujoco_env.MujocoEnv, utils.EzPickle):
         done = not notdone
         ob = self._get_obs()
 
-        print(len(self.sim.data.qpos), np.clip(self.sim.data.cfrc_ext, -1, 1), a)
-
         return ob, reward, done, dict(
             reward_forward=forward_reward,
             reward_ctrl=-ctrl_cost,

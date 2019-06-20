@@ -12,6 +12,8 @@ class HopperEnv(mujoco_env.MujocoEnv, utils.EzPickle):
         self.param_manager = mjHopperManager(self)
         self.velrew_weight = 1.0
 
+        self.terminate_for_not_moving = [0.5, 1.0]
+
         self.include_obs_history = 1
         self.include_act_history = 0
 
@@ -62,6 +64,13 @@ class HopperEnv(mujoco_env.MujocoEnv, utils.EzPickle):
                     (height > .7) and (abs(ang) < .8))
         if self.cur_step >= self.horizon:
             done = True
+
+        if self.terminate_for_not_moving is not None:
+            if self.cur_step * self.dt > self.terminate_for_not_moving[1] and \
+                    (np.abs(s[0]) < self.terminate_for_not_moving[0] or
+                     s[0] * self.velrew_weight < 0):
+                done = True
+
         return done
 
     def pre_advance(self):

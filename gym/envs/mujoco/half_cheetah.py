@@ -10,7 +10,7 @@ class HalfCheetahEnv(mujoco_env.MujocoEnv, utils.EzPickle):
 
         self.resample_MP = False  # whether to resample the model paraeters
         self.param_manager = mjcheetahParamManager(self)
-        self.velrew_weight = 1.0
+        self.velrew_weight = -1.0
 
         self.include_obs_history = 1
         self.include_act_history = 0
@@ -27,6 +27,9 @@ class HalfCheetahEnv(mujoco_env.MujocoEnv, utils.EzPickle):
 
         mujoco_env.MujocoEnv.__init__(self, 'half_cheetah.xml', 5)
         utils.EzPickle.__init__(self)
+
+    def resample_task(self):
+        self.velrew_weight = np.sign(np.random.randn(1))[0]
 
     def pad_action(self, a):
         full_ac = np.zeros(len(self.sim.data.qpos))

@@ -24,8 +24,8 @@ class hopperContactMassManager:
         self.actuator_nonlin_range = [0.75, 1.5]
         self.reward_predictor = None
 
-        self.activated_param = [0, 9]#[0, 2,3,4,5, 6,7,8, 9, 12,13,14,15]
-        self.controllable_param = [0, 9]#[0, 2,3,4,5, 6,7,8, 9, 12,13,14,15]
+        self.activated_param = [0, 5]#[0,1, 2,3,4,5, 6,7,8, 9, 12,13,14,15]
+        self.controllable_param = [0, 5]#[0,1, 2,3,4,5, 6,7,8, 9, 12,13,14,15]
         
         self.binned_param = 0 # don't bin if = 0
 
@@ -372,9 +372,11 @@ class walker2dParamManager:
         self.ankle_power_range = [10, 50]
         self.frame_skip_range = [4, 10]
         self.up_noise_range = [0.0, 1.0]
+        self.left_leg_power = [20, 150]
+        self.right_leg_power = [20, 150]
 
-        self.activated_param = [7,8,9,10,11,12, 13,14]#[0,1,2,3,4,5,6,  7,8,9,10,11,12,  13, 14, 15, 16]
-        self.controllable_param = [7,8,9,10,11,12, 13,14]#[0,1,2,3,4,5,6,  7,8,9,10,11,12,  13, 14, 15, 16]
+        self.activated_param = [19,20]#[0,1,2,3,4,5, 17, 19, 20]#[0,1,2,3,4,5,6,  7,8,9,10,11,12,  13, 14, 15, 16]
+        self.controllable_param = [19,20]#[0,1,2,3,4,5, 17, 19, 20]#[0,1,2,3,4,5,6,  7,8,9,10,11,12,  13, 14, 15, 16]
 
         self.param_dim = len(self.activated_param)
         self.sampling_selector = None
@@ -410,8 +412,17 @@ class walker2dParamManager:
         cur_up_noise = self.simulator.UP_noise_level
         up_noise_param = (cur_up_noise - self.up_noise_range[0]) / (self.up_noise_range[1] - self.up_noise_range[0])
 
+        cur_left_leg_power = self.simulator.action_scale[0]
+        ll_power_param = (cur_left_leg_power - self.left_leg_power[0]) / (
+                    self.left_leg_power[1] - self.left_leg_power[0])
+
+        cur_right_leg_power = self.simulator.action_scale[3]
+        rl_power_param = (cur_right_leg_power - self.right_leg_power[0]) / (
+                self.right_leg_power[1] - self.right_leg_power[0])
+
         return np.array(mass_param+damp_param+[friction_param, restitution_param, power_param, ank_power_param,
-                                               frameskip_param,  up_noise_param])[self.activated_param]
+                                               frameskip_param,  up_noise_param, ll_power_param,
+                                               rl_power_param])[self.activated_param]
 
     def set_simulator_parameters(self, x):
         cur_id = 0
@@ -452,7 +463,14 @@ class walker2dParamManager:
             up_noise = x[cur_id] * (self.up_noise_range[1] - self.up_noise_range[0]) + self.up_noise_range[0]
             self.simulator.UP_noise_level = up_noise
             cur_id += 1
-
+        if 19 in self.controllable_param:
+            ll_power = x[cur_id] * (self.left_leg_power[1] - self.left_leg_power[0]) + self.left_leg_power[0]
+            self.simulator.action_scale[[0, 1, 2]] = ll_power
+            cur_id += 1
+        if 20 in self.controllable_param:
+            rl_power = x[cur_id] * (self.right_leg_power[1] - self.right_leg_power[0]) + self.right_leg_power[0]
+            self.simulator.action_scale[[3, 4, 5]] = rl_power
+            cur_id += 1
 
     def resample_parameters(self):
         x = np.random.uniform(-0.05, 1.05, len(self.get_simulator_parameters()))

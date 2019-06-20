@@ -68,6 +68,11 @@ class DartHalfCheetahEnv(dart_env.DartEnv, utils.EzPickle):
 
         utils.EzPickle.__init__(self)
 
+    def resample_task(self):
+        self.param_manager.resample_parameters()
+        self.current_param = self.param_manager.get_simulator_parameters()
+        self.velrew_weight = np.sign(np.random.randn(1))[0]
+
     def pad_action(self, a):
         full_ac = np.zeros(len(self.robot_skeleton.q))
         full_ac[3:] = a

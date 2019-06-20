@@ -700,7 +700,7 @@ register(
 register(
     id='DartBridgePuzzle-v1',
     entry_point='gym.envs.dart:DartBridgePuzzle',
-    max_episode_steps = 2000,
+    max_episode_steps = 500,
 )
 
 # Mujoco
