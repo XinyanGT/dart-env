@@ -15,7 +15,7 @@ class DartHopperEnv(dart_env.DartEnv, utils.EzPickle):
         self.control_bounds = np.array([[1.0, 1.0, 1.0],[-1.0, -1.0, -1.0]])
         self.action_scale = np.array([200.0, 200.0, 200.0]) * 1.0
         self.train_UP = False
-        self.noisy_input = False
+        self.noisy_input = True
         self.input_time = False
 
         self.fallstates = []
@@ -29,6 +29,9 @@ class DartHopperEnv(dart_env.DartEnv, utils.EzPickle):
 
         obs_dim = 11
 
+        self.test_jump_obstacle = False
+        self.input_obs_height = False
+        self.resample_task_on_reset = False
         self.vibrating_ground = False
         self.ground_vib_params = [0.14, 1.5]  # magnitude, frequency
 
@@ -42,7 +45,7 @@ class DartHopperEnv(dart_env.DartEnv, utils.EzPickle):
 
         self.velrew_weight =1.0
         self.UP_noise_level = 0.0
-        self.resample_MP = False  # whether to resample the model paraeters
+        self.resample_MP = True  # whether to resample the model paraeters
 
         self.actuator_nonlinearity = False
         self.actuator_nonlin_coef = 1.0
@@ -54,6 +57,12 @@ class DartHopperEnv(dart_env.DartEnv, utils.EzPickle):
 
         if self.action_filtering > 0 and self.action_filter_inobs:
             obs_dim += len(self.action_scale) * self.action_filtering
+
+        if self.test_jump_obstacle:
+            obs_dim += 1
+            if self.input_obs_height:
+                obs_dim += 1
+                self.obs_height = 0.0
 
         self.t = 0
 
@@ -82,7 +91,7 @@ class DartHopperEnv(dart_env.DartEnv, utils.EzPickle):
         self.dart_worlds[1].set_collision_detector(2)
         self.dart_worlds[2].set_collision_detector(1)
 
-        self.dart_world=self.dart_worlds[1]
+        self.dart_world=self.dart_worlds[0]
         self.robot_skeleton=self.dart_world.skeletons[-1]
 
         # data structure for modeling delays in observation and action
@@ -110,18 +119,23 @@ class DartHopperEnv(dart_env.DartEnv, utils.EzPickle):
 
         self.cur_step = 0
 
+
         self.randomize_initial_state = True
-        self.test_jump_obstacle = True
+        self.stop_velocity_reward = 1000.0
+        self.height_penalty = 0.0
+        self.obstacle_x_offset = 2.0
         if self.test_jump_obstacle:
-            self.height_threshold_low = 0.46 * self.robot_skeleton.bodynodes[2].com()[1]
-            self.rot_threshold = 0.8
-            self.velrew_weight = 0.5
+            self.velrew_weight = 1.0
+            self.stop_velocity_reward = 40.0 # stop giving velocity reward after travelling 40 meters
             self.randomize_initial_state = False
+            self.height_penalty = 0.25  # penalize torso to be too high
+            self.noisy_input = False
 
         #t = self.resample_task()
-        #new_t = (t[0], t[1], t[2], 0.4)
+        #new_t = (t[0], t[1], t[2], 1.3)
         #self.set_task(new_t)
         #print("Resampled task: ", new_t)
+
 
         utils.EzPickle.__init__(self)
 
@@ -129,17 +143,20 @@ class DartHopperEnv(dart_env.DartEnv, utils.EzPickle):
         world_selection = 1#np.random.randint(len(self.dart_worlds))
         self.dart_world = self.dart_worlds[world_selection]
         self.robot_skeleton = self.dart_world.skeletons[-1]
+ 
+        self.resample_MP = False
 
         #self.param_manager.resample_parameters()
         self.current_param = self.param_manager.get_simulator_parameters()
         #self.velrew_weight = np.sign(np.random.randn(1))[0]
 
-        obs_height_offset = np.random.randint(2) * 2.0 # decides if the obstacle is in the air or on the ground
-        obstacle_height = np.random.random() * 0.8 + obs_height_offset
+        #obstacle_height = np.random.choice(np.arange(0, 1.01, 0.01))
+        obstacle_height = -1#np.random.random() * 1.0
+        self.obs_height = obstacle_height
 
         for body in self.dart_world.skeletons[1].bodynodes:
             for shapenode in body.shapenodes:
-                shapenode.set_offset([0, obstacle_height, 0])
+                shapenode.set_offset([self.obstacle_x_offset, obstacle_height, 0])
 
         return np.array(self.current_param), self.velrew_weight, world_selection, obstacle_height
 
@@ -150,8 +167,9 @@ class DartHopperEnv(dart_env.DartEnv, utils.EzPickle):
         self.param_manager.set_simulator_parameters(task_params[0])
         self.velrew_weight = task_params[1]
 
-        self.dart_world.skeletons[1].bodynodes[0].shapenodes[0].set_offset([0, task_params[3], 0])
-        self.dart_world.skeletons[1].bodynodes[0].shapenodes[1].set_offset([0, task_params[3], 0])
+        self.dart_world.skeletons[1].bodynodes[0].shapenodes[0].set_offset([self.obstacle_x_offset, task_params[3], 0])
+        self.dart_world.skeletons[1].bodynodes[0].shapenodes[1].set_offset([self.obstacle_x_offset, task_params[3], 0])
+        self.obs_height = task_params[3]
 
     def pad_action(self, a):
         full_ac = np.zeros(len(self.robot_skeleton.q))
@@ -264,10 +282,13 @@ class DartHopperEnv(dart_env.DartEnv, utils.EzPickle):
             if (self.robot_skeleton.q_upper[j] - self.robot_skeleton.q[j]) < 0.05:
                 joint_limit_penalty += abs(1.5)
         reward = (posafter - self.posbefore) / self.dt * self.velrew_weight
+        if posafter > self.stop_velocity_reward:
+            reward = 0
         reward += alive_bonus * step_skip
         reward -= 1e-3 * np.square(a).sum()
         reward -= 5e-1 * joint_limit_penalty
         reward -= np.abs(self.robot_skeleton.q[2])
+        reward -= self.height_penalty * np.clip(self.robot_skeleton.q[1] - 1.3, 0.0, 1e10)
         return reward
 
     def step(self, a):
@@ -334,6 +355,11 @@ class DartHopperEnv(dart_env.DartEnv, utils.EzPickle):
         if self.action_filtering > 0 and self.action_filter_inobs:
             state = np.concatenate([state] + self.action_filter_cache)
 
+        if self.test_jump_obstacle:
+            state = np.concatenate([state, [self.robot_skeleton.q[0] - 3.5]])
+            if self.input_obs_height:
+                state = np.concatenate([state, [self.obs_height]])
+
         if self.train_UP:
             UP = self.param_manager.get_simulator_parameters()
             if self.UP_noise_level > 0:
@@ -369,6 +395,8 @@ class DartHopperEnv(dart_env.DartEnv, utils.EzPickle):
         return final_obs
 
     def reset_model(self):
+        if self.resample_task_on_reset:
+           self.resample_task()
         for world in self.dart_worlds:
             world.reset()
         self.zeroed_height = self.robot_skeleton.bodynodes[2].com()[1]
@@ -430,3 +458,4 @@ class DartHopperEnv(dart_env.DartEnv, utils.EzPickle):
 
     def get_sim_parameters(self):
         return self.param_manager.get_simulator_parameters()
+

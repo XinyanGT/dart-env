@@ -95,6 +95,11 @@ class DartWalker3dEnv(dart_env.DartEnv, utils.EzPickle):
 
         utils.EzPickle.__init__(self)
 
+    def resample_task(self):
+        return [0.0]
+
+    def set_task(self, task_params):
+        pass
 
     def _bodynode_spd(self, bn, kp, dof, target_vel=None):
         self.Kp = kp
