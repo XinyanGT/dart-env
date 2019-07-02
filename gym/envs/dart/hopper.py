@@ -43,7 +43,8 @@ class DartHopperEnv(dart_env.DartEnv, utils.EzPickle):
         self.learnable_perturbation_space = spaces.Box(np.array([-1] * len(self.learnable_perturbation_list) * 6), np.array([1] * len(self.learnable_perturbation_list) * 6))
         self.learnable_perturbation_act = np.zeros(len(self.learnable_perturbation_list) * 6)
 
-        self.velrew_weight =1.0
+        self.alive_bonus = 1.0
+        self.velrew_weight = 1.0
         self.UP_noise_level = 0.0
         self.resample_MP = True  # whether to resample the model paraeters
 
@@ -274,7 +275,7 @@ class DartHopperEnv(dart_env.DartEnv, utils.EzPickle):
 
     def reward_func(self, a, step_skip=1):
         posafter = self.robot_skeleton.q[0]
-        alive_bonus = 1.0
+
         joint_limit_penalty = 0
         for j in [-2]:
             if (self.robot_skeleton.q_lower[j] - self.robot_skeleton.q[j]) > -0.05:
@@ -284,7 +285,7 @@ class DartHopperEnv(dart_env.DartEnv, utils.EzPickle):
         reward = (posafter - self.posbefore) / self.dt * self.velrew_weight
         if posafter > self.stop_velocity_reward:
             reward = 0
-        reward += alive_bonus * step_skip
+        reward += self.alive_bonus * step_skip
         reward -= 1e-3 * np.square(a).sum()
         reward -= 5e-1 * joint_limit_penalty
         reward -= np.abs(self.robot_skeleton.q[2])
