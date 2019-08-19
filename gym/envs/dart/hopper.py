@@ -48,6 +48,7 @@ class DartHopperEnv(dart_env.DartEnv, utils.EzPickle):
         self.velrew_weight =1.0
         self.angvel_rew = 0.0
         self.angvel_clip = 10.0
+        self.alive_bonus = 1.0
 
         self.UP_noise_level = 0.0
         self.resample_MP = True  # whether to resample the model paraeters
@@ -306,7 +307,7 @@ class DartHopperEnv(dart_env.DartEnv, utils.EzPickle):
         reward -= np.clip(self.robot_skeleton.dq[2], -self.angvel_clip, self.angvel_clip) * self.angvel_rew
         if posafter > self.stop_velocity_reward:
             reward = 0
-        reward += alive_bonus * step_skip
+        reward += self.alive_bonus * step_skip
         reward -= 1e-3 * np.square(a).sum()
         reward -= 5e-1 * joint_limit_penalty
         reward -= np.abs(self.robot_skeleton.q[2])
