@@ -30,7 +30,7 @@ class DartBridgePuzzle(dart_env.DartEnv, utils.EzPickle):
         for bn in self.dart_world.skeletons[-1].bodynodes:
             bn.set_friction_coeff(0.3)
 
-        self.set_task([0.2])
+        # self.set_task([0.2])
 
         utils.EzPickle.__init__(self)
 
@@ -97,8 +97,9 @@ class DartBridgePuzzle(dart_env.DartEnv, utils.EzPickle):
         vec = self.robot_skeleton.bodynodes[-1].com() - self.target
 
         reward_dist = - np.linalg.norm(vec) * 0.65
-        reward_ctrl = - np.square(a).sum() * 0.1
-        reward = reward_dist + reward_ctrl + 15
+
+        reward_ctrl = - np.square(a).sum()*0.1
+        reward = reward_dist + reward_ctrl + 10
 
         if np.linalg.norm(vec) < 0.8:
             reward += 10
@@ -109,7 +110,7 @@ class DartBridgePuzzle(dart_env.DartEnv, utils.EzPickle):
         #done = not (np.isfinite(s).all() and (-reward_dist > 0.02))
         done = False
 
-        if self.robot_skeleton.bodynodes[-1].com()[1] < -0.0 or self.robot_skeleton.bodynodes[-1].com()[1] > 0.5:
+        if self.robot_skeleton.bodynodes[-1].com()[1] < 0.25 or self.robot_skeleton.bodynodes[-1].com()[1] > 0.5:
             done = True
 
         return ob, reward, done, {'done_return':done}

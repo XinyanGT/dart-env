@@ -31,7 +31,7 @@ class DartHopperEnv(dart_env.DartEnv, utils.EzPickle):
 
         self.reward_clipping = 125
         self.test_jump_obstacle = False
-        self.learn_backflip = True
+        self.learn_backflip = False
         self.input_obs_height = False
         self.resample_task_on_reset = False
         self.vibrating_ground = False
@@ -48,8 +48,9 @@ class DartHopperEnv(dart_env.DartEnv, utils.EzPickle):
         self.velrew_weight =1.0
         self.angvel_rew = 0.0
         self.angvel_clip = 10.0
+
         self.UP_noise_level = 0.0
-        self.resample_MP = False  # whether to resample the model paraeters
+        self.resample_MP = True  # whether to resample the model paraeters
 
         self.actuator_nonlinearity = False
         self.actuator_nonlin_coef = 1.0
@@ -144,10 +145,7 @@ class DartHopperEnv(dart_env.DartEnv, utils.EzPickle):
 
         self.terminator_net = None
 
-        # t = self.resample_task()
-        # new_t = ([0.05], t[1], t[2], t[3])
-        # self.set_task(new_t)
-        # print("Resampled task: ", new_t)
+
 
         utils.EzPickle.__init__(self)
 
@@ -155,6 +153,8 @@ class DartHopperEnv(dart_env.DartEnv, utils.EzPickle):
         world_selection = 0#np.random.randint(len(self.dart_worlds))
         self.dart_world = self.dart_worlds[world_selection]
         self.robot_skeleton = self.dart_world.skeletons[-1]
+ 
+        self.resample_MP = False
 
         self.param_manager.resample_parameters()
         self.current_param = self.param_manager.get_simulator_parameters()
@@ -295,7 +295,7 @@ class DartHopperEnv(dart_env.DartEnv, utils.EzPickle):
 
     def reward_func(self, a, step_skip=1):
         posafter = self.robot_skeleton.q[0]
-        alive_bonus = 1.0
+
         joint_limit_penalty = 0
         for j in [-2]:
             if (self.robot_skeleton.q_lower[j] - self.robot_skeleton.q[j]) > -0.05:
@@ -487,3 +487,4 @@ class DartHopperEnv(dart_env.DartEnv, utils.EzPickle):
 
     def get_sim_parameters(self):
         return self.param_manager.get_simulator_parameters()
+
