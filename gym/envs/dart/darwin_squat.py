@@ -91,7 +91,7 @@ class DartDarwinSquatEnv(dart_env.DartEnv, utils.EzPickle):
         self.kc = None
 
         self.soft_ground = False
-        self.task_mode = self.WALK
+        self.task_mode = self.STEPPING
         self.side_walk = False
 
         if self.use_DCMotor:

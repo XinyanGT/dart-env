@@ -325,9 +325,9 @@ class DartWalker2dEnv(dart_env.DartEnv, utils.EzPickle):
         qpos = self.robot_skeleton.q + self.np_random.uniform(low=-.00015, high=.00015, size=self.robot_skeleton.ndofs)
         qvel = self.robot_skeleton.dq + self.np_random.uniform(low=-.00015, high=.00015, size=self.robot_skeleton.ndofs)
         if np.random.random() > 0.5:
-            qpos[3] += 0.5
+            qpos[3] += 0.1
         else:
-            qpos[6] += 0.5
+            qpos[6] += 0.1
         self.set_state(qpos, qvel)
 
         if self.resample_MP:

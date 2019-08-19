@@ -95,6 +95,11 @@ class DartWalker3dEnv(dart_env.DartEnv, utils.EzPickle):
 
         utils.EzPickle.__init__(self)
 
+    def resample_task(self):
+        return [0.0]
+
+    def set_task(self, task_params):
+        pass
 
     def _bodynode_spd(self, bn, kp, dof, target_vel=None):
         self.Kp = kp
@@ -297,8 +302,8 @@ class DartWalker3dEnv(dart_env.DartEnv, utils.EzPickle):
 
     def reset_model(self):
         self.dart_world.reset()
-        qpos = self.robot_skeleton.q + self.np_random.uniform(low=-.05, high=.05, size=self.robot_skeleton.ndofs)
-        qvel = self.robot_skeleton.dq + self.np_random.uniform(low=-.05, high=.05, size=self.robot_skeleton.ndofs)
+        qpos = self.robot_skeleton.q# + self.np_random.uniform(low=-.05, high=.05, size=self.robot_skeleton.ndofs)
+        qvel = self.robot_skeleton.dq# + self.np_random.uniform(low=-.05, high=.05, size=self.robot_skeleton.ndofs)
 
         if self.rand_target_vel:
             self.target_vel = np.random.uniform(0.8, 2.5)
