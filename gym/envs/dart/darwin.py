@@ -43,7 +43,7 @@ class DartDarwinEnv(dart_env.DartEnv, utils.EzPickle):
         self.kp_ratios = [1.0, 1.0, 1.0, 1.0, 1.0]
         self.kd_ratios = [1.0, 1.0, 1.0, 1.0, 1.0]
 
-        self.use_discrete_action = True
+        self.use_discrete_action = False
 
         self.use_sysid_model = True
 
@@ -63,9 +63,9 @@ class DartDarwinEnv(dart_env.DartEnv, utils.EzPickle):
                                     np.random.random((self.NN_motor_hid_size, 2)), np.random.random(2)]
         self.NN_motor_bound = [[200.0, 1.0], [0.0, 0.0]]
 
-        self.train_UP = True
+        self.train_UP = False
         self.noisy_input = True
-        self.resample_MP = True
+        self.resample_MP = False
         self.range_robust = 0.25
         self.randomize_timestep = True
         self.randomize_obstacle = True

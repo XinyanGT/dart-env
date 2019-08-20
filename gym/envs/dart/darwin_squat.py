@@ -48,7 +48,7 @@ class DartDarwinSquatEnv(dart_env.DartEnv, utils.EzPickle):
         self.kp_ratios = [1.0, 1.0, 1.0, 1.0, 1.0]
         self.kd_ratios = [1.0, 1.0, 1.0, 1.0, 1.0]
 
-        self.use_discrete_action = True
+        self.use_discrete_action = False
 
         self.use_sysid_model = True
 
@@ -70,9 +70,9 @@ class DartDarwinSquatEnv(dart_env.DartEnv, utils.EzPickle):
         self.use_settled_initial_states = False
         self.limited_joint_vel = True
         self.joint_vel_limit = 20000.0
-        self.train_UP = True
+        self.train_UP = False
         self.noisy_input = True
-        self.resample_MP = True
+        self.resample_MP = False
         self.range_robust = 0.25 # std to sample at each step
         self.randomize_timestep = True
         self.load_keyframe_from_file = True
