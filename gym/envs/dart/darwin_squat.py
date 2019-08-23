@@ -85,6 +85,7 @@ class DartDarwinSquatEnv(dart_env.DartEnv, utils.EzPickle):
         self.control_interval = 0.035  # control every 50 ms
         self.sim_timestep = 0.002
         self.forward_reward = 10.0
+        self.velocity_clip = 0.3
         self.contact_pen = 0.0
         self.kp = None
         self.kd = None
@@ -122,7 +123,7 @@ class DartDarwinSquatEnv(dart_env.DartEnv, utils.EzPickle):
 
         self.gravity_sch = [[0.0, np.array([0, 0, -9.81])]]
 
-        self.heuristic_balance = [0.02085987, 0.05597697, 0.00031102, 0.00471298]
+        self.heuristic_balance = None#[0.02085987, 0.05597697, 0.00031102, 0.00471298]
 
 
         # single leg stand
@@ -258,9 +259,8 @@ class DartDarwinSquatEnv(dart_env.DartEnv, utils.EzPickle):
         self.robot_skeleton.bodynode('l_hand').set_friction_coeff(2.0)
         self.robot_skeleton.bodynode('r_hand').set_friction_coeff(2.0)
 
-        self.add_perturbation = False
-        self.perturbation_parameters = [0.02, 1, 1, 40, [0, 10]]  # probability, magnitude, bodyid, duration
-        self.perturbation_duration = 40
+        self.add_perturbation = True
+        self.perturbation_parameters = [50, 20, 50, [5, 10], 1]  # begin step, duration, interval, magnitude, bodyid
 
         for i in range(6, self.robot_skeleton.ndofs):
             j = self.robot_skeleton.dof(i)
@@ -661,23 +661,17 @@ class DartDarwinSquatEnv(dart_env.DartEnv, utils.EzPickle):
         self.dupSkel.set_positions(dup_pos)
         self.dupSkel.set_velocities(self.target*0)
 
-        if self.add_perturbation and self.t < self.perturbation_parameters[4][1] and self.t > self.perturbation_parameters[4][0]:
-            if self.perturbation_duration == 0:
+        if self.add_perturbation and self.cur_step > self.perturbation_parameters[0]:
+            if self.cur_step % self.perturbation_parameters[2] == 0:
+                force_mag = np.random.uniform(self.perturbation_parameters[3][0], self.perturbation_parameters[3][1])
+                force_dir = np.concatenate([np.random.uniform(-1, 1, 2), [0.0]])
+                self.perturb_force = force_dir / np.linalg.norm(force_dir) * force_mag
+            elif self.cur_step % self.perturbation_parameters[2] > self.perturbation_parameters[1]:
                 self.perturb_force *= 0
-                if np.random.random() < self.perturbation_parameters[0]:
-                    axis_rand = np.random.randint(0, 2, 1)[0]
-                    direction_rand = np.random.randint(0, 2, 1)[0] * 2 - 1
-                    self.perturb_force[axis_rand] = direction_rand * self.perturbation_parameters[1]
-                    self.perturbation_duration = self.perturbation_parameters[3]
-            else:
-                self.perturbation_duration -= 1
 
         for i in range(self.frame_skip):
             self.tau[6:] = self.PID()
             self.tau[0:6] *= 0.0
-
-            if self.t > 1.5 and self.t < 1.8:
-                self.robot_skeleton.bodynodes[0].add_ext_force([np.random.uniform(-20, 20), 10, 0])
 
             if self.task_mode == self.BONGOBOARD:
                 if self.t < self.assist_timeout:
@@ -688,7 +682,7 @@ class DartDarwinSquatEnv(dart_env.DartEnv, utils.EzPickle):
                     self.robot_skeleton.bodynode('MP_BODY').add_ext_force(np.array([force, 0, 0]))
 
             if self.add_perturbation:
-                self.robot_skeleton.bodynodes[self.perturbation_parameters[2]].add_ext_force(self.perturb_force)
+                self.robot_skeleton.bodynodes[self.perturbation_parameters[4]].add_ext_force(self.perturb_force)
             self.robot_skeleton.set_forces(self.tau)
             self.dart_world.step()
 
@@ -911,8 +905,7 @@ class DartDarwinSquatEnv(dart_env.DartEnv, utils.EzPickle):
         reward -= self.work_weight * np.sum(np.abs(self.tau * self.robot_skeleton.dq))
         reward -= 2.0 * np.abs(self.robot_skeleton.dC[1])
         reward -= self.upright_weight * upright_rew
-
-        reward += self.forward_reward * (xpos_after - xpos_before) / self.dt
+        reward += self.forward_reward * np.clip((xpos_after - xpos_before) / self.dt, -self.velocity_clip, self.velocity_clip)
 
         reward -= self.comvel_pen * np.linalg.norm(self.robot_skeleton.dC)
         reward -= self.compos_pen * np.linalg.norm(self.init_q[3:6] - self.robot_skeleton.q[3:6])
@@ -1157,7 +1150,9 @@ class DartDarwinSquatEnv(dart_env.DartEnv, utils.EzPickle):
             self.dart_world.skeletons[0].bodynodes[1].shapenodes[1].set_offset([sampled_h, 0, sampled_v])
 
         if self.randomize_gyro_bias:
-            self.gyro_bias = np.random.uniform(-0.3, 0.3, 2)
+            self.gyro_bias = np.random.uniform(-0.03, 0.03, 2)
+
+        self.perturb_force = np.array([0.0, 0.0, 0.0])
 
         return self._get_obs()
 

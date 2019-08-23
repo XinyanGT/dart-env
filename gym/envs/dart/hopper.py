@@ -15,7 +15,7 @@ class DartHopperEnv(dart_env.DartEnv, utils.EzPickle):
         self.control_bounds = np.array([[1.0, 1.0, 1.0],[-1.0, -1.0, -1.0]])
         self.action_scale = np.array([200.0, 200.0, 200.0]) * 1.0
         self.train_UP = False
-        self.noisy_input = True
+        self.noisy_input = False
         self.input_time = False
 
         self.fallstates = []
@@ -51,7 +51,7 @@ class DartHopperEnv(dart_env.DartEnv, utils.EzPickle):
         self.alive_bonus = 1.0
 
         self.UP_noise_level = 0.0
-        self.resample_MP = True  # whether to resample the model paraeters
+        self.resample_MP = False  # whether to resample the model paraeters
 
         self.actuator_nonlinearity = False
         self.actuator_nonlin_coef = 1.0
@@ -126,7 +126,7 @@ class DartHopperEnv(dart_env.DartEnv, utils.EzPickle):
         self.cur_step = 0
 
 
-        self.randomize_initial_state = True
+        self.randomize_initial_state = False
         self.stop_velocity_reward = 1000.0
         self.height_penalty = 0.0
         self.obstacle_x_offset = 2.0
