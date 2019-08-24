@@ -15,7 +15,7 @@ class DartHopperEnv(dart_env.DartEnv, utils.EzPickle):
         self.control_bounds = np.array([[1.0, 1.0, 1.0],[-1.0, -1.0, -1.0]])
         self.action_scale = np.array([200.0, 200.0, 200.0]) * 1.0
         self.train_UP = False
-        self.noisy_input = False
+        self.noisy_input = True
         self.input_time = False
 
         self.fallstates = []
@@ -401,7 +401,7 @@ class DartHopperEnv(dart_env.DartEnv, utils.EzPickle):
             state = np.concatenate([state, [self.t]])
 
         if self.noisy_input:
-            state = state + np.random.normal(0, .01, len(state))
+            state = state + np.random.normal(0, .05, len(state))
 
         if update_buffer:
             self.observation_buffer.append(np.copy(state))
