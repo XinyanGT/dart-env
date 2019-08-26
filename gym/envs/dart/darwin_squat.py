@@ -15,6 +15,7 @@ from gym.envs.dart.dc_motor import DCMotor
 
 from gym.envs.dart.darwin_utils import *
 from gym.envs.dart.parameter_managers import *
+from gym.envs.dart.action_filter import *
 import time
 
 from pydart2.utils.transformations import euler_from_matrix
@@ -36,6 +37,7 @@ class DartDarwinSquatEnv(dart_env.DartEnv, utils.EzPickle):
 
         self.action_filtering = 5 # window size of filtering, 0 means no filtering
         self.action_filter_cache = []
+        self.butterworth_filter = True
 
         self.future_ref_pose = 0  # step of future trajectories as input
 
@@ -84,7 +86,7 @@ class DartDarwinSquatEnv(dart_env.DartEnv, utils.EzPickle):
         self.orientation_threshold = 1.0    # terminate if body rotates for this amount
         self.control_interval = 0.035  # control every 50 ms
         self.sim_timestep = 0.002
-        self.forward_reward = 10.0
+        self.forward_reward = 30.0
         self.velocity_clip = 0.3
         self.contact_pen = 0.0
         self.kp = None
@@ -260,7 +262,7 @@ class DartDarwinSquatEnv(dart_env.DartEnv, utils.EzPickle):
         self.robot_skeleton.bodynode('r_hand').set_friction_coeff(2.0)
 
         self.add_perturbation = True
-        self.perturbation_parameters = [50, 5, 50, [2, 10], 1]  # begin step, duration, interval, magnitude, bodyid
+        self.perturbation_parameters = [50, 5, 50, [2, 4], 1]  # begin step, duration, interval, magnitude, bodyid
 
         for i in range(6, self.robot_skeleton.ndofs):
             j = self.robot_skeleton.dof(i)
@@ -335,6 +337,9 @@ class DartDarwinSquatEnv(dart_env.DartEnv, utils.EzPickle):
             self.setup_kungfu()
         elif self.task_mode == self.BONGOBOARD:
             self.setup_bongoboard()
+
+        if self.butterworth_filter:
+            self.action_filter = ActionFilter(self.act_dim, 3, int(1.0/self.dt), low_cutoff=0.0, high_cutoff=3.0)
 
         utils.EzPickle.__init__(self)
 
@@ -628,6 +633,8 @@ class DartDarwinSquatEnv(dart_env.DartEnv, utils.EzPickle):
 
         self.ref_target = self.get_ref_pose(self.t)
 
+        clamped_control = self.action_filter.filter_action(clamped_control)
+
         self.target[6:] = self.ref_target + clamped_control * self.delta_angle_scale
 
         if self.heuristic_balance is not None: # apply heuristic balance control
@@ -874,11 +881,12 @@ class DartDarwinSquatEnv(dart_env.DartEnv, utils.EzPickle):
         if self.use_discrete_action:
             a = a * 1.0/ np.floor(self.action_space.nvec/2.0) - 1.0
 
-        self.action_filter_cache.append(a)
-        if len(self.action_filter_cache) > self.action_filtering:
-            self.action_filter_cache.pop(0)
-        if self.action_filtering > 0:
-            a = np.mean(self.action_filter_cache, axis=0)
+        if not self.butterworth_filter:
+            self.action_filter_cache.append(a)
+            if len(self.action_filter_cache) > self.action_filtering:
+                self.action_filter_cache.pop(0)
+            if self.action_filtering > 0:
+                a = np.mean(self.action_filter_cache, axis=0)
 
         # modify gravity according to schedule
         grav = self.gravity_sch[0][1]
@@ -967,7 +975,9 @@ class DartDarwinSquatEnv(dart_env.DartEnv, utils.EzPickle):
 
         if self.task_mode == self.WALK and 0.2 < np.linalg.norm(self.robot_skeleton.bodynode('MP_ANKLE2_R').C - self.robot_skeleton.bodynode('MP_ANKLE2_L').C):
             done = True
-
+        done = False
+        if self.t > self.interp_sch[-1][0] + 2:
+            done = True
         if done:
             reward = 0
 
@@ -1154,6 +1164,9 @@ class DartDarwinSquatEnv(dart_env.DartEnv, utils.EzPickle):
 
         self.perturb_force = np.array([0.0, 0.0, 0.0])
         self.cur_step = 0
+
+        if self.butterworth_filter:
+            self.action_filter.reset_filter()
 
         return self._get_obs()
 
