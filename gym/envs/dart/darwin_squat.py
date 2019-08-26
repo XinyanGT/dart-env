@@ -290,6 +290,9 @@ class DartDarwinSquatEnv(dart_env.DartEnv, utils.EzPickle):
 
         ################# temp code, ugly for now, should fix later ###################################
         if self.use_sysid_model:
+            self.param_manager.controllable_param = [self.param_manager.KP_RATIO, self.param_manager.KD_RATIO,
+                                                     self.param_manager.NEURAL_MOTOR, self.param_manager.TORQUE_LIM,
+                                                     self.param_manager.COM_OFFSET, self.param_manager.GROUND_FRICTION]
             self.param_manager.set_simulator_parameters(
                 np.array([2.87159059e-01, 4.03160514e-01, 4.36576586e-01, 3.86221239e-01,
                           7.85789054e-01, 1.04277029e-01, 3.64862787e-01, 3.98563863e-01,
