@@ -975,9 +975,7 @@ class DartDarwinSquatEnv(dart_env.DartEnv, utils.EzPickle):
 
         if self.task_mode == self.WALK and 0.2 < np.linalg.norm(self.robot_skeleton.bodynode('MP_ANKLE2_R').C - self.robot_skeleton.bodynode('MP_ANKLE2_L').C):
             done = True
-        done = False
-        if self.t > self.interp_sch[-1][0] + 2:
-            done = True
+
         if done:
             reward = 0
 
