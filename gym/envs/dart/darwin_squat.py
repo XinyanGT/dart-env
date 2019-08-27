@@ -925,7 +925,7 @@ class DartDarwinSquatEnv(dart_env.DartEnv, utils.EzPickle):
         com_height = self.robot_skeleton.bodynodes[0].com()[2]
         done = not (np.isfinite(s).all() and (np.abs(s[2:]) < 200).all())
 
-        if np.any(np.abs(np.array(self.robot_skeleton.q)[0:2]) > self.orientation_threshold):
+        if np.any(np.abs(np.array(self.robot_skeleton.q)[0:3]) > self.orientation_threshold):
             done = True
 
         self.fall_on_ground = False

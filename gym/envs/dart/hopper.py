@@ -51,7 +51,7 @@ class DartHopperEnv(dart_env.DartEnv, utils.EzPickle):
         self.alive_bonus = 1.0
 
         self.UP_noise_level = 0.0
-        self.resample_MP = False  # whether to resample the model paraeters
+        self.resample_MP = True  # whether to resample the model paraeters
 
         self.actuator_nonlinearity = False
         self.actuator_nonlin_coef = 1.0
