@@ -151,10 +151,10 @@ class DartDarwinSquatEnv(dart_env.DartEnv, utils.EzPickle):
 
         self.delta_angle_scale = 0.3
 
-        self.alive_bonus = 5.0
-        self.energy_weight = 0.01
-        self.work_weight = 0.03
-        self.pose_weight = 0.2
+        self.alive_bonus = 1.0
+        self.energy_weight = 0.0
+        self.work_weight = 0.0
+        self.pose_weight = 0.0
         self.upright_weight = 0.0
         self.comvel_pen = 0.0
         self.compos_pen = 0.0
@@ -394,7 +394,7 @@ class DartDarwinSquatEnv(dart_env.DartEnv, utils.EzPickle):
                     self.interp_sch.append([interp_time, rig_keyframe[k]])
                     interp_time += 0.03
             self.interp_sch.append([interp_time, rig_keyframe[0]])
-        self.compos_range = 0.3
+        self.compos_range = 0.5
         self.forward_reward = 10.0
         if self.use_settled_initial_states:
             self.init_states_candidates = np.loadtxt(os.path.join(os.path.dirname(__file__), "assets", 'darwinmodel/halfsquat_init.txt'))
@@ -914,7 +914,7 @@ class DartDarwinSquatEnv(dart_env.DartEnv, utils.EzPickle):
         reward = -self.energy_weight * np.sum(
             self.tau ** 2) + self.alive_bonus - pose_math_rew * self.pose_weight
         reward -= self.work_weight * np.sum(np.abs(self.tau * self.robot_skeleton.dq))
-        reward -= 2.0 * np.abs(self.robot_skeleton.dC[1])
+        # reward -= 2.0 * np.abs(self.robot_skeleton.dC[1])
         reward -= self.upright_weight * upright_rew
         reward += self.forward_reward * np.clip((xpos_after - xpos_before) / self.dt, -self.velocity_clip, self.velocity_clip)
 
