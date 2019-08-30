@@ -18,6 +18,8 @@ class DartHopperEnv(dart_env.DartEnv, utils.EzPickle):
         self.noisy_input = True
         self.input_time = False
 
+        self.pseudo_lstm_dim = 3  # Number of pseudo lstm hidden size.
+
         self.fallstates = []
 
         self.terminate_for_not_moving = None # [0.5, 1.0] # [distance, time], need to mvoe distance in time
@@ -86,6 +88,13 @@ class DartHopperEnv(dart_env.DartEnv, utils.EzPickle):
 
         self.action_bound_model = None
 
+        if self.pseudo_lstm_dim > 0:
+            obs_dim += self.pseudo_lstm_dim * 2
+            new_ub = np.concatenate([self.control_bounds[0], np.ones(self.pseudo_lstm_dim * 2)])
+            new_lb = np.concatenate([self.control_bounds[1], np.ones(self.pseudo_lstm_dim * 2)*-1])
+            self.control_bounds = np.array([new_ub, new_lb])
+            self.hidden_states = np.zeros(self.pseudo_lstm_dim * 2)
+
         dart_env.DartEnv.__init__(self, ['hopper_capsule.skel', 'hopper_box.skel', 'hopper_ellipsoid.skel'], 4, obs_dim, self.control_bounds, disableViewer=True)
 
         self.initial_local_coms = [np.copy(bn.local_com()) for bn in self.robot_skeleton.bodynodes]
@@ -145,8 +154,6 @@ class DartHopperEnv(dart_env.DartEnv, utils.EzPickle):
             self.noisy_input = False
 
         self.terminator_net = None
-
-
 
         utils.EzPickle.__init__(self)
 
@@ -322,6 +329,9 @@ class DartHopperEnv(dart_env.DartEnv, utils.EzPickle):
         return reward
 
     def step(self, a):
+        if self.pseudo_lstm_dim > 0:
+            self.hidden_states = a[self.act_dim - self.pseudo_lstm_dim * 2:]
+            a = a[0:self.act_dim - self.pseudo_lstm_dim * 2]
         self.action_filter_cache.append(a)
         if len(self.action_filter_cache) > self.action_filtering:
             self.action_filter_cache.pop(0)
@@ -422,6 +432,9 @@ class DartHopperEnv(dart_env.DartEnv, utils.EzPickle):
         if self.periodic_noise:
             final_obs += np.random.randn(len(final_obs)) * self.periodic_noise_params[0] * (np.sin(2*np.pi*self.periodic_noise_params[1] * self.cur_step * self.dt) + 1)
 
+        if self.pseudo_lstm_dim > 0:
+            final_obs = np.concatenate([final_obs, self.hidden_states])
+
         return final_obs
 
     def reset_model(self):
@@ -465,7 +478,8 @@ class DartHopperEnv(dart_env.DartEnv, utils.EzPickle):
 
         self.learnable_perturbation_act = np.zeros(len(self.learnable_perturbation_list) * 6)
 
-        #self.short_perturb_params = [np.random.uniform(0.9, 1.2), np.random.uniform(1.2, 1.4), np.array([200*-1, 0, 0])]  # start time, end time, force
+        if self.pseudo_lstm_dim > 0:
+            self.hidden_states = np.zeros(self.pseudo_lstm_dim * 2)
 
         return state
 

@@ -74,7 +74,7 @@ class DartDarwinSquatEnv(dart_env.DartEnv, utils.EzPickle):
         self.joint_vel_limit = 20000.0
         self.train_UP = False
         self.noisy_input = True
-        self.resample_MP = False
+        self.resample_MP = True
         self.range_robust = 0.25 # std to sample at each step
         self.randomize_timestep = True
         self.load_keyframe_from_file = True
@@ -87,7 +87,7 @@ class DartDarwinSquatEnv(dart_env.DartEnv, utils.EzPickle):
         self.control_interval = 0.035  # control every 50 ms
         self.sim_timestep = 0.002
         self.forward_reward = 30.0
-        self.velocity_clip = 0.3
+        self.velocity_clip = 0.2
         self.contact_pen = 0.0
         self.kp = None
         self.kd = None
@@ -151,7 +151,7 @@ class DartDarwinSquatEnv(dart_env.DartEnv, utils.EzPickle):
 
         self.delta_angle_scale = 0.3
 
-        self.alive_bonus = 1.0
+        self.alive_bonus = 2.0
         self.energy_weight = 0.0
         self.work_weight = 0.0
         self.pose_weight = 0.0
@@ -262,7 +262,7 @@ class DartDarwinSquatEnv(dart_env.DartEnv, utils.EzPickle):
         self.robot_skeleton.bodynode('r_hand').set_friction_coeff(2.0)
 
         self.add_perturbation = True
-        self.perturbation_parameters = [50, 5, 50, [2, 4], 1]  # begin step, duration, interval, magnitude, bodyid
+        self.perturbation_parameters = [50, 5, 50, [2, 2.5], 1]  # begin step, duration, interval, magnitude, bodyid
 
         for i in range(6, self.robot_skeleton.ndofs):
             j = self.robot_skeleton.dof(i)
@@ -925,7 +925,7 @@ class DartDarwinSquatEnv(dart_env.DartEnv, utils.EzPickle):
         com_height = self.robot_skeleton.bodynodes[0].com()[2]
         done = not (np.isfinite(s).all() and (np.abs(s[2:]) < 200).all())
 
-        if np.any(np.abs(np.array(self.robot_skeleton.q)[0:3]) > self.orientation_threshold):
+        if np.any(np.abs(np.array(self.robot_skeleton.q)[0:2]) > self.orientation_threshold):
             done = True
 
         self.fall_on_ground = False
@@ -981,6 +981,9 @@ class DartDarwinSquatEnv(dart_env.DartEnv, utils.EzPickle):
 
         if done:
             reward = 0
+
+        if self.t > self.interp_sch[-1][0] + 2:
+            done = True
 
         if not self.paused or self.t == 0:
             self.t += self.dt * 1.0
@@ -1060,6 +1063,9 @@ class DartDarwinSquatEnv(dart_env.DartEnv, utils.EzPickle):
                 final_obs = np.concatenate([final_obs, self.observation_buffer[-self.obs_delay - 1 - i]])
             else:
                 final_obs = np.concatenate([final_obs, self.observation_buffer[0] * 0.0])
+
+        for i in range(self.include_act_history):
+            final_obs = np.concatenate([final_obs, self.action_buffer[- 1 - i]])
 
         return final_obs
 
@@ -1170,6 +1176,18 @@ class DartDarwinSquatEnv(dart_env.DartEnv, utils.EzPickle):
             self.action_filter.reset_filter()
 
         return self._get_obs()
+
+    def resample_task(self):
+        self.resample_MP = False
+
+        self.param_manager.resample_parameters()
+        self.current_param = self.param_manager.get_simulator_parameters()
+
+        return np.copy(self.current_param)
+
+    def set_task(self, task_params):
+        self.param_manager.set_simulator_parameters(task_params)
+
 
     def viewer_setup(self):
         if not self.disableViewer:
