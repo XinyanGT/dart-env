@@ -94,7 +94,7 @@ class DartDarwinSquatEnv(dart_env.DartEnv, utils.EzPickle):
         self.kc = None
 
         self.soft_ground = False
-        self.task_mode = self.CONSTANT
+        self.task_mode = self.STEPPING
         self.side_walk = False
 
         if self.use_DCMotor:
@@ -173,6 +173,7 @@ class DartDarwinSquatEnv(dart_env.DartEnv, utils.EzPickle):
 
         self.include_obs_history = 5
         self.include_act_history = 4
+        self.input_obs_difference = False
         obs_dim *= self.include_obs_history
         obs_dim += len(self.control_bounds[0]) * self.include_act_history
         obs_perm_base = np.array(
@@ -1036,7 +1037,13 @@ class DartDarwinSquatEnv(dart_env.DartEnv, utils.EzPickle):
             if len(self.obs_cache) > self.multipos_obs:
                 self.obs_cache.pop(0)
 
-            state = np.concatenate(self.obs_cache)
+            for i in range(len(self.obs_cache)-1):
+                if self.input_obs_difference:
+                    state = np.concatenate([self.obs_cache[i] - self.obs_cache[-1], state])
+                else:
+                    state = np.concatenate([self.obs_cache[i], state])
+
+
 
         for i in range(self.future_ref_pose):
             state = np.concatenate([state, self.get_ref_pose(self.t + self.dt * (i+1))])
@@ -1078,7 +1085,10 @@ class DartDarwinSquatEnv(dart_env.DartEnv, utils.EzPickle):
         final_obs = np.array([])
         for i in range(self.include_obs_history):
             if self.obs_delay + i < len(self.observation_buffer):
-                final_obs = np.concatenate([final_obs, self.observation_buffer[-self.obs_delay - 1 - i]])
+                if i > 0 and self.input_obs_difference:
+                    final_obs = np.concatenate([final_obs, self.observation_buffer[-self.obs_delay - 1 - i] - self.observation_buffer[-self.obs_delay - 1]])
+                else:
+                    final_obs = np.concatenate([final_obs, self.observation_buffer[-self.obs_delay - 1 - i]])
             else:
                 final_obs = np.concatenate([final_obs, self.observation_buffer[0] * 0.0])
 
