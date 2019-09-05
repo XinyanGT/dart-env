@@ -18,7 +18,7 @@ class DartHopperEnv(dart_env.DartEnv, utils.EzPickle):
         self.noisy_input = True
         self.input_time = False
 
-        self.pseudo_lstm_dim = 3  # Number of pseudo lstm hidden size.
+        self.pseudo_lstm_dim = 0  # Number of pseudo lstm hidden size.
 
         self.fallstates = []
 

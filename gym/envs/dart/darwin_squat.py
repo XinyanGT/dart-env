@@ -21,7 +21,7 @@ import time
 from pydart2.utils.transformations import euler_from_matrix
 
 class DartDarwinSquatEnv(dart_env.DartEnv, utils.EzPickle):
-    WALK, SQUATSTAND, STEPPING, FALLING, HOP, CRAWL, STRANGEWALK, KUNGFU, BONGOBOARD = list(range(9))
+    WALK, SQUATSTAND, STEPPING, FALLING, HOP, CRAWL, STRANGEWALK, KUNGFU, BONGOBOARD, CONSTANT = list(range(10))
 
     def __init__(self):
 
@@ -74,7 +74,7 @@ class DartDarwinSquatEnv(dart_env.DartEnv, utils.EzPickle):
         self.joint_vel_limit = 20000.0
         self.train_UP = False
         self.noisy_input = True
-        self.resample_MP = True
+        self.resample_MP = False
         self.range_robust = 0.25 # std to sample at each step
         self.randomize_timestep = True
         self.load_keyframe_from_file = True
@@ -94,7 +94,7 @@ class DartDarwinSquatEnv(dart_env.DartEnv, utils.EzPickle):
         self.kc = None
 
         self.soft_ground = False
-        self.task_mode = self.STEPPING
+        self.task_mode = self.CONSTANT
         self.side_walk = False
 
         if self.use_DCMotor:
@@ -171,8 +171,8 @@ class DartDarwinSquatEnv(dart_env.DartEnv, utils.EzPickle):
         self.tau = np.zeros(26, )
         self.init = np.zeros(26, )
 
-        self.include_obs_history = 1
-        self.include_act_history = 0
+        self.include_obs_history = 5
+        self.include_act_history = 4
         obs_dim *= self.include_obs_history
         obs_dim += len(self.control_bounds[0]) * self.include_act_history
         obs_perm_base = np.array(
@@ -340,6 +340,8 @@ class DartDarwinSquatEnv(dart_env.DartEnv, utils.EzPickle):
             self.setup_kungfu()
         elif self.task_mode == self.BONGOBOARD:
             self.setup_bongoboard()
+        elif self.task_mode == self.CONSTANT:
+            self.setup_constref()
 
         if self.butterworth_filter:
             self.action_filter = ActionFilter(self.act_dim, 3, int(1.0/self.dt), low_cutoff=0.0, high_cutoff=3.0)
@@ -398,6 +400,22 @@ class DartDarwinSquatEnv(dart_env.DartEnv, utils.EzPickle):
         self.forward_reward = 10.0
         if self.use_settled_initial_states:
             self.init_states_candidates = np.loadtxt(os.path.join(os.path.dirname(__file__), "assets", 'darwinmodel/halfsquat_init.txt'))
+
+    def setup_constref(self): # constant reference motion
+        const_pose = VAL2RADIAN(0.5 * (np.array([2509, 2297, 1714, 1508, 1816, 2376,
+                                                                 2047, 2171,
+                                                                 2032, 2039, 2795, 648, 1241, 2040, 2041, 2060, 1281,
+                                                                 3448, 2855, 2073]) + np.array(
+                [1500, 2048, 2048, 2500, 2048, 2048,
+                 2048, 2048,
+                 2048, 2048, 2048, 2048, 2048, 2048, 2048, 2048, 2048, 2048, 2048, 2048])))
+        self.interp_sch = [[0.0, const_pose], [5.0, const_pose]]
+        self.compos_range = 0.5
+        self.forward_reward = 10.0
+        self.delta_angle_scale = 0.6
+        if self.use_settled_initial_states:
+            self.init_states_candidates = np.loadtxt(
+                os.path.join(os.path.dirname(__file__), "assets", 'darwinmodel/halfsquat_init.txt'))
 
     def setup_squatstand(self): # set up squat stand task
         self.interp_sch = [[0.0, pose_stand_rad],
@@ -1065,7 +1083,10 @@ class DartDarwinSquatEnv(dart_env.DartEnv, utils.EzPickle):
                 final_obs = np.concatenate([final_obs, self.observation_buffer[0] * 0.0])
 
         for i in range(self.include_act_history):
-            final_obs = np.concatenate([final_obs, self.action_buffer[- 1 - i]])
+            if i < len(self.action_buffer):
+                final_obs = np.concatenate([final_obs, self.action_buffer[- 1 - i]])
+            else:
+                final_obs = np.concatenate([final_obs, np.zeros(self.act_dim)])
 
         return final_obs
 

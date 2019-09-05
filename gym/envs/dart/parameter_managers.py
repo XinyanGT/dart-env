@@ -12,7 +12,7 @@ from gym.envs.dart import dart_env
 class hopperContactMassManager:
     def __init__(self, simulator):
         self.simulator = simulator
-        self.range = [0.2, 1.0] # friction range
+        self.range = [0.1, 1.0] # friction range
         self.restitution_range = [0.0, 0.3]
         self.mass_range = [2.0, 15.0]
         self.damping_range = [0.5, 3.0]
@@ -24,8 +24,8 @@ class hopperContactMassManager:
         self.actuator_nonlin_range = [0.75, 1.5]
         self.reward_predictor = None
 
-        self.activated_param = [0,1,2,5,9]#[0,1, 2,3,4,5, 6,7,8, 9, 12,13,14,15]
-        self.controllable_param = [0,1,2,5,9]#[0,1, 2,3,4,5, 6,7,8, 9, 12,13,14,15]
+        self.activated_param = [0,2]#[0,1, 2,3,4,5, 6,7,8, 9, 12,13,14,15]
+        self.controllable_param = [0,2]#[0,1, 2,3,4,5, 6,7,8, 9, 12,13,14,15]
 
         self.binned_param = 0 # don't bin if = 0
 
