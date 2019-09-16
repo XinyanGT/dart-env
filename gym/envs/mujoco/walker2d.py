@@ -27,7 +27,7 @@ class Walker2dEnv(mujoco_env.MujocoEnv, utils.EzPickle):
         self.action_buffer = []
         self.state_buffer = []
 
-        self.obs_delay = 1
+        self.obs_delay = 0
         self.act_delay = 0
 
         self.cur_step = 0

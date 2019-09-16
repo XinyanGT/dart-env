@@ -14,11 +14,6 @@ class ActionFilter:
 
 
     def filter_action(self, action):
-        if self.initial_action:
-            for i in range(10):
-                for d in range(self.dim):
-                    _, self.z[d] = signal.lfilter(self.filter[0], self.filter[1], [action[d]], zi=self.z[d])
-            self.initial_action = False
         filtered_action = np.copy(action)
         for d in range(self.dim):
             filtered_action[d], self.z[d] = signal.lfilter(self.filter[0], self.filter[1], [action[d]], zi=self.z[d])
@@ -27,4 +22,7 @@ class ActionFilter:
     def reset_filter(self):
         z = signal.lfilter_zi(self.filter[0], self.filter[1])
         self.z = [z * 0 for i in range(self.dim)]
-        self.initial_action = True
+
+        for i in range(10):
+            for d in range(self.dim):
+                _, self.z[d] = signal.lfilter(self.filter[0], self.filter[1], [0.0], zi=self.z[d])

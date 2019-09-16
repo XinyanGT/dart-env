@@ -19,6 +19,7 @@ class DartHopperEnv(dart_env.DartEnv, utils.EzPickle):
         self.input_time = False
 
         self.pseudo_lstm_dim = 0  # Number of pseudo lstm hidden size.
+        self.diff_obs = False
 
         self.fallstates = []
 
@@ -53,7 +54,7 @@ class DartHopperEnv(dart_env.DartEnv, utils.EzPickle):
         self.alive_bonus = 1.0
 
         self.UP_noise_level = 0.0
-        self.resample_MP = True  # whether to resample the model paraeters
+        self.resample_MP = False  # whether to resample the model paraeters
 
         self.actuator_nonlinearity = False
         self.actuator_nonlin_coef = 1.0
@@ -94,6 +95,9 @@ class DartHopperEnv(dart_env.DartEnv, utils.EzPickle):
             new_lb = np.concatenate([self.control_bounds[1], np.ones(self.pseudo_lstm_dim * 2)*-1])
             self.control_bounds = np.array([new_ub, new_lb])
             self.hidden_states = np.zeros(self.pseudo_lstm_dim * 2)
+
+        if self.diff_obs:
+            obs_dim = obs_dim * obs_dim
 
         dart_env.DartEnv.__init__(self, ['hopper_capsule.skel', 'hopper_box.skel', 'hopper_ellipsoid.skel'], 4, obs_dim, self.control_bounds, disableViewer=True)
 
@@ -390,6 +394,7 @@ class DartHopperEnv(dart_env.DartEnv, utils.EzPickle):
             self.robot_skeleton.q[1:],
             self.robot_skeleton.dq,
         ])
+        # state = np.array(self.robot_skeleton.q[1:])
         state[0] = self.robot_skeleton.bodynodes[2].com()[1]
 
         if self.action_filtering > 0 and self.action_filter_inobs:
@@ -419,7 +424,10 @@ class DartHopperEnv(dart_env.DartEnv, utils.EzPickle):
         final_obs = np.array([])
         for i in range(self.include_obs_history):
             if self.obs_delay + i < len(self.observation_buffer):
-                final_obs = np.concatenate([final_obs, self.observation_buffer[-self.obs_delay-1-i]])
+                if i > 0:
+                    final_obs = np.concatenate([final_obs, self.observation_buffer[-self.obs_delay - 1 - i]])
+                else:
+                    final_obs = np.concatenate([final_obs, self.observation_buffer[-self.obs_delay-1-i]])
             else:
                 final_obs = np.concatenate([final_obs, self.observation_buffer[0]*0.0])
 
@@ -434,6 +442,11 @@ class DartHopperEnv(dart_env.DartEnv, utils.EzPickle):
 
         if self.pseudo_lstm_dim > 0:
             final_obs = np.concatenate([final_obs, self.hidden_states])
+
+        if self.diff_obs:
+            single_obs = np.copy(final_obs)
+            for i in range(len(single_obs)-1):
+                final_obs = np.concatenate([final_obs, single_obs - np.roll(single_obs, i+1)])
 
         return final_obs
 

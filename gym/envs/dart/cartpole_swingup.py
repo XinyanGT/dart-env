@@ -21,6 +21,8 @@ class DartCartPoleSwingUpEnv(dart_env.DartEnv):
         self.avg_div = 0
         self.param_manager = CartPoleManager(self)
 
+        self.use_discrete_action = True
+
         self.input_exp = 0 # dim of input exploration
 
         self.use_disc_ref_policy = False
@@ -62,9 +64,13 @@ class DartCartPoleSwingUpEnv(dart_env.DartEnv):
         if self.avg_div > 1:
             obs_dim += self.avg_div
 
+        if self.use_discrete_action:
+            from gym import spaces
+            self.action_space = spaces.Discrete(5)
+
         dart_env.DartEnv.__init__(self, ['cartpole_swingup.skel', 'cartpole_swingup_variation1.skel',
                                          'cartpole_swingup_variation2.skel'], 2, obs_dim, self.control_bounds, dt=0.01,
-                                  disableViewer=True)
+                                  disableViewer=True, action_type="continuous" if not self.use_discrete_action else "discrete")
         self.current_param = self.param_manager.get_simulator_parameters()
         # self.dart_world.skeletons[1].bodynodes[0].set_friction_coeff(0.2)
         # self.dart_world.skeletons[1].bodynodes[0].set_restitution_coeff(0.7)
@@ -134,6 +140,8 @@ class DartCartPoleSwingUpEnv(dart_env.DartEnv):
         return reward
 
     def step(self, a):
+        if self.use_discrete_action:
+            a = np.array([a * 1.0/ np.floor(self.action_space.n/2.0) - 1.0])
 
         self.advance(a)
 
