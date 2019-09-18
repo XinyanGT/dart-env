@@ -597,7 +597,7 @@ register(
 register(
     id='DartDarwinSquat-v1',
     entry_point='gym.envs.dart:DartDarwinSquatEnv',
-    max_episode_steps=1000,
+    max_episode_steps=5000,
 )
 
 register(

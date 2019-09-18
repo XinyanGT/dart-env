@@ -32,6 +32,12 @@ class DartHopperEnv(dart_env.DartEnv, utils.EzPickle):
 
         obs_dim = 11
 
+        self.obs_projection_model = None
+
+        self.append_zeros = 0
+
+        obs_dim += self.append_zeros
+
         self.reward_clipping = 125
         self.test_jump_obstacle = False
         self.learn_backflip = False
@@ -48,13 +54,13 @@ class DartHopperEnv(dart_env.DartEnv, utils.EzPickle):
         self.learnable_perturbation_space = spaces.Box(np.array([-1] * len(self.learnable_perturbation_list) * 6), np.array([1] * len(self.learnable_perturbation_list) * 6))
         self.learnable_perturbation_act = np.zeros(len(self.learnable_perturbation_list) * 6)
 
-        self.velrew_weight =1.0
+        self.velrew_weight = 1.0
         self.angvel_rew = 0.0
         self.angvel_clip = 10.0
         self.alive_bonus = 1.0
 
         self.UP_noise_level = 0.0
-        self.resample_MP = False  # whether to resample the model paraeters
+        self.resample_MP = True  # whether to resample the model paraeters
 
         self.actuator_nonlinearity = False
         self.actuator_nonlin_coef = 1.0
@@ -447,6 +453,12 @@ class DartHopperEnv(dart_env.DartEnv, utils.EzPickle):
             single_obs = np.copy(final_obs)
             for i in range(len(single_obs)-1):
                 final_obs = np.concatenate([final_obs, single_obs - np.roll(single_obs, i+1)])
+
+        if self.append_zeros > 0:
+            final_obs = np.concatenate([final_obs, np.zeros(self.append_zeros)])
+
+        if self.obs_projection_model:
+            final_obs = self.obs_projection_model(final_obs)
 
         return final_obs
 

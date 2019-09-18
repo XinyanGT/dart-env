@@ -1021,20 +1021,20 @@ class darwinSquatParamManager:
 
 # new formatted manager
 class darwinParamManager:
-    VARIATIONS = 'KP KD KC KP_RATIO KD_RATIO NEURAL_MOTOR VEL_LIM GROUP_JOINT_DAMPING JOINT_DAMPING JOINT_FRICTION TORQUE_LIM COM_OFFSET GROUND_FRICTION BODY_MASSES'.split(' ')
+    VARIATIONS = 'KP KD KC KP_RATIO KD_RATIO NEURAL_MOTOR VEL_LIM GROUP_JOINT_DAMPING JOINT_DAMPING JOINT_FRICTION TORQUE_LIM COM_OFFSET GROUND_FRICTION BODY_MASSES MASS_RATIO INERTIA_RATIO'.split(' ')
     KP, KD, KC, KP_RATIO, KD_RATIO, NEURAL_MOTOR, VEL_LIM, GROUP_JOINT_DAMPING, JOINT_DAMPING, JOINT_FRICTION, \
-    TORQUE_LIM, COM_OFFSET, GROUND_FRICTION, BODY_MASSES = list(
-        range(14))
-    MU_DIMS = np.array([5, 5, 5, 5, 5, 27, 1, 5, 1, 1, 1, 2, 1, 14])
+    TORQUE_LIM, COM_OFFSET, GROUND_FRICTION, BODY_MASSES, MASS_RATIO, INERTIA_RATIO = list(
+        range(16))
+    MU_DIMS = np.array([5, 5, 5, 5, 5, 27, 1, 5, 1, 1, 1, 2, 1, 14, 27, 27])
     MU_UP_BOUNDS = [[200, 200, 200, 200, 200], [1, 1, 1, 1, 1], [10, 10, 10, 10, 10], [3.0, 3.0, 3.0, 3.0, 3.0],
                     [3.0, 3.0, 3.0, 3.0, 3.0], [1] * 27, [15], [1, 1, 1, 1, 1], [1], [1], [20.0], [0.1, 0.05], [3.0],
-                    [1.5,  0.1, 0.1, 0.5, 0.1, 0.1,  0.1, 0.5, 0.5, 0.5, 0.1, 0.1, 0.5, 0.1]]
+                    [1.5,  0.1, 0.1, 0.5, 0.1, 0.1,  0.1, 0.5, 0.5, 0.5, 0.1, 0.1, 0.5, 0.1], [1.3]*27, [1.6]*27]
     MU_LOW_BOUNDS = [[0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [-1] * 27,
                      [2.0], [0, 0, 0, 0, 0], [0], [0], [3.0], [-0.1, -0.05], [0.0],
-                     [0.5, 0.0, 0.0, 0.1, 0.0, 0.0, 0.0, 0.1, 0.1, 0.1, 0.0, 0.0, 0.1, 0.0]]
+                     [0.5, 0.0, 0.0, 0.1, 0.0, 0.0, 0.0, 0.1, 0.1, 0.1, 0.0, 0.0, 0.1, 0.0], [0.7]*27, [0.6]*27]
     activated_param = np.arange(14)
     #controllable_param = [KP_RATIO, KD_RATIO, NEURAL_MOTOR, VEL_LIM, JOINT_DAMPING, TORQUE_LIM, COM_OFFSET, GROUND_FRICTION]
-    controllable_param = [KP_RATIO, KD_RATIO, NEURAL_MOTOR, TORQUE_LIM, COM_OFFSET, GROUND_FRICTION]
+    controllable_param = [KP_RATIO, KD_RATIO, NEURAL_MOTOR, TORQUE_LIM, COM_OFFSET, GROUND_FRICTION, MASS_RATIO, INERTIA_RATIO]
     MU_UNSCALED = None  # unscaled version of mu
 
     def __init__(self, simulator):
@@ -1146,6 +1146,11 @@ class darwinParamManager:
         if self.GROUND_FRICTION in self.controllable_param:
             self.MU_UNSCALED.append(self.simulator.dart_world.skeletons[0].bodynodes[0].friction_coeff())
 
+        if self.MASS_RATIO in self.controllable_param:
+            self.MU_UNSCALED += self.simulator.mass_ratios.tolist()
+
+        if self.INERTIA_RATIO in self.controllable_param:
+            self.MU_UNSCALED += self.simulator.inertia_ratios.tolist()
 
         return self.NormalizeMu(self.MU_UNSCALED)[self.activated_param]
 
@@ -1291,6 +1296,14 @@ class darwinParamManager:
             for bn in self.simulator.robot_skeleton.bodynodes:
                 bn.set_friction_coeff(self.MU_UNSCALED[current_id])
             current_id += self.MU_DIMS[self.GROUND_FRICTION]
+
+        if self.MASS_RATIO in self.controllable_param:
+            self.simulator.mass_ratios = self.MU_UNSCALED[current_id:current_id + self.MU_DIMS[self.MASS_RATIO]]
+            current_id += self.MU_DIMS[self.MASS_RATIO]
+
+        if self.INERTIA_RATIO in self.controllable_param:
+            self.simulator.inertia_ratios = self.MU_UNSCALED[current_id:current_id + self.MU_DIMS[self.INERTIA_RATIO]]
+            current_id += self.MU_DIMS[self.INERTIA_RATIO]
 
     def resample_parameters(self):
         x = np.random.uniform(-0.05, 1.05, np.sum(self.MU_DIMS[self.controllable_param]))
