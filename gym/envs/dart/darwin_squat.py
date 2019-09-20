@@ -45,7 +45,7 @@ class DartDarwinSquatEnv(dart_env.DartEnv, utils.EzPickle):
         self.action_filter_cache = []
         self.butterworth_filter = False
 
-        self.action_delay = 0.03
+        self.action_delay = 0.0
         self.action_queue = []
 
         self.future_ref_pose = 0  # step of future trajectories as input
@@ -98,8 +98,8 @@ class DartDarwinSquatEnv(dart_env.DartEnv, utils.EzPickle):
         self.orientation_threshold = 1.0    # terminate if body rotates for this amount
         self.control_interval = 0.034  # control every 50 ms
         self.sim_timestep = 0.002
-        self.forward_reward = 30.0
-        self.velocity_clip = 0.2
+        self.forward_reward = 10.0
+        self.velocity_clip = 0.3
         self.contact_pen = 0.0
         self.kp = None
         self.kd = None
@@ -168,10 +168,10 @@ class DartDarwinSquatEnv(dart_env.DartEnv, utils.EzPickle):
 
         self.delta_angle_scale = 0.3
 
-        self.alive_bonus = 2.0
-        self.energy_weight = 0.0
-        self.work_weight = 0.0
-        self.pose_weight = 0.0
+        self.alive_bonus = 5.0
+        self.energy_weight = 0.01
+        self.work_weight = 0.03
+        self.pose_weight = 0.2
         self.upright_weight = 0.0
         self.comvel_pen = 0.0
         self.compos_pen = 0.0
@@ -283,8 +283,8 @@ class DartDarwinSquatEnv(dart_env.DartEnv, utils.EzPickle):
         self.robot_skeleton.bodynode('l_hand').set_friction_coeff(2.0)
         self.robot_skeleton.bodynode('r_hand').set_friction_coeff(2.0)
 
-        self.add_perturbation = True
-        self.perturbation_parameters = [0.2, 0.3, 1.7, [3, 5], 1]  # begin time, duration, interval, magnitude, bodyid
+        self.add_perturbation = False
+        self.perturbation_parameters = [1.0, 0.3, 1.7, [2, 3], 1]  # begin time, duration, interval, magnitude, bodyid
 
         for i in range(6, self.robot_skeleton.ndofs):
             j = self.robot_skeleton.dof(i)
@@ -1236,7 +1236,7 @@ class DartDarwinSquatEnv(dart_env.DartEnv, utils.EzPickle):
             self.gyro_bias = np.random.uniform(-0.03, 0.03, 2)
 
         if self.randomize_action_delay:
-            self.action_delay = np.random.uniform(0.03, 0.06)
+            self.action_delay = np.random.uniform(0.0, 0.03)
 
         self.perturb_force = np.array([0.0, 0.0, 0.0])
         self.cur_step = 0

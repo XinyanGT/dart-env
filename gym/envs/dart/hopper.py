@@ -14,7 +14,7 @@ class DartHopperEnv(dart_env.DartEnv, utils.EzPickle):
     def __init__(self):
         self.control_bounds = np.array([[1.0, 1.0, 1.0],[-1.0, -1.0, -1.0]])
         self.action_scale = np.array([200.0, 200.0, 200.0]) * 1.0
-        self.train_UP = False
+        self.train_UP = True
         self.noisy_input = True
         self.input_time = False
 
