@@ -14,7 +14,7 @@ class DartHopperEnv(dart_env.DartEnv, utils.EzPickle):
     def __init__(self):
         self.control_bounds = np.array([[1.0, 1.0, 1.0],[-1.0, -1.0, -1.0]])
         self.action_scale = np.array([200.0, 200.0, 200.0]) * 1.0
-        self.train_UP = True
+        self.train_UP = False
         self.noisy_input = True
         self.input_time = False
 
@@ -34,7 +34,7 @@ class DartHopperEnv(dart_env.DartEnv, utils.EzPickle):
 
         self.obs_projection_model = None
 
-        self.append_zeros = 0
+        self.append_zeros = 100
 
         obs_dim += self.append_zeros
 
@@ -60,7 +60,7 @@ class DartHopperEnv(dart_env.DartEnv, utils.EzPickle):
         self.alive_bonus = 1.0
 
         self.UP_noise_level = 0.0
-        self.resample_MP = True  # whether to resample the model paraeters
+        self.resample_MP = False  # whether to resample the model paraeters
 
         self.actuator_nonlinearity = False
         self.actuator_nonlin_coef = 1.0
@@ -455,7 +455,7 @@ class DartHopperEnv(dart_env.DartEnv, utils.EzPickle):
                 final_obs = np.concatenate([final_obs, single_obs - np.roll(single_obs, i+1)])
 
         if self.append_zeros > 0:
-            final_obs = np.concatenate([final_obs, np.zeros(self.append_zeros)])
+            final_obs = np.concatenate([final_obs, 500*np.random.random(self.append_zeros)])
 
         if self.obs_projection_model:
             final_obs = self.obs_projection_model(final_obs)

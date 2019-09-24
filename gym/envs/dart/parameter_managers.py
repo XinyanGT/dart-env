@@ -1034,7 +1034,7 @@ class darwinParamManager:
                      [0.5, 0.0, 0.0, 0.1, 0.0, 0.0, 0.0, 0.1, 0.1, 0.1, 0.0, 0.0, 0.1, 0.0], [0.7]*27, [0.6]*27]
     activated_param = np.arange(14)
     #controllable_param = [KP_RATIO, KD_RATIO, NEURAL_MOTOR, VEL_LIM, JOINT_DAMPING, TORQUE_LIM, COM_OFFSET, GROUND_FRICTION]
-    controllable_param = [KP_RATIO, KD_RATIO, NEURAL_MOTOR, TORQUE_LIM, COM_OFFSET, GROUND_FRICTION, MASS_RATIO, INERTIA_RATIO]
+    controllable_param = [KP_RATIO, KD_RATIO, NEURAL_MOTOR, TORQUE_LIM, COM_OFFSET, GROUND_FRICTION]#, MASS_RATIO, INERTIA_RATIO]
     MU_UNSCALED = None  # unscaled version of mu
 
     def __init__(self, simulator):

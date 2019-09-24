@@ -79,7 +79,7 @@ class DartDarwinSquatEnv(dart_env.DartEnv, utils.EzPickle):
                                     np.random.random((self.NN_motor_hid_size, 2)), np.random.random(2)]
         self.NN_motor_bound = [[200.0, 1.0], [0.0, 0.0]]
 
-        self.supress_all_randomness = False
+        self.supress_all_randomness = True
         self.use_settled_initial_states = False
         self.limited_joint_vel = True
         self.joint_vel_limit = 20000.0
@@ -88,7 +88,7 @@ class DartDarwinSquatEnv(dart_env.DartEnv, utils.EzPickle):
         self.resample_MP = True
         self.range_robust = 0.25 # std to sample at each step
         self.randomize_timestep = True
-        self.randomize_action_delay = True
+        self.randomize_action_delay = False
         self.load_keyframe_from_file = True
         self.randomize_gravity_sch = False
         self.randomize_obstacle = True
@@ -98,7 +98,7 @@ class DartDarwinSquatEnv(dart_env.DartEnv, utils.EzPickle):
         self.orientation_threshold = 1.0    # terminate if body rotates for this amount
         self.control_interval = 0.034  # control every 50 ms
         self.sim_timestep = 0.002
-        self.forward_reward = 10.0
+        self.forward_reward = 20.0
         self.velocity_clip = 0.3
         self.contact_pen = 0.0
         self.kp = None
@@ -168,10 +168,10 @@ class DartDarwinSquatEnv(dart_env.DartEnv, utils.EzPickle):
 
         self.delta_angle_scale = 0.3
 
-        self.alive_bonus = 5.0
-        self.energy_weight = 0.01
-        self.work_weight = 0.03
-        self.pose_weight = 0.2
+        self.alive_bonus = 3.0
+        self.energy_weight = 0.0
+        self.work_weight = 0.0
+        self.pose_weight = 0.0
         self.upright_weight = 0.0
         self.comvel_pen = 0.0
         self.compos_pen = 0.0
@@ -283,7 +283,7 @@ class DartDarwinSquatEnv(dart_env.DartEnv, utils.EzPickle):
         self.robot_skeleton.bodynode('l_hand').set_friction_coeff(2.0)
         self.robot_skeleton.bodynode('r_hand').set_friction_coeff(2.0)
 
-        self.add_perturbation = False
+        self.add_perturbation = True
         self.perturbation_parameters = [1.0, 0.3, 1.7, [2, 3], 1]  # begin time, duration, interval, magnitude, bodyid
 
         for i in range(6, self.robot_skeleton.ndofs):
@@ -316,17 +316,17 @@ class DartDarwinSquatEnv(dart_env.DartEnv, utils.EzPickle):
                                                      self.param_manager.NEURAL_MOTOR, self.param_manager.TORQUE_LIM,
                                                      self.param_manager.COM_OFFSET, self.param_manager.GROUND_FRICTION]
             self.param_manager.set_simulator_parameters(
-                np.array([2.87159059e-01, 4.03160514e-01, 4.36576586e-01, 3.86221239e-01,
-                          7.85789054e-01, 1.04277029e-01, 3.64862787e-01, 3.98563863e-01,
-                          9.36966648e-01, 9.56131312e-01, 8.74345365e-01, 8.39548565e-01,
-                          9.90829332e-01, 1.07563860e-01, 6.43309153e-01, 9.88438984e-01,
-                          2.85672012e-01, 9.67511394e-01, 5.98024447e-01, 1.59794372e-01,
-                          9.97536608e-01, 4.88691407e-01, 5.01293655e-01, 7.95171350e-01,
-                          9.95825152e-02, 7.09580629e-03, 4.66536839e-01, 5.25860303e-01,
-                          8.20514312e-01, 9.35216575e-04, 2.74604822e-01, 7.11505683e-02,
-                          4.56312986e-01, 9.28976189e-01, 7.45092860e-01, 5.09716306e-01,
-                          6.45103472e-01, 7.33841140e-01, 3.06389080e-01, 9.99043259e-01,
-                          2.37641857e-01]))
+                np.array([1.55595296e-01, 6.35274035e-01, 2.85643513e-01, 9.27803573e-01,
+                       7.98323024e-01, 3.14770753e-01, 3.12759198e-01, 1.32280363e-02,
+                       4.54097010e-01, 9.59817622e-01, 8.94546941e-01, 6.65048167e-01,
+                       2.45217181e-02, 7.02665933e-01, 4.90296069e-02, 1.71649715e-01,
+                       2.43688577e-01, 3.03967872e-01, 1.88101738e-01, 1.14561609e-01,
+                       1.66149357e-01, 1.40253976e-01, 8.71375455e-03, 7.73649075e-01,
+                       9.30349440e-01, 7.13183695e-01, 2.92347862e-01, 9.99964403e-01,
+                       7.78577862e-01, 9.95997304e-01, 7.04485271e-01, 6.96721021e-01,
+                       6.49664858e-01, 1.92869804e-01, 2.98916488e-01, 3.75158860e-02,
+                       2.81227101e-01, 1.18792790e-01, 3.71266863e-05, 9.97732476e-01,
+                       7.19723796e-01]))
             self.param_manager.controllable_param.remove(self.param_manager.NEURAL_MOTOR)
             self.param_manager.set_bounds(np.array([0.62754478, 1., 1., 0.91796176, 0.99481419,
                                                     0.62411285, 0.58039399, 1., 1., 1.,
@@ -334,6 +334,24 @@ class DartDarwinSquatEnv(dart_env.DartEnv, utils.EzPickle):
                                           np.array([0.1620302, 0.23465617, 0.18431452, 0.24797362, 0.53741423,
                                                     0., 0.052823, 0.22073834, 0.34243664, 0.74839466,
                                                     0., 0., 0., 0.1]))
+
+            # pm = np.array([5.86587706e-01, 5.00151470e-01, 9.97536633e-01, 6.66815888e-01,
+            #                6.29791458e-01, 3.42116093e-01, 3.23842581e-01, 4.05402331e-01,
+            #                8.10622081e-04, 4.90534178e-01, 2.99311372e-03, 8.15714535e-01,
+            #                9.72478819e-01, 1.18674067e-01, 1.41414123e-01, 1.84632018e-02,
+            #                9.11880122e-01, 5.73818820e-01, 2.54022409e-01, 9.94558429e-01,
+            #                7.09087640e-01, 6.70823851e-01, 7.29126922e-01, 8.19097878e-02,
+            #                9.54427143e-01, 6.65209514e-01, 6.60242616e-01, 2.06718349e-01,
+            #                6.78294588e-01, 8.15450384e-01, 8.56729822e-01, 9.99567744e-01,
+            #                9.54561687e-01, 2.24963620e-01, 7.74187637e-03, 1.88239327e-01,
+            #                7.80651748e-01, 8.89164022e-01, 1.59441457e-02, 6.43049162e-01,
+            #                8.95033539e-02])
+            #
+            # ub = np.clip(pm * 1.2, 0.0, 1.0)
+            # lb = np.clip(pm * 0.8, 0.0, 1.0)
+            #
+            # self.param_manager.set_simulator_parameters(pm)
+            # self.param_manager.set_bounds(ub, lb)
 
 
         self.default_kp_ratios = np.copy(self.kp_ratios)
@@ -643,6 +661,8 @@ class DartDarwinSquatEnv(dart_env.DartEnv, utils.EzPickle):
             # add noise
             euler += np.random.uniform(-0.01, 0.01, 3)
             langvel += np.random.uniform(-0.1, 0.1, 3)
+        # if euler[0] > 1.5:
+        #     euler[0] -= np.pi
         return np.array([euler[0], euler[1]-0.075, euler[2], langvel[0], langvel[1], langvel[2]])
 
     def falling_state(self): # detect if it's falling fwd/bwd or left/right
@@ -1186,7 +1206,7 @@ class DartDarwinSquatEnv(dart_env.DartEnv, utils.EzPickle):
         self.observation_buffer = []
         self.action_buffer = []
 
-        if self.resample_MP:
+        if self.resample_MP and not self.supress_all_randomness:
             self.param_manager.resample_parameters()
             self.current_param = np.copy(self.param_manager.get_simulator_parameters())
             if self.range_robust > 0:
@@ -1235,7 +1255,7 @@ class DartDarwinSquatEnv(dart_env.DartEnv, utils.EzPickle):
         if self.randomize_gyro_bias and not self.supress_all_randomness:
             self.gyro_bias = np.random.uniform(-0.03, 0.03, 2)
 
-        if self.randomize_action_delay:
+        if self.randomize_action_delay and not self.supress_all_randomness:
             self.action_delay = np.random.uniform(0.0, 0.03)
 
         self.perturb_force = np.array([0.0, 0.0, 0.0])
