@@ -34,7 +34,7 @@ class DartHopperEnv(dart_env.DartEnv, utils.EzPickle):
 
         self.obs_projection_model = None
 
-        self.append_zeros = 100
+        self.append_zeros = 0
 
         obs_dim += self.append_zeros
 

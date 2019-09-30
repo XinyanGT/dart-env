@@ -16,13 +16,15 @@ from gym.envs.dart.dc_motor import DCMotor
 from gym.envs.dart.darwin_utils import *
 from gym.envs.dart.parameter_managers import *
 
-from pydart2.utils.transformations import euler_from_matrix
+from pydart2.utils.transformations import euler_from_matrix, quaternion_from_matrix
 
 class DartDarwinEnv(dart_env.DartEnv, utils.EzPickle):
     def __init__(self):
         self.debug_env = False
 
         obs_dim = 40
+
+        self.trans_euler_root = False
 
         self.root_input = True    # whether to include root dofs in the obs
         self.include_heading = True
@@ -103,7 +105,11 @@ class DartDarwinEnv(dart_env.DartEnv, utils.EzPickle):
 
         # normal pose
         self.permitted_contact_ids = [-1, -2, -7, -8]
-        self.init_root_pert = np.array([0.0, 0.12, 0.0 , 0.0, 0.0, 0.0])#np.array([ -0.1255759, 0.1256759, 1.5663481 , 0.0, 0.0, 0.0])
+
+        if self.trans_euler_root:
+            self.init_root_pert = np.array([0.0, 0.0, 0.0, 0.0, 0.12, 0.0])
+        else:
+            self.init_root_pert = np.array([0.0, 0.12, 0.0, 0.0, 0.0, 0.0])
 
         self.no_target_vel = True
         self.exp_target_vel_rew = False
@@ -192,6 +198,10 @@ class DartDarwinEnv(dart_env.DartEnv, utils.EzPickle):
             model_file_list.insert(3, 'darwinmodel/soft_ground.urdf')
         dart_env.DartEnv.__init__(self, model_file_list, 15, obs_dim,
                                   self.control_bounds, dt=0.002, disableViewer=True, action_type="continuous" if not self.use_discrete_action else "discrete")
+
+        if self.trans_euler_root:
+            self.robot_skeleton.set_root_joint_to_trans_and_euler()
+            self.robot_skeleton.joints[1].set_axis_order("ZYX")
 
         self.orig_bodynode_masses = [bn.mass() for bn in self.robot_skeleton.bodynodes]
 
@@ -641,13 +651,22 @@ class DartDarwinEnv(dart_env.DartEnv, utils.EzPickle):
 
         return ob, reward, done, {'avg_vel': np.mean(self.vel_cache)}
 
+    def get_body_quaternion(self):
+        q = quaternion_from_matrix(self.robot_skeleton.bodynode('MP_BODY').T)
+        return q
+
     def get_sim_bno55(self, supress_randomization=False):
         # simulate bno55 reading
         tinv = np.linalg.inv(self.robot_skeleton.bodynode('MP_BODY').T[0:3, 0:3])
         angvel = self.robot_skeleton.bodynode('MP_BODY').com_spatial_velocity()[0:3]
         langvel = np.dot(tinv, angvel) + np.random.uniform(-0.1, 0.1, 3)
 
-        euler = euler_from_matrix(self.robot_skeleton.bodynode('MP_BODY').T[0:3, 0:3], 'sxyz')
+        if self.trans_euler_root:
+            euler = np.array(self.robot_skeleton.q[3:6])
+            euler = [euler[2], euler[1], euler[0]]
+        else:
+            euler = np.array(euler_from_matrix(self.robot_skeleton.bodynode('MP_BODY').T[0:3, 0:3], 'sxyz'))
+
         if self.randomize_gyro_bias and not supress_randomization:
             euler += np.random.uniform(-0.03, 0.03, 3)
             euler[0:2] += self.gyro_bias
@@ -719,7 +738,7 @@ class DartDarwinEnv(dart_env.DartEnv, utils.EzPickle):
         qpos[6:] = 0.5*(pose_squat_rad + pose_stand_rad)
 
 
-        qpos[0:3] += np.random.uniform(low=-0.1, high=0.1, size=3)
+        # qpos[0:3] += np.random.uniform(low=-0.1, high=0.1, size=3)
         qpos[6:] += np.random.uniform(low=-0.05, high=0.05, size=20)
         # self.target = qpos
         self.count = 0
@@ -727,7 +746,8 @@ class DartDarwinEnv(dart_env.DartEnv, utils.EzPickle):
         self.set_state(qpos, qvel)
 
         q = self.robot_skeleton.q
-        q[5] += -0.335 - np.min([self.robot_skeleton.bodynodes[-1].C[2], self.robot_skeleton.bodynodes[-8].C[2]])
+        qid = 2 if self.trans_euler_root else 5
+        q[qid] += -0.335 - np.min([self.robot_skeleton.bodynodes[-1].C[2], self.robot_skeleton.bodynodes[-8].C[2]])
         if self.use_settled_initial_states:
             q = self.init_states_candidates[np.random.randint(len(self.init_states_candidates))]
         self.robot_skeleton.q = q
