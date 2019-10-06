@@ -9,7 +9,7 @@ class DartHopperEnv(dart_env.DartEnv, utils.EzPickle):
         self.action_scale = 200
         obs_dim = 11
 
-        dart_env.DartEnv.__init__(self, 'hopper_capsule.skel', 4, obs_dim, self.control_bounds, disableViewer=False)
+        dart_env.DartEnv.__init__(self, 'hopper_capsule.skel', 4, obs_dim, self.control_bounds, disableViewer=True)
 
         try:
             self.dart_world.set_collision_detector(3)
@@ -55,7 +55,7 @@ class DartHopperEnv(dart_env.DartEnv, utils.EzPickle):
         reward -= 1e-3 * np.square(a).sum()
 
         # uncomment the line below to enable joint limit penalty, which helps learning
-        #reward -= 5e-1 * joint_limit_penalty
+        reward -= 5e-1 * joint_limit_penalty
 
         s = self.state_vector()
         done = not (np.isfinite(s).all() and (np.abs(s[2:]) < 100).all() and
