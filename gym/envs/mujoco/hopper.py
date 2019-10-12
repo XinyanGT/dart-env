@@ -10,9 +10,15 @@ class HopperEnv(mujoco_env.MujocoEnv, utils.EzPickle):
 
         self.resample_MP = False  # whether to resample the model paraeters
         self.param_manager = mjHopperManager(self)
-        self.velrew_weight = 1.0
+        self.velrew_weight = -1.0
+        self.velrew_input = True
 
-        self.terminate_for_not_moving = [0.5, 1.0]
+        self.terminate_for_not_moving = None#[0.5, 1.0]
+
+        self.pid_controller = None#[250, 25]
+        if self.pid_controller is not None:
+            self.torque_limit = [-200, 200]
+            self.action_scale = np.array([np.pi / 3.0, np.pi / 3.0, np.pi / 3.0])
 
         self.include_obs_history = 1
         self.include_act_history = 0
@@ -41,6 +47,22 @@ class HopperEnv(mujoco_env.MujocoEnv, utils.EzPickle):
 
     def unpad_action(self, a):
         return a[3:]
+
+    def do_simulation(self, ctrl, n_frames):
+        if self.pid_controller is not None:
+            target_angles = np.copy(ctrl)
+
+        self.sim.data.ctrl[:] = ctrl
+        for _ in range(n_frames):
+            if self.pid_controller is not None:
+                jpos = np.array(self.sim.data.qpos)[3:]
+                jvel = np.array(self.sim.data.qvel)[3:]
+
+                torque = self.pid_controller[0] * (target_angles - jpos) - self.pid_controller[1] * jvel
+                clipped_torque = np.clip(torque, self.torque_limit[0], self.torque_limit[1])
+
+                self.sim.data.ctrl[:] = clipped_torque
+            self.sim.step()
 
     def advance(self, a):
         self.action_buffer.append(np.copy(a))
@@ -114,6 +136,10 @@ class HopperEnv(mujoco_env.MujocoEnv, utils.EzPickle):
         ])
         if self.train_UP:
             state = np.concatenate([state, self.param_manager.get_simulator_parameters()])
+
+        if self.velrew_input:
+            state = np.concatenate([state, [self.velrew_weight]])
+
         if self.noisy_input:
             state = state + np.random.normal(0, .01, len(state))
 
@@ -134,6 +160,10 @@ class HopperEnv(mujoco_env.MujocoEnv, utils.EzPickle):
                 final_obs = np.concatenate([final_obs, [0.0] * 3])
 
         return final_obs
+
+    def get_lowdim_obs(self):
+        full_obs = self._get_obs(update_buffer=False)
+        return np.array([full_obs[1]])
 
     def reset_model(self):
         qpos = self.init_qpos + self.np_random.uniform(low=-.005, high=.005, size=self.model.nq)

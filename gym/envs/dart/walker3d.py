@@ -93,6 +93,15 @@ class DartWalker3dEnv(dart_env.DartEnv, utils.EzPickle):
                 print('density of ', bn.name, ' is ', bn.mass()/np.prod(shapesize))
         print('Total mass: ', self.robot_skeleton.mass())
 
+
+        self.obs_perm = np.array([0.0001, -1, 2, -3, -4, -5, -6, 7, 14, -15, -16, 17, 18, -19, 8,
+                                                      -9, -10, 11, 12, -13,
+                                                      20, 21, -22, 23, -24, -25, -26, -27, 28, 35, -36, -37, 38, 39,
+                                                      -40, 29, -30, -31, 32, 33,
+                                                      -34, 42, 41, 43])
+
+        self.act_perm = np.array([-0.0001, -1, 2, 9, -10, -11, 12, 13, -14, 3, -4, -5, 6, 7, -8])
+
         utils.EzPickle.__init__(self)
 
     def resample_task(self):
@@ -344,3 +353,19 @@ class DartWalker3dEnv(dart_env.DartEnv, utils.EzPickle):
         if not self.disableViewer:
             self._get_viewer().scene.tb.trans[2] = -5.5
 
+
+    def resample_reward_function(self):
+        # alive bonus, velocity reward, energy penalty
+        coef = np.random.random(3)
+        self.alive_bonus = coef[0] * 5.0  # 0-5
+        self.energy_penalty = coef[1] * 0.01  # 0-0.01
+        self.velrew_weight = coef[2] * 5.0 # 0-5
+        return coef
+
+    def set_reward_function(self, coef):
+        self.alive_bonus = coef[0] * 5.0  # 0-5
+        self.energy_penalty = coef[1] * 0.01  # 0-0.01
+        self.velrew_weight = coef[2] * 5.0  # 0-5
+
+    def true_reward(self):
+        return self.robot_skeleton.q[0]  # position in x direction

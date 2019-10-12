@@ -955,64 +955,84 @@
   </link>
 
 
-  <joint name="j_shoe_1_r" type="fixed">
+  <joint name="j_shoe_1_r" type="prismatic">
     <parent link="MP_ANKLE2_R"/>
     <child link="SHOE_PIECE1_R"/>
     <origin rpy="0 0 0" xyz="0.037 -0.01 0.0468"/>
+    <axis xyz="1 0 0"/>
+    <limit effort="2.8" lower="-0.01" upper="0.01" velocity="5.6548668"/>
   </joint>
 
-  <joint name="j_shoe_2_r" type="fixed">
+  <joint name="j_shoe_2_r" type="prismatic">
     <parent link="MP_ANKLE2_R"/>
     <child link="SHOE_PIECE2_R"/>
     <origin rpy="0 0 0" xyz="0.037 -0.01 0.0364"/>
+    <axis xyz="1 0 0"/>
+    <limit effort="2.8" lower="-0.01" upper="0.01" velocity="5.6548668"/>
   </joint>
 
-  <joint name="j_shoe_3_r" type="fixed">
+  <joint name="j_shoe_3_r" type="prismatic">
     <parent link="MP_ANKLE2_R"/>
     <child link="SHOE_PIECE3_R"/>
     <origin rpy="0 0 0" xyz="0.037 -0.01 0.026"/>
+    <axis xyz="1 0 0"/>
+    <limit effort="2.8" lower="-0.01" upper="0.01" velocity="5.6548668"/>
   </joint>
 
-  <joint name="j_shoe_4_r" type="fixed">
+  <joint name="j_shoe_4_r" type="prismatic">
     <parent link="MP_ANKLE2_R"/>
     <child link="SHOE_PIECE4_R"/>
     <origin rpy="0 0 0" xyz="0.037 -0.01 0.0156"/>
+    <axis xyz="1 0 0"/>
+    <limit effort="2.8" lower="-0.01" upper="0.01" velocity="5.6548668"/>
   </joint>
 
-  <joint name="j_shoe_5_r" type="fixed">
+  <joint name="j_shoe_5_r" type="prismatic">
     <parent link="MP_ANKLE2_R"/>
     <child link="SHOE_PIECE5_R"/>
     <origin rpy="0 0 0" xyz="0.037 -0.01 0.0052"/>
+    <axis xyz="1 0 0"/>
+    <limit effort="2.8" lower="-0.01" upper="0.01" velocity="5.6548668"/>
   </joint>
 
-  <joint name="j_shoe_6_r" type="fixed">
+  <joint name="j_shoe_6_r" type="prismatic">
     <parent link="MP_ANKLE2_R"/>
     <child link="SHOE_PIECE6_R"/>
     <origin rpy="0 0 0" xyz="0.037 -0.01 -0.0052"/>
+    <axis xyz="1 0 0"/>
+    <limit effort="2.8" lower="-0.01" upper="0.01" velocity="5.6548668"/>
   </joint>
 
-  <joint name="j_shoe_7_r" type="fixed">
+  <joint name="j_shoe_7_r" type="prismatic">
     <parent link="MP_ANKLE2_R"/>
     <child link="SHOE_PIECE7_R"/>
     <origin rpy="0 0 0" xyz="0.037 -0.01 -0.0156"/>
+    <axis xyz="1 0 0"/>
+    <limit effort="2.8" lower="-0.01" upper="0.01" velocity="5.6548668"/>
   </joint>
 
-  <joint name="j_shoe_8_r" type="fixed">
+  <joint name="j_shoe_8_r" type="prismatic">
     <parent link="MP_ANKLE2_R"/>
     <child link="SHOE_PIECE8_R"/>
     <origin rpy="0 0 0" xyz="0.037 -0.01 -0.026"/>
+    <axis xyz="1 0 0"/>
+    <limit effort="2.8" lower="-0.01" upper="0.01" velocity="5.6548668"/>
   </joint>
 
-  <joint name="j_shoe_9_r" type="fixed">
+  <joint name="j_shoe_9_r" type="prismatic">
     <parent link="MP_ANKLE2_R"/>
     <child link="SHOE_PIECE9_R"/>
     <origin rpy="0 0 0" xyz="0.037 -0.01 -0.0364"/>
+    <axis xyz="1 0 0"/>
+    <limit effort="2.8" lower="-0.01" upper="0.01" velocity="5.6548668"/>
   </joint>
 
-  <joint name="j_shoe_10_r" type="fixed">
+  <joint name="j_shoe_10_r" type="prismatic">
     <parent link="MP_ANKLE2_R"/>
     <child link="SHOE_PIECE10_R"/>
     <origin rpy="0 0 0" xyz="0.037 -0.01 -0.0468"/>
+    <axis xyz="1 0 0"/>
+    <limit effort="2.8" lower="-0.01" upper="0.01" velocity="5.6548668"/>
   </joint>
 
 
@@ -1248,64 +1268,84 @@
   </link>
 
 
-  <joint name="j_shoe_1_l" type="fixed">
+  <joint name="j_shoe_1_l" type="prismatic">
     <parent link="MP_ANKLE2_L"/>
     <child link="SHOE_PIECE1_L"/>
     <origin rpy="0 0 0" xyz="-0.037 -0.01 0.0468"/>
+    <axis xyz="1 0 0"/>
+    <limit effort="2.8" lower="-0.01" upper="0.01" velocity="5.6548668"/>
   </joint>
 
-  <joint name="j_shoe_2_l" type="fixed">
+  <joint name="j_shoe_2_l" type="prismatic">
     <parent link="MP_ANKLE2_L"/>
     <child link="SHOE_PIECE2_L"/>
     <origin rpy="0 0 0" xyz="-0.037 -0.01 0.0364"/>
+    <axis xyz="1 0 0"/>
+    <limit effort="2.8" lower="-0.01" upper="0.01" velocity="5.6548668"/>
   </joint>
 
-  <joint name="j_shoe_3_l" type="fixed">
+  <joint name="j_shoe_3_l" type="prismatic">
     <parent link="MP_ANKLE2_L"/>
     <child link="SHOE_PIECE3_L"/>
     <origin rpy="0 0 0" xyz="-0.037 -0.01 0.026"/>
+    <axis xyz="1 0 0"/>
+    <limit effort="2.8" lower="-0.01" upper="0.01" velocity="5.6548668"/>
   </joint>
 
-  <joint name="j_shoe_4_l" type="fixed">
+  <joint name="j_shoe_4_l" type="prismatic">
     <parent link="MP_ANKLE2_L"/>
     <child link="SHOE_PIECE4_L"/>
     <origin rpy="0 0 0" xyz="-0.037 -0.01 0.0156"/>
+    <axis xyz="1 0 0"/>
+    <limit effort="2.8" lower="-0.01" upper="0.01" velocity="5.6548668"/>
   </joint>
 
-  <joint name="j_shoe_5_l" type="fixed">
+  <joint name="j_shoe_5_l" type="prismatic">
     <parent link="MP_ANKLE2_L"/>
     <child link="SHOE_PIECE5_L"/>
     <origin rpy="0 0 0" xyz="-0.037 -0.01 0.0052"/>
+    <axis xyz="1 0 0"/>
+    <limit effort="2.8" lower="-0.01" upper="0.01" velocity="5.6548668"/>
   </joint>
 
-  <joint name="j_shoe_6_l" type="fixed">
+  <joint name="j_shoe_6_l" type="prismatic">
     <parent link="MP_ANKLE2_L"/>
     <child link="SHOE_PIECE6_L"/>
     <origin rpy="0 0 0" xyz="-0.037 -0.01 -0.0052"/>
+    <axis xyz="1 0 0"/>
+    <limit effort="2.8" lower="-0.01" upper="0.01" velocity="5.6548668"/>
   </joint>
 
-  <joint name="j_shoe_7_l" type="fixed">
+  <joint name="j_shoe_7_l" type="prismatic">
     <parent link="MP_ANKLE2_L"/>
     <child link="SHOE_PIECE7_L"/>
     <origin rpy="0 0 0" xyz="-0.037 -0.01 -0.0156"/>
+    <axis xyz="1 0 0"/>
+    <limit effort="2.8" lower="-0.01" upper="0.01" velocity="5.6548668"/>
   </joint>
 
-  <joint name="j_shoe_8_l" type="fixed">
+  <joint name="j_shoe_8_l" type="prismatic">
     <parent link="MP_ANKLE2_L"/>
     <child link="SHOE_PIECE8_L"/>
     <origin rpy="0 0 0" xyz="-0.037 -0.01 -0.026"/>
+    <axis xyz="1 0 0"/>
+    <limit effort="2.8" lower="-0.01" upper="0.01" velocity="5.6548668"/>
   </joint>
 
-  <joint name="j_shoe_9_l" type="fixed">
+  <joint name="j_shoe_9_l" type="prismatic">
     <parent link="MP_ANKLE2_L"/>
     <child link="SHOE_PIECE9_L"/>
     <origin rpy="0 0 0" xyz="-0.037 -0.01 -0.0364"/>
+    <axis xyz="1 0 0"/>
+    <limit effort="2.8" lower="-0.01" upper="0.01" velocity="5.6548668"/>
   </joint>
 
-  <joint name="j_shoe_10_l" type="fixed">
+  <joint name="j_shoe_10_l" type="prismatic">
     <parent link="MP_ANKLE2_L"/>
     <child link="SHOE_PIECE10_L"/>
     <origin rpy="0 0 0" xyz="-0.037 -0.01 -0.0468"/>
+    <axis xyz="1 0 0"/>
+    <limit effort="2.8" lower="-0.01" upper="0.01" velocity="5.6548668"/>
   </joint>
 
 </robot>
