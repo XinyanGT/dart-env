@@ -4,12 +4,12 @@ from gym.envs.dart import dart_env
 
 
 class DartHopperEnv(dart_env.DartEnv, utils.EzPickle):
-    def __init__(self):
+    def __init__(self, **kwargs):
         self.control_bounds = np.array([[1.0, 1.0, 1.0],[-1.0, -1.0, -1.0]])
         self.action_scale = 200
         obs_dim = 11
 
-        dart_env.DartEnv.__init__(self, 'hopper_capsule.skel', 4, obs_dim, self.control_bounds, disableViewer=True)
+        dart_env.DartEnv.__init__(self, 'hopper_capsule.skel', 4, obs_dim, self.control_bounds, **kwargs)
 
         try:
             self.dart_world.set_collision_detector(3)

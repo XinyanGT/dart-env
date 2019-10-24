@@ -6,7 +6,7 @@ from gym.envs.dart import dart_env
 
 
 class DartWalker3dEnv(dart_env.DartEnv, utils.EzPickle):
-    def __init__(self):
+    def __init__(self, **kwargs):
         self.control_bounds = np.array([[1.0]*15,[-1.0]*15])
         self.action_scale = np.array([100.0]*15)
         self.action_scale[[-1,-2,-7,-8]] = 20
@@ -15,7 +15,7 @@ class DartWalker3dEnv(dart_env.DartEnv, utils.EzPickle):
 
         self.t = 0
 
-        dart_env.DartEnv.__init__(self, 'walker3d_waist.skel', 4, obs_dim, self.control_bounds, disableViewer=False)
+        dart_env.DartEnv.__init__(self, 'walker3d_waist.skel', 4, obs_dim, self.control_bounds, **kwargs)
 
         try:
             self.dart_world.set_collision_detector(3)
