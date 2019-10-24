@@ -26,7 +26,7 @@ class DartEnv(gym.Env):
     """
 
     def __init__(self, model_paths, frame_skip, observation_size, action_bounds, \
-                 dt=0.002, obs_type="parameter", action_type="continuous", visualize=True, disableViewer=False,\
+                 dt=0.002, obs_type="parameter", action_type="continuous", visualize=True, disableViewer=True,\
                  screen_width=80, screen_height=45):
         assert obs_type in ('parameter', 'image')
         assert action_type in ("continuous", "discrete")
